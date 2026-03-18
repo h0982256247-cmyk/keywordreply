@@ -31,6 +31,7 @@ export default function Campaigns() {
   const [sending, setSending]         = useState<string | null>(null);
   const [includeQuickReply, setIncludeQuickReply] = useState(true);
   const [sendOptions, setSendOptions] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab]     = useState<'all' | 'pending' | 'sent' | 'failed'>('all');
 
   const load = async () => {
     const [docRows, campaignRows] = await Promise.all([listDocs(), listCampaigns()]);
@@ -203,18 +204,47 @@ export default function Campaigns() {
         </form>
       </section>
 
-      {/* ── Section 2: 推播文章列表 ─────────────────────────────────────── */}
+      {/* ── Section 2: 推播訊息管理 ─────────────────────────────────────── */}
       <section className="bg-white rounded-2xl border border-[#EBEBEB] shadow-sm overflow-hidden">
 
         <div className="px-6 py-4 border-b border-[#F0F0F0] flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-[#2B2B2B]">推播文章列表</h2>
-            <p className="text-xs text-[#AAAAAA] mt-0.5">從草稿引用內容，發送後會記錄狀態。</p>
-          </div>
+          <h2 className="text-base font-semibold text-[#2B2B2B]">推播訊息管理</h2>
           <span className="text-xs text-[#AAAAAA] tabular-nums">{rows.length} 筆</span>
         </div>
 
-        {rows.length === 0 ? (
+        {/* Status Tabs */}
+        {(() => {
+          const tabs: { key: typeof activeTab; label: string }[] = [
+            { key: 'all',     label: '全部' },
+            { key: 'pending', label: '排程中' },
+            { key: 'sent',    label: '已發送' },
+            { key: 'failed',  label: '發送失敗' },
+          ];
+          return (
+            <div className="flex gap-0 border-b border-[#F0F0F0] px-6 overflow-x-auto">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setActiveTab(t.key)}
+                  className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors -mb-px ${
+                    activeTab === t.key
+                      ? 'border-[#A35D5D] text-[#A35D5D]'
+                      : 'border-transparent text-[#6B6B6B] hover:text-[#2B2B2B] hover:border-[#E7C9CD]'
+                  }`}
+                >
+                  {t.label}
+                  <span className={`ml-1.5 text-xs tabular-nums ${activeTab === t.key ? 'text-[#A35D5D]' : 'text-[#AAAAAA]'}`}>
+                    {t.key === 'all' ? rows.length : rows.filter((r) => r.status === t.key).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+
+        {(() => {
+          const filtered = activeTab === 'all' ? rows : rows.filter((r) => r.status === activeTab);
+          return filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center opacity-70">
             <div className="w-16 h-16 bg-[#F0F0F0] rounded-full flex items-center justify-center mb-4 text-3xl">📮</div>
             <p className="text-[#2B2B2B] font-medium text-sm">尚未建立任何推播</p>
@@ -222,7 +252,7 @@ export default function Campaigns() {
           </div>
         ) : (
           <ul className="divide-y divide-[#F0F0F0]">
-            {rows.map((row) => (
+            {filtered.map((row) => (
               <li
                 key={row.id}
                 className="px-6 py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-[#FAFAFA] transition-colors"
@@ -280,7 +310,8 @@ export default function Campaigns() {
               </li>
             ))}
           </ul>
-        )}
+        );
+        })()}
       </section>
     </div>
   );

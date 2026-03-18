@@ -47,20 +47,20 @@ function FolderCreateModal({ open, onClose, onCreate }: { open: boolean; onClose
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="例如：活動訊息、客服範本..."
-            className="w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition"
+            className="w-full rounded-xl border border-[#E7C9CD] bg-white px-4 py-3 text-sm text-[#2B2B2B] placeholder-[#C4A8AB] focus:outline-none focus:ring-2 focus:ring-[#A35D5D] focus:border-[#A35D5D] transition"
           />
           <div className="mt-5 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm text-stone-600 hover:bg-stone-100 rounded-xl transition-colors font-medium"
+              className="px-4 py-2.5 text-sm text-[#6B6B6B] hover:bg-[#F6D9DD] rounded-xl transition-colors font-medium"
             >
               取消
             </button>
             <button
               type="submit"
               disabled={!name.trim()}
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-xl transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
               建立
             </button>
@@ -277,7 +277,7 @@ function NewMessageModal({
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0E3E5]">
           <h2 className="text-base font-semibold text-stone-900">建立新訊息</h2>
           <button
             onClick={onClose}
@@ -303,8 +303,8 @@ function NewMessageModal({
                   className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all
                       ${!t.enabled ? "opacity-40 cursor-not-allowed border-neutral-100 bg-neutral-50 text-stone-400" :
                       selectedType === t.id
-                        ? "border-emerald-400 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-400"
-                        : "border-neutral-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-neutral-50"
+                        ? "border-[#A35D5D] bg-[#FBEBEE] text-[#A35D5D] ring-1 ring-[#A35D5D]"
+                        : "border-[#E7C9CD] bg-white text-[#6B6B6B] hover:border-[#A35D5D] hover:bg-[#FFF7F8]"
                     }`}
                 >
                   <span className={selectedType === t.id && t.enabled ? "text-emerald-600" : "text-stone-500"}>
@@ -316,7 +316,7 @@ function NewMessageModal({
             </div>
 
             {/* Description */}
-            <div className="bg-neutral-50 rounded-xl px-4 py-3 flex items-start gap-3 min-h-[64px]">
+            <div className="bg-[#FFF7F8] rounded-xl px-4 py-3 flex items-start gap-3 min-h-[64px]">
               <span className="text-stone-400 mt-0.5 shrink-0">{currentType.icon}</span>
               <div>
                 <span className="text-sm font-medium text-stone-700 block mb-0.5">{currentType.label}</span>
@@ -329,10 +329,10 @@ function NewMessageModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-neutral-100 bg-neutral-50/50">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#F0E3E5] bg-[#FFF7F8]/50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-stone-600 hover:bg-neutral-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm text-[#6B6B6B] hover:bg-[#F6D9DD] rounded-lg transition-colors"
           >
             取消
           </button>
@@ -349,7 +349,7 @@ function NewMessageModal({
                 createFromDoc(seedBubble());
               }
             }}
-            className="px-5 py-2 text-sm font-medium text-white bg-pink-400 hover:bg-pink-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2 text-sm font-medium text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "建立中..." : "建立"}
           </button>
@@ -523,7 +523,7 @@ export default function Drafts() {
                       if (e.key === "Escape") setEditingFolderId(null);
                     }}
                     onBlur={() => handleRenameFolder(tab.id, editingFolderName)}
-                    className="px-3 py-1.5 text-sm border border-pink-400 rounded-full outline-none focus:ring-1 focus:ring-pink-400 w-28"
+                    className="px-3 py-1.5 text-sm border border-[#A35D5D] rounded-full outline-none focus:ring-1 focus:ring-[#A35D5D] w-28"
                   />
                 </span>
               );
@@ -553,10 +553,10 @@ export default function Drafts() {
                 }}
                 className={`shrink-0 flex items-center rounded-full text-sm font-medium transition-colors whitespace-nowrap select-none
                     ${tab.isFolder ? "cursor-grab active:cursor-grabbing" : ""}
-                    ${dragOverId === tab.id ? "ring-2 ring-pink-400 ring-offset-1" : ""}
+                    ${dragOverId === tab.id ? "ring-2 ring-[#A35D5D] ring-offset-1" : ""}
                     ${isActive
-                    ? "bg-pink-400 text-white shadow-sm"
-                    : "bg-white text-stone-700 border border-stone-200 hover:bg-neutral-50"
+                    ? "bg-[#FBEBEE] text-[#A35D5D] shadow-sm"
+                    : "bg-white text-[#6B6B6B] border border-[#E7C9CD] hover:bg-[#F6D9DD] hover:text-[#A35D5D]"
                   }`}
               >
                 {/* Name — clickable for selection */}
@@ -572,7 +572,7 @@ export default function Drafts() {
                   <span className="flex items-center gap-0.5 pr-2">
                     <button
                       onClick={e => { e.stopPropagation(); setEditingFolderName(tab.label); setEditingFolderId(tab.id); }}
-                      className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-pink-500 text-pink-100 transition-colors"
+                      className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[#8F4A4A] text-[#E8A4A9] transition-colors"
                       title="重新命名"
                     >
                       <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -581,7 +581,7 @@ export default function Drafts() {
                     </button>
                     <button
                       onClick={e => { e.stopPropagation(); handleDeleteFolder(tab.id, tab.label); }}
-                      className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-pink-500 text-pink-100 transition-colors"
+                      className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-[#8F4A4A] text-[#E8A4A9] transition-colors"
                       title="刪除資料夾"
                     >
                       <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -596,7 +596,7 @@ export default function Drafts() {
 
           <button
             onClick={() => setShowFolderModal(true)}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-stone-400 border border-stone-200 bg-white hover:bg-neutral-50 hover:text-stone-600 transition-colors"
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#6B6B6B] border border-[#E7C9CD] bg-white hover:bg-[#F6D9DD] hover:text-[#A35D5D] transition-colors"
             title="新增資料夾"
           >
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -605,7 +605,7 @@ export default function Drafts() {
           </button>
         </div>
           <button
-            className="shrink-0 ml-4 px-4 py-2 text-sm font-medium text-white bg-pink-400 hover:bg-pink-500 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+            className="shrink-0 ml-4 px-4 py-2 text-sm font-medium text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
             onClick={() => setShowNewModal(true)}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -616,9 +616,9 @@ export default function Drafts() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white border border-neutral-200 rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center gap-3">
+        <div className="bg-white border border-[#E7C9CD] rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[160px] max-w-xs">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="m21 21-4.35-4.35" />
             </svg>
             <input
@@ -626,21 +626,21 @@ export default function Drafts() {
               placeholder="搜尋訊息名稱..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 placeholder-stone-400"
+              className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#E7C9CD] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#A35D5D] focus:border-[#A35D5D] placeholder-[#6B6B6B]"
             />
           </div>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-stone-600 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#6B6B6B] border border-[#E7C9CD] rounded-lg hover:bg-[#F6D9DD] hover:text-[#A35D5D] transition-colors">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
             篩選類型
           </button>
-          <div className="ml-auto flex items-center rounded-lg border border-neutral-200 overflow-hidden text-sm">
+          <div className="ml-auto flex items-center rounded-lg border border-[#E7C9CD] overflow-hidden text-sm">
             {(["all", "used", "unused"] as const).map((v, i) => (
               <button
                 key={v}
                 onClick={() => setStatusFilter(v)}
-                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-neutral-200" : ""} ${statusFilter === v ? "bg-pink-400 text-white" : "bg-white text-stone-600 hover:bg-neutral-50"
+                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-[#E7C9CD]" : ""} ${statusFilter === v ? "bg-[#A35D5D] text-white" : "bg-white text-[#6B6B6B] hover:bg-[#F6D9DD]"
                   }`}
               >
                 {v === "all" ? "全部" : v === "used" ? "已使用" : "未使用"}
@@ -650,24 +650,24 @@ export default function Drafts() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-neutral-200 rounded-xl">
+        <div className="bg-white border border-[#E7C9CD] rounded-2xl shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-neutral-100 bg-neutral-50/60">
-                <th className="text-left px-5 py-3 font-medium text-stone-400 text-xs tracking-wide">訊息名稱</th>
-                <th className="text-left px-5 py-3 font-medium text-stone-400 text-xs tracking-wide">類型</th>
-                <th className="text-left px-5 py-3 font-medium text-stone-400 text-xs tracking-wide">資料夾</th>
-                <th className="text-left px-5 py-3 font-medium text-stone-400 text-xs tracking-wide">使用狀態</th>
-                <th className="text-left px-5 py-3 font-medium text-stone-400 text-xs tracking-wide">最後更新</th>
-                <th className="text-right px-5 py-3 font-medium text-stone-400 text-xs tracking-wide">操作</th>
+              <tr className="border-b border-[#F0E3E5] bg-[#FFF7F8]">
+                <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">訊息名稱</th>
+                <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">類型</th>
+                <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">資料夾</th>
+                <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">使用狀態</th>
+                <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">最後更新</th>
+                <th className="text-right px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[#F0E3E5]">
               {files.map(r => (
-                <tr key={r.id} className="hover:bg-neutral-50/60 transition-colors">
+                <tr key={r.id} className="hover:bg-[#FCF7F8] transition-colors">
                   <td className="px-5 py-3.5">
                     <span
-                      className="font-medium text-stone-900 hover:text-pink-600 cursor-pointer transition-colors"
+                      className="font-medium text-[#2B2B2B] hover:text-[#A35D5D] cursor-pointer transition-colors"
                       onClick={() => nav(`/drafts/${r.id}/edit`)}
                     >
                       {r.content.name || r.title || "未命名"}
@@ -679,8 +679,8 @@ export default function Drafts() {
                   <td className="px-5 py-3.5 text-stone-500">{getFolderName(r)}</td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${r.status === "publishable"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-neutral-100 text-stone-500"
+                      ? "bg-[#EAF4ED] text-[#4E735D]"
+                      : "bg-[#F6F0F1] text-[#6B6B6B]"
                       }`}>
                       {r.status === "publishable" ? "已使用" : "未使用"}
                     </span>
@@ -694,7 +694,7 @@ export default function Drafts() {
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        className="w-9 h-9 flex items-center justify-center text-stone-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+                        className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#A35D5D] hover:bg-[#FBEBEE] rounded-lg transition-colors"
                         onClick={e => { e.stopPropagation(); nav(`/drafts/${r.id}/edit`); }}
                         title="編輯"
                       >
@@ -703,7 +703,7 @@ export default function Drafts() {
                         </svg>
                       </button>
                       <button
-                        className="w-9 h-9 flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
+                        className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#B85C5C] hover:bg-[#FBEBEE] rounded-lg transition-colors disabled:opacity-40"
                         disabled={deleting === r.id}
                         onClick={e => { e.stopPropagation(); handleDelete(r.id, r.title || r.content.name); }}
                         title="刪除"
@@ -721,9 +721,9 @@ export default function Drafts() {
                 <tr>
                   <td colSpan={6} className="py-24 text-center">
                     <div className="flex flex-col items-center justify-center opacity-70">
-                      <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4 text-3xl text-stone-300">📭</div>
-                      <p className="text-stone-700 font-medium">沒有訊息</p>
-                      <p className="text-sm text-stone-400 mt-1">點擊右上角「建立訊息」開始建立</p>
+                      <div className="w-16 h-16 bg-[#F6D9DD] rounded-full flex items-center justify-center mb-4 text-3xl text-[#A35D5D]">📭</div>
+                      <p className="text-[#2B2B2B] font-medium">沒有訊息</p>
+                      <p className="text-sm text-[#6B6B6B] mt-1">點擊右上角「建立訊息」開始建立</p>
                     </div>
                   </td>
                 </tr>
@@ -732,7 +732,7 @@ export default function Drafts() {
           </table>
         </div>
 
-        <div className="mt-8 text-center text-xs text-stone-300">Flex Editor v1.0.4</div>
+        <div className="mt-8 text-center text-xs text-[#C4A8AB]">Flex Editor v1.0.4</div>
       </div>
 
       {/* New Message Modal */}

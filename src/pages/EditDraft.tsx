@@ -568,22 +568,18 @@ export default function EditDraft() {
                       </div>
                     );
                   })}
-                </div>
-
-                {/* Right actions */}
-                <div className="flex items-center gap-1.5 flex-shrink-0 pb-1">
-                  {/* Add card */}
+                  {/* Add card — inline after last tab */}
                   {doc.cards.length < 10 && (
-                    <div className="relative">
+                    <div className="relative flex-shrink-0 self-center ml-1">
                       <button
                         title="新增卡片"
-                        className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#E7C9CD] hover:bg-[#FCF7F8] transition-colors text-[#6B6B6B]"
+                        className="w-6 h-6 flex items-center justify-center rounded-full border border-[#E7C9CD] hover:bg-[#FBEBEE] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors text-[#AAAAAA]"
                         onClick={() => setShowAddCardMenu(v => !v)}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                       </button>
                       {showAddCardMenu && (
-                        <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]">
+                        <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]">
                           {[{ val: "regular", label: "一般卡片" }, { val: "special", label: "特殊卡片" }].map(({ val, label }) => (
                             <button key={val} className="w-full text-left px-4 py-2 text-sm text-[#555555] hover:bg-[#FCF7F8] transition-colors" onClick={() => {
                               const newCard = val === "regular"
@@ -598,6 +594,10 @@ export default function EditDraft() {
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* Right actions */}
+                <div className="flex items-center gap-1.5 flex-shrink-0 pb-1">
                   {/* Duplicate */}
                   <button
                     className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#E7C9CD] hover:bg-[#FBEBEE] hover:border-[#E7C9CD] text-[#6B6B6B] hover:text-[#A35D5D] transition-colors"

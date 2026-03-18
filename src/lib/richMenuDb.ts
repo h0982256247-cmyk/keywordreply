@@ -185,7 +185,7 @@ export async function saveRmFolderOrder(orderedIds: string[]) {
 
 export async function publishRmDraft(draftId: string, menuIndex?: number) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error("NOT_AUTH");
+  if (!session) throw new Error("尚未登入，請重新整理頁面");
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const res = await fetch(`${supabaseUrl}/functions/v1/publish-richmenu`, {
@@ -196,8 +196,21 @@ export async function publishRmDraft(draftId: string, menuIndex?: number) {
     },
     body: JSON.stringify({ draftId, menuIndex }),
   });
-  const json = await res.json();
-  if (!json.success) throw new Error(json.error?.message || "Publish failed");
+
+  let json: any;
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error(`HTTP ${res.status} — ${res.statusText || "無法解析回應"}`);
+  }
+
+  if (!res.ok && !json?.success) {
+    const detail = json?.error?.message || json?.message || `HTTP ${res.status}`;
+    const code = json?.error?.code ? ` [${json.error.code}]` : "";
+    throw new Error(`發布失敗${code}：${detail}`);
+  }
+
+  if (!json.success) throw new Error(json.error?.message || "發布失敗");
   return json.data as { jobId: string; publishedMenus: any[] };
 }
 

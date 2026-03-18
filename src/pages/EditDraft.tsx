@@ -38,6 +38,13 @@ export default function EditDraft() {
   const [activeShare, setActiveShare] = useState<{ token: string; version_no: number } | null>(null);
   const [editingNameIdx, setEditingNameIdx] = useState<number | null>(null);
   const [folders, setFolders] = useState<any[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<number | null>(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 3000);
+  };
   const saveTimer = useRef<number | null>(null);
   const cardTabsRef = useRef<HTMLDivElement>(null);
   const dragBodyRef = useRef<number>(-1);
@@ -214,6 +221,14 @@ export default function EditDraft() {
 
     return (
       <div className="h-screen overflow-hidden flex flex-col bg-[#FCF7F8]">
+
+        {/* Toast notification */}
+        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${toast ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#2B2B2B] text-white text-sm font-medium rounded-full shadow-lg">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+            {toast}
+          </div>
+        </div>
 
         {/* Sticky top bar — full width */}
         <div className="sticky top-0 z-30 bg-white border-b border-[#E7C9CD] px-4 py-2 flex items-center gap-3">
@@ -648,6 +663,7 @@ export default function EditDraft() {
                             if (error) return alert("上傳失敗：" + error.message);
                             const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
                             setSection({ ...specialSection, image: { kind: "upload", assetId: path, url: publicUrl } });
+                            showToast("圖片上傳成功");
                           } catch (err: any) {
                             alert("上傳錯誤：" + err.message);
                           }
@@ -825,6 +841,7 @@ export default function EditDraft() {
                             }
 
                             await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
+                            showToast("影片上傳成功");
                           } catch (err: any) {
                             alert("上傳錯誤：" + err.message);
                           }
@@ -846,6 +863,7 @@ export default function EditDraft() {
                             if (error) return alert("上傳失敗：" + error.message);
                             const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
                             await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
+                            showToast("預覽圖上傳成功");
                           } catch (err: any) {
                             alert("上傳錯誤：" + err.message);
                           }
@@ -1243,6 +1261,7 @@ export default function EditDraft() {
                               assetId: path,
                               url: publicUrl
                             });
+                            showToast("圖片上傳成功");
                           } catch (err: any) {
                             alert("上傳錯誤：" + err.message);
                           }

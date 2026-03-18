@@ -101,11 +101,31 @@ export default function AppShell() {
 
       <div className="flex-1 min-w-0">
         {!isEditRoute && (
-          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200 px-4 md:px-6 py-4 flex items-center gap-2">
+          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200 px-4 md:px-6 py-3 flex items-center gap-2">
             <div className="flex-1 flex items-center">
-              <div className="text-xl font-bold text-stone-900 leading-none">
-                {location.pathname.startsWith('/drafts') ? '訊息管理 > 草稿內容中心' : location.pathname.startsWith('/campaigns') ? '推播設定 > 推播發送中心' : location.pathname.startsWith('/keywords') ? '自動回應訊息 > 關鍵字規則中心' : 'LINE Channel 設定'}
-              </div>
+              {(() => {
+                const crumbs: { parent: string; child: string } | { single: string } =
+                  location.pathname.startsWith('/drafts')
+                    ? { parent: '訊息管理', child: '草稿內容中心' }
+                    : location.pathname.startsWith('/campaigns')
+                    ? { parent: '推播設定', child: '推播發送中心' }
+                    : location.pathname.startsWith('/keywords')
+                    ? { parent: '自動回應訊息', child: '關鍵字規則中心' }
+                    : { single: 'LINE Channel 設定' };
+
+                if ('single' in crumbs) {
+                  return <span className="text-lg font-bold text-stone-900">{crumbs.single}</span>;
+                }
+                return (
+                  <nav className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium text-stone-400">{crumbs.parent}</span>
+                    <svg className="w-3.5 h-3.5 text-stone-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+                    </svg>
+                    <span className="text-lg font-bold text-stone-900">{crumbs.child}</span>
+                  </nav>
+                );
+              })()}
             </div>
             <div className="md:hidden flex gap-2 overflow-auto">
               {items.map(item => (

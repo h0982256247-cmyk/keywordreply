@@ -100,7 +100,7 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
         {root.contents.map((bubble: any, i: number) => (
           <div
             key={i}
-            className={`snap-center flex-shrink-0 cursor-pointer transition-all duration-200 relative ${selectedIndex === i ? "ring-2 ring-blue-400 ring-offset-2 rounded-[18px]" : "hover:opacity-90"
+            className={`snap-center flex-shrink-0 cursor-pointer transition-all duration-200 relative ${selectedIndex === i ? "ring-2 ring-blue-400 rounded-[18px]" : "hover:opacity-90"
               }`}
             style={{ minWidth: width, maxWidth: width }}
             onClick={() => handleCardClick(i)}

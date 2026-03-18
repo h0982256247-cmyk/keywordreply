@@ -55,53 +55,60 @@ export default function AppShell() {
   };
 
   if (checkingChannel) {
-    return <div className="min-h-screen bg-neutral-50 flex items-center justify-center text-stone-500">載入品牌設定中...</div>;
+    return <div className="min-h-screen bg-[#FCF7F8] flex items-center justify-center text-[#6B6B6B]">載入品牌設定中...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex">
+    <div className="min-h-screen bg-[#FCF7F8] flex">
       {/* Sidebar */}
       {sidebarOpen ? (
-        <aside className="hidden md:flex md:w-64 bg-stone-900 text-white flex-col border-r border-stone-800 shrink-0">
-          <div className="px-5 py-4 border-b border-stone-800 flex items-center justify-between">
-            <div className="text-xl font-bold">ROAR</div>
-            <button onClick={() => setSidebarOpen(false)} className="text-stone-400 hover:text-white transition p-1 rounded-lg hover:bg-stone-800" title="收起側欄">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <aside className="hidden md:flex md:w-60 bg-white flex-col border-r border-[#EFEFEF] shrink-0">
+          <div className="px-5 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-[#A35D5D] flex items-center justify-center shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div className="text-sm font-semibold text-[#1A1A1A] tracking-tight">GentlerDigit</div>
+            </div>
+            <button onClick={() => setSidebarOpen(false)} className="text-[#AAAAAA] hover:text-[#A35D5D] transition p-1.5 rounded-lg hover:bg-[#F6D9DD]" title="收起側欄">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
           </div>
 
-          <nav className="p-4 space-y-2 flex-1">
+          <nav className="px-3 space-y-0.5 flex-1">
             {items.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) => `block rounded-2xl px-4 py-4 transition ${isActive ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-200 hover:bg-stone-800'}`}
+                className={({ isActive }) => `flex items-center rounded-lg px-3 py-2.5 transition-colors text-sm ${isActive ? 'bg-[#FBEBEE] text-[#A35D5D] font-medium' : 'text-[#555555] hover:bg-[#F6F6F6] hover:text-[#1A1A1A]'}`}
               >
-                <div className="font-semibold">{item.label}</div>
+                {item.label}
               </NavLink>
             ))}
           </nav>
 
-          <div className="p-4 border-t border-stone-800">
-            <button onClick={() => nav('/settings')} className="w-full mb-2 rounded-xl border border-stone-700 px-4 py-3 text-left hover:bg-stone-800 transition">
-              <div className="font-medium">LINE 設定</div>
+          <div className="p-3 border-t border-[#F0F0F0] space-y-0.5">
+            <button onClick={() => nav('/settings')} className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[#555555] hover:bg-[#F6F6F6] hover:text-[#1A1A1A] transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              LINE 設定
             </button>
-            <button onClick={handleLogout} className="w-full rounded-xl bg-stone-800 px-4 py-3 text-left hover:bg-stone-700 transition">
+            <button onClick={handleLogout} className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[#555555] hover:bg-[#F6F6F6] hover:text-[#1A1A1A] transition-colors">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               登出
             </button>
           </div>
         </aside>
       ) : (
-        <aside className="hidden md:flex md:w-12 bg-stone-900 text-white flex-col border-r border-stone-800 shrink-0 items-center py-4 gap-4">
-          <button onClick={() => setSidebarOpen(true)} className="text-stone-400 hover:text-white transition p-1 rounded-lg hover:bg-stone-800" title="展開側欄">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <aside className="hidden md:flex md:w-12 bg-white flex-col border-r border-[#EFEFEF] shrink-0 items-center py-4 gap-4">
+          <button onClick={() => setSidebarOpen(true)} className="text-[#AAAAAA] hover:text-[#A35D5D] transition p-1.5 rounded-lg hover:bg-[#F6F6F6]" title="展開側欄">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
         </aside>
       )}
 
       <div className="flex-1 min-w-0">
         {!isEditRoute && (
-          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200 px-4 md:px-6 py-3 flex items-center gap-2">
+          <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#EFEFEF] px-4 md:px-6 py-3 flex items-center gap-2">
             <div className="flex-1 flex items-center">
               {(() => {
                 const crumbs: { parent: string; child: string } | { single: string } =
@@ -114,22 +121,22 @@ export default function AppShell() {
                     : { single: 'LINE Channel 設定' };
 
                 if ('single' in crumbs) {
-                  return <span className="text-lg font-bold text-stone-900">{crumbs.single}</span>;
+                  return <span className="text-base font-semibold text-[#2B2B2B]">{crumbs.single}</span>;
                 }
                 return (
                   <nav className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-stone-400">{crumbs.parent}</span>
-                    <svg className="w-3.5 h-3.5 text-stone-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <span className="text-sm font-medium text-[#6B6B6B]">{crumbs.parent}</span>
+                    <svg className="w-3.5 h-3.5 text-[#E8A4A9] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
                     </svg>
-                    <span className="text-lg font-bold text-stone-900">{crumbs.child}</span>
+                    <span className="text-base font-semibold text-[#2B2B2B]">{crumbs.child}</span>
                   </nav>
                 );
               })()}
             </div>
             <div className="md:hidden flex gap-2 overflow-auto">
               {items.map(item => (
-                <NavLink key={item.to} to={item.to} className={({isActive}) => `whitespace-nowrap rounded-full px-3 py-2 text-sm ${isActive ? 'bg-stone-900 text-white' : 'bg-neutral-100 text-stone-600'}`}>
+                <NavLink key={item.to} to={item.to} className={({isActive}) => `whitespace-nowrap rounded-full px-3 py-2 text-sm ${isActive ? 'bg-[#FBEBEE] text-[#A35D5D]' : 'bg-[#FFF7F8] text-[#6B6B6B]'}`}>
                   {item.label}
                 </NavLink>
               ))}

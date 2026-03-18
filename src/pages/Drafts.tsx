@@ -53,7 +53,7 @@ function FolderCreateModal({ open, onClose, onCreate }: { open: boolean; onClose
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm text-[#6B6B6B] hover:bg-[#F6D9DD] rounded-xl transition-colors font-medium"
+              className="px-4 py-2.5 text-sm text-[#555555] hover:bg-[#F5F5F5] rounded-xl transition-colors font-medium"
             >
               取消
             </button>
@@ -307,7 +307,7 @@ function NewMessageModal({
                         : "border-[#E7C9CD] bg-white text-[#6B6B6B] hover:border-[#A35D5D] hover:bg-[#FFF7F8]"
                     }`}
                 >
-                  <span className={selectedType === t.id && t.enabled ? "text-emerald-600" : "text-stone-500"}>
+                  <span className={selectedType === t.id && t.enabled ? "text-[#A35D5D]" : "text-stone-400"}>
                     {t.icon}
                   </span>
                   {t.label}
@@ -332,7 +332,7 @@ function NewMessageModal({
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#F0E3E5] bg-[#FFF7F8]/50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-[#6B6B6B] hover:bg-[#F6D9DD] rounded-lg transition-colors"
+            className="px-4 py-2 text-sm text-[#555555] hover:bg-[#F5F5F5] rounded-lg transition-colors"
           >
             取消
           </button>
@@ -555,8 +555,8 @@ export default function Drafts() {
                     ${tab.isFolder ? "cursor-grab active:cursor-grabbing" : ""}
                     ${dragOverId === tab.id ? "ring-2 ring-[#A35D5D] ring-offset-1" : ""}
                     ${isActive
-                    ? "bg-[#FBEBEE] text-[#A35D5D] shadow-sm"
-                    : "bg-white text-[#6B6B6B] border border-[#E7C9CD] hover:bg-[#F6D9DD] hover:text-[#A35D5D]"
+                    ? "bg-[#FBEBEE] text-[#A35D5D] shadow-sm border border-transparent"
+                    : "bg-white text-[#555555] border border-[#E8E8E8] hover:bg-[#F5F5F5] hover:text-[#1A1A1A]"
                   }`}
               >
                 {/* Name — clickable for selection */}
@@ -596,7 +596,7 @@ export default function Drafts() {
 
           <button
             onClick={() => setShowFolderModal(true)}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#6B6B6B] border border-[#E7C9CD] bg-white hover:bg-[#F6D9DD] hover:text-[#A35D5D] transition-colors"
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#888888] border border-[#E8E8E8] bg-white hover:bg-[#F5F5F5] hover:text-[#1A1A1A] transition-colors"
             title="新增資料夾"
           >
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -605,7 +605,7 @@ export default function Drafts() {
           </button>
         </div>
           <button
-            className="shrink-0 ml-4 px-4 py-2 text-sm font-medium text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+            className="shrink-0 ml-4 px-4 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-md"
             onClick={() => setShowNewModal(true)}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -616,7 +616,7 @@ export default function Drafts() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white border border-[#E7C9CD] rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center gap-3">
+        <div className="bg-white border border-[#EBEBEB] rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center gap-3 shadow-sm">
           <div className="relative flex-1 min-w-[160px] max-w-xs">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="m21 21-4.35-4.35" />
@@ -626,21 +626,21 @@ export default function Drafts() {
               placeholder="搜尋訊息名稱..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#E7C9CD] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#A35D5D] focus:border-[#A35D5D] placeholder-[#6B6B6B]"
+              className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#E8E8E8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#A35D5D] focus:border-[#A35D5D] placeholder-[#AAAAAA]"
             />
           </div>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#6B6B6B] border border-[#E7C9CD] rounded-lg hover:bg-[#F6D9DD] hover:text-[#A35D5D] transition-colors">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#555555] border border-[#E8E8E8] rounded-lg hover:bg-[#F5F5F5] hover:text-[#1A1A1A] transition-colors">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
             篩選類型
           </button>
-          <div className="ml-auto flex items-center rounded-lg border border-[#E7C9CD] overflow-hidden text-sm">
+          <div className="ml-auto flex items-center rounded-lg border border-[#E8E8E8] overflow-hidden text-sm">
             {(["all", "used", "unused"] as const).map((v, i) => (
               <button
                 key={v}
                 onClick={() => setStatusFilter(v)}
-                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-[#E7C9CD]" : ""} ${statusFilter === v ? "bg-[#A35D5D] text-white" : "bg-white text-[#6B6B6B] hover:bg-[#F6D9DD]"
+                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-[#E8E8E8]" : ""} ${statusFilter === v ? "bg-[#A35D5D] text-white" : "bg-white text-[#555555] hover:bg-[#F5F5F5]"
                   }`}
               >
                 {v === "all" ? "全部" : v === "used" ? "已使用" : "未使用"}
@@ -650,10 +650,10 @@ export default function Drafts() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-[#E7C9CD] rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#EBEBEB] rounded-2xl shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#F0E3E5] bg-[#FFF7F8]">
+              <tr className="border-b border-[#F0F0F0] bg-[#FAFAFA]">
                 <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">訊息名稱</th>
                 <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">類型</th>
                 <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">資料夾</th>
@@ -662,9 +662,9 @@ export default function Drafts() {
                 <th className="text-right px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0E3E5]">
+            <tbody className="divide-y divide-[#F0F0F0]">
               {files.map(r => (
-                <tr key={r.id} className="hover:bg-[#FCF7F8] transition-colors">
+                <tr key={r.id} className="hover:bg-[#FAFAFA] transition-colors">
                   <td className="px-5 py-3.5">
                     <span
                       className="font-medium text-[#2B2B2B] hover:text-[#A35D5D] cursor-pointer transition-colors"
@@ -721,7 +721,7 @@ export default function Drafts() {
                 <tr>
                   <td colSpan={6} className="py-24 text-center">
                     <div className="flex flex-col items-center justify-center opacity-70">
-                      <div className="w-16 h-16 bg-[#F6D9DD] rounded-full flex items-center justify-center mb-4 text-3xl text-[#A35D5D]">📭</div>
+                      <div className="w-16 h-16 bg-[#F0F0F0] rounded-full flex items-center justify-center mb-4 text-3xl">📭</div>
                       <p className="text-[#2B2B2B] font-medium">沒有訊息</p>
                       <p className="text-sm text-[#6B6B6B] mt-1">點擊右上角「建立訊息」開始建立</p>
                     </div>

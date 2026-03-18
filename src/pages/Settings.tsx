@@ -62,7 +62,7 @@ export default function Settings() {
           <div className="text-sm font-semibold text-stone-700">Webhook URL</div>
           <div className="mt-2 flex flex-col md:flex-row gap-3 md:items-center">
             <code className="flex-1 rounded-xl bg-stone-900 text-stone-100 px-4 py-3 text-xs overflow-auto">{webhookUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(webhookUrl)} className="rounded-xl px-4 py-3 bg-stone-900 text-white">複製</button>
+            <button type="button" onClick={() => navigator.clipboard.writeText(webhookUrl)} className="rounded-xl px-4 py-3 bg-pink-400 hover:bg-pink-500 text-white transition-colors">複製</button>
           </div>
           <p className="mt-2 text-xs text-stone-500">到 LINE Developers &gt; Messaging API 貼上這組 URL，開啟 webhook 後即可使用關鍵字自動回覆。</p>
         </div>

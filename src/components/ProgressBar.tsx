@@ -22,7 +22,7 @@ export default function ProgressBar({ docId }: { docId?: string }) {
     const isCurrent = current === key;
     const done = (current === "edit" && key === "drafts") || (current === "preview" && (key === "drafts" || key === "edit"));
     return (
-      <button key={key} className={`inline-flex items-center justify-center gap-2 rounded-lg transition-colors px-4 py-2 text-sm shadow-sm border ${isCurrent ? "bg-blue-600 text-white border-transparent" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`} onClick={() => go(key)} type="button">
+      <button key={key} className={`inline-flex items-center justify-center gap-2 rounded-lg transition-colors px-4 py-2 text-sm shadow-sm border ${isCurrent ? "bg-pink-400 text-white border-transparent" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`} onClick={() => go(key)} type="button">
         <span>{done ? "✓" : ""}</span><span>{label}</span>
       </button>
     );

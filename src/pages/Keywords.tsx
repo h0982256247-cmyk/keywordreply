@@ -134,7 +134,7 @@ export default function Keywords() {
               <div className="mt-2 text-xs text-stone-400">支援拖曳排序，或使用上下移動按鈕快速調整優先順序。{savingOrder ? ' 目前正在儲存排序...' : ''}</div>
             </div>
           </div>
-          <button onClick={openCreate} className="rounded-2xl bg-pink-600 text-white px-5 py-3 font-medium shadow-sm hover:bg-pink-700">＋ 建立關鍵字規則</button>
+          <button onClick={openCreate} className="rounded-2xl bg-pink-400 text-white px-5 py-3 font-medium shadow-sm hover:bg-pink-500">＋ 建立關鍵字規則</button>
         </div>
       </section>
 
@@ -253,7 +253,7 @@ export default function Keywords() {
             </div>
             <div className="px-6 py-5 border-t border-neutral-200 flex justify-end gap-3">
               <button type="button" onClick={() => setOpen(false)} className="rounded-2xl border border-stone-300 px-4 py-3 text-stone-600">取消</button>
-              <button disabled={busy} className="rounded-2xl bg-pink-600 text-white px-5 py-3 font-medium disabled:opacity-60">{busy ? '儲存中...' : form.id ? '更新規則' : '建立規則'}</button>
+              <button disabled={busy} className="rounded-2xl bg-pink-400 hover:bg-pink-500 text-white px-5 py-3 font-medium disabled:opacity-60 transition-colors">{busy ? '儲存中...' : form.id ? '更新規則' : '建立規則'}</button>
             </div>
           </form>
         </div>

@@ -349,7 +349,7 @@ function NewMessageModal({
                 createFromDoc(seedBubble());
               }
             }}
-            className="px-5 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2 text-sm font-medium text-white bg-pink-400 hover:bg-pink-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "建立中..." : "建立"}
           </button>
@@ -555,7 +555,7 @@ export default function Drafts() {
                     ${tab.isFolder ? "cursor-grab active:cursor-grabbing" : ""}
                     ${dragOverId === tab.id ? "ring-2 ring-pink-400 ring-offset-1" : ""}
                     ${isActive
-                    ? "bg-pink-600 text-white shadow-sm"
+                    ? "bg-pink-400 text-white shadow-sm"
                     : "bg-white text-stone-700 border border-stone-200 hover:bg-neutral-50"
                   }`}
               >
@@ -605,7 +605,7 @@ export default function Drafts() {
           </button>
         </div>
           <button
-            className="shrink-0 ml-4 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+            className="shrink-0 ml-4 px-4 py-2 text-sm font-medium text-white bg-pink-400 hover:bg-pink-500 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
             onClick={() => setShowNewModal(true)}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -640,7 +640,7 @@ export default function Drafts() {
               <button
                 key={v}
                 onClick={() => setStatusFilter(v)}
-                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-neutral-200" : ""} ${statusFilter === v ? "bg-stone-900 text-white" : "bg-white text-stone-600 hover:bg-neutral-50"
+                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-neutral-200" : ""} ${statusFilter === v ? "bg-pink-400 text-white" : "bg-white text-stone-600 hover:bg-neutral-50"
                   }`}
               >
                 {v === "all" ? "全部" : v === "used" ? "已使用" : "未使用"}

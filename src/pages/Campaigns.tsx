@@ -273,7 +273,7 @@ export default function Campaigns() {
                     <button
                       disabled={sending === row.id}
                       onClick={() => handleSend(row)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-pink-600 text-white px-4 py-2 text-xs font-medium hover:bg-pink-700 active:bg-pink-800 disabled:opacity-50 transition"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-pink-400 text-white px-4 py-2 text-xs font-medium hover:bg-pink-500 active:bg-pink-600 disabled:opacity-50 transition"
                     >
                       {sending === row.id
                         ? <><Spinner />推播中…</>

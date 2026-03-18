@@ -129,7 +129,7 @@ export default function NewDraft() {
                   </div>
 
                   <div className="mt-4 flex gap-3">
-                    <button className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm" disabled={loading} onClick={() => createFromDoc(t.doc_model)}>
+                    <button className="w-full px-4 py-2 bg-pink-400 text-white font-medium rounded-lg hover:bg-pink-500 transition-colors shadow-sm" disabled={loading} onClick={() => createFromDoc(t.doc_model)}>
                       {loading ? "處理中…" : "使用此範本"}
                     </button>
                   </div>

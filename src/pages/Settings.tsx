@@ -45,12 +45,12 @@ export default function Settings() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="bg-white rounded-3xl border border-neutral-200 p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-stone-900">LINE Channel 設定</h2>
-        <p className="mt-2 text-stone-500">第一次登入請先完成這一頁，儲存成功後會自動進入系統；下次登入會直接進入主系統。</p>
+      <div className="bg-white rounded-2xl border border-[#E7C9CD] p-6 shadow-sm">
+        <h2 className="text-xl font-semibold text-[#2B2B2B]">LINE Channel 設定</h2>
+        <p className="mt-2 text-sm text-[#6B6B6B]">第一次登入請先完成這一頁，儲存成功後會自動進入系統；下次登入會直接進入主系統。</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-neutral-200 p-6 shadow-sm space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#E7C9CD] p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
           <Field label="Channel 名稱" value={channelName} onChange={setChannelName} placeholder="例如：品牌客服 OA" />
           <Field label="Channel ID" value={channelId} onChange={setChannelId} placeholder="LINE Developers 的 Channel ID" />
@@ -58,18 +58,37 @@ export default function Settings() {
           <Field label="Channel Access Token" value={accessToken} onChange={setAccessToken} placeholder="貼上長期 Access Token" type="password" />
         </div>
 
-        <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-4">
-          <div className="text-sm font-semibold text-stone-700">Webhook URL</div>
+        <div className="rounded-xl bg-[#FFF7F8] border border-[#E7C9CD] p-4">
+          <div className="text-sm font-semibold text-[#2B2B2B]">Webhook URL</div>
           <div className="mt-2 flex flex-col md:flex-row gap-3 md:items-center">
-            <code className="flex-1 rounded-xl bg-stone-900 text-stone-100 px-4 py-3 text-xs overflow-auto">{webhookUrl}</code>
-            <button type="button" onClick={() => navigator.clipboard.writeText(webhookUrl)} className="rounded-xl px-4 py-3 bg-pink-400 hover:bg-pink-500 text-white transition-colors">複製</button>
+            <code className="flex-1 rounded-xl bg-[#2B2B2B] text-stone-100 px-4 py-3 text-xs overflow-auto">{webhookUrl}</code>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(webhookUrl)}
+              className="rounded-xl px-4 py-3 bg-[#A35D5D] hover:bg-[#8F4A4A] text-white text-sm font-medium transition-colors"
+            >
+              複製
+            </button>
           </div>
-          <p className="mt-2 text-xs text-stone-500">到 LINE Developers &gt; Messaging API 貼上這組 URL，開啟 webhook 後即可使用關鍵字自動回覆。</p>
+          <p className="mt-2 text-xs text-[#6B6B6B]">到 LINE Developers &gt; Messaging API 貼上這組 URL，開啟 webhook 後即可使用關鍵字自動回覆。</p>
         </div>
 
-        {msg && <div className="text-sm text-stone-600 bg-neutral-50 rounded-xl px-4 py-3">{msg}</div>}
+        {msg && (
+          <div className={`text-sm rounded-xl px-4 py-3 border ${
+            msg.includes('成功') || msg.includes('完成')
+              ? 'bg-[#EAF4ED] text-[#4E735D] border-[#B8D9C4]'
+              : 'bg-red-50 text-red-700 border-red-200'
+          }`}>
+            {msg}
+          </div>
+        )}
 
-        <button disabled={loading} className="rounded-2xl bg-pink-600 text-white px-5 py-3 font-medium disabled:opacity-60">{loading ? '儲存中...' : '儲存設定'}</button>
+        <button
+          disabled={loading}
+          className="rounded-xl bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-5 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-60 transition-colors"
+        >
+          {loading ? '儲存中...' : '儲存設定'}
+        </button>
       </form>
     </div>
   );
@@ -78,8 +97,14 @@ export default function Settings() {
 function Field({ label, value, onChange, placeholder, type = 'text' }: any) {
   return (
     <label className="block space-y-2">
-      <div className="text-sm font-medium text-stone-700">{label}</div>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} type={type} className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-100" />
+      <div className="text-sm font-medium text-[#2B2B2B]">{label}</div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        type={type}
+        className="w-full rounded-xl border border-[#E7C9CD] px-4 py-2.5 text-sm text-[#2B2B2B] placeholder-[#AAAAAA] outline-none focus:border-[#A35D5D] focus:ring-2 focus:ring-[#A35D5D]/15 transition"
+      />
     </label>
   );
 }

@@ -22,7 +22,7 @@ export default function ProgressBar({ docId }: { docId?: string }) {
     const isCurrent = current === key;
     const done = (current === "edit" && key === "drafts") || (current === "preview" && (key === "drafts" || key === "edit"));
     return (
-      <button key={key} className={`inline-flex items-center justify-center gap-2 rounded-lg transition-colors px-4 py-2 text-sm shadow-sm border ${isCurrent ? "bg-pink-400 text-white border-transparent" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`} onClick={() => go(key)} type="button">
+      <button key={key} className={`inline-flex items-center justify-center gap-2 rounded-lg transition-colors px-4 py-2 text-sm shadow-sm border ${isCurrent ? "bg-[#A35D5D] text-white border-transparent" : "bg-white text-[#6B6B6B] border-[#E7C9CD] hover:bg-[#FCF7F8]"}`} onClick={() => go(key)} type="button">
         <span>{done ? "✓" : ""}</span><span>{label}</span>
       </button>
     );
@@ -31,7 +31,7 @@ export default function ProgressBar({ docId }: { docId?: string }) {
   return (
     <div className="sticky top-0 z-20">
       <div className="mx-auto max-w-5xl px-4 pt-4">
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-3 flex gap-2 justify-center">
+        <div className="bg-white border border-[#E7C9CD] rounded-xl shadow-sm p-3 flex gap-2 justify-center">
           {pill("drafts", "草稿")}
           {pill("edit", "編輯")}
           {pill("preview", "預覽")}

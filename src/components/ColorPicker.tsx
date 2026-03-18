@@ -8,13 +8,13 @@ export default function ColorPicker({ label, value, onChange, allowCustom = true
   const palette = useMemo(() => colors || PALETTE, [colors]);
   return (
     <div>
-      <div className="text-xs font-semibold text-slate-500 mb-2">{label}</div>
+      <div className="text-xs font-semibold text-[#6B6B6B] mb-2">{label}</div>
       <div className="flex flex-wrap gap-2">
         {palette.map((c) => (
           <button key={c} type="button" className="h-9 w-9 rounded-full border border-white/30" style={{ background: c }} onClick={() => onChange(c)} title={c} />
         ))}
         {allowCustom ? (
-          <label className="inline-flex items-center px-3 py-2 text-sm bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors shadow-sm cursor-pointer">
+          <label className="inline-flex items-center px-3 py-2 text-sm bg-white border border-[#E7C9CD] text-[#6B6B6B] rounded-lg hover:bg-[#FCF7F8] transition-colors shadow-sm cursor-pointer">
             自訂
             <input className="ml-2" type="color" value={isHexColor(value) ? value : "#0A84FF"} onChange={(e) => onChange(e.target.value.toUpperCase())} />
           </label>
@@ -23,7 +23,7 @@ export default function ColorPicker({ label, value, onChange, allowCustom = true
       <div className="mt-2 flex items-center gap-2">
         <span className="text-xs opacity-70">HEX</span>
         <input
-          className="w-full bg-white border border-slate-200 rounded-lg py-1 px-2 text-xs font-mono uppercase focus:ring-2 focus:ring-blue-500/20 outline-none"
+          className="w-full bg-white border border-[#E7C9CD] rounded-lg py-1 px-2 text-xs font-mono uppercase focus:ring-2 focus:ring-[#A35D5D]/15 outline-none"
           value={value}
           onChange={(e) => {
             let v = e.target.value;

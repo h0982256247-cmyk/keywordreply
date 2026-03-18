@@ -5,33 +5,18 @@ import { listDocs } from '@/lib/db';
 import { BroadcastCampaign, deleteCampaign, listCampaigns, saveCampaign, sendCampaign } from '@/lib/campaigns';
 import { buildQuickReply } from '@/lib/draftMessaging';
 
-// ─── Status Badge ───────────────────────────────────────────────────────────
+// ─── Status Badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    sent:    { label: '已發送', cls: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+    sent:    { label: '已發送', cls: 'bg-[#EAF4ED] text-[#4E735D] border border-[#B8D9C4]' },
     failed:  { label: '失敗',   cls: 'bg-red-50 text-red-600 border border-red-200' },
     pending: { label: '待發送', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
   };
-  const s = map[status] ?? { label: status, cls: 'bg-slate-100 text-slate-600 border border-slate-200' };
+  const s = map[status] ?? { label: status, cls: 'bg-[#F0F0F0] text-[#6B6B6B] border border-[#E8E8E8]' };
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${s.cls}`}>
       {s.label}
     </span>
-  );
-}
-
-// ─── Empty State ─────────────────────────────────────────────────────────────
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-        </svg>
-      </div>
-      <p className="text-sm font-medium text-slate-700">尚未建立任何推播</p>
-      <p className="text-xs text-slate-400 mt-1">可先從上方選擇草稿建立第一則推播</p>
-    </div>
   );
 }
 
@@ -63,9 +48,9 @@ export default function Campaigns() {
 
   useEffect(() => { load(); }, []);
 
-  const selectedDraft       = useMemo(() => drafts.find((d) => d.id === draftId), [draftId, drafts]);
-  const selectedDraftQr     = buildQuickReply(selectedDraft?.content?.quickReply);
-  const canSubmit           = !!name && !!draftId && !loading;
+  const selectedDraft   = useMemo(() => drafts.find((d) => d.id === draftId), [draftId, drafts]);
+  const selectedDraftQr = buildQuickReply(selectedDraft?.content?.quickReply);
+  const canSubmit       = !!name && !!draftId && !loading;
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -99,48 +84,48 @@ export default function Campaigns() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
-      {/* ── Toast ─────────────────────────────────────────────────────── */}
+      {/* Toast */}
       {msg && (
-        <div className={`rounded-xl px-5 py-3.5 text-sm font-medium flex items-center gap-2 ${
+        <div className={`rounded-xl px-5 py-3.5 text-sm font-medium flex items-center gap-2 border ${
           msg.ok
-            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
+            ? 'bg-[#EAF4ED] text-[#4E735D] border-[#B8D9C4]'
+            : 'bg-red-50 text-red-700 border-red-200'
         }`}>
           <span>{msg.ok ? '✓' : '✕'}</span>
           {msg.text}
         </div>
       )}
 
-      {/* ══ SECTION 1: 建立推播 ══════════════════════════════════════════ */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* ── Section 1: 建立推播 ──────────────────────────────────────────── */}
+      <section className="bg-white rounded-2xl border border-[#E7C9CD] shadow-sm overflow-hidden">
 
-        <div className="px-7 pt-6 pb-5 border-b border-slate-100">
-          <h2 className="text-lg font-semibold text-slate-900">建立推播</h2>
-          <p className="mt-0.5 text-sm text-slate-500">直接選擇已建立好的草稿，送到 LINE OA 廣播。</p>
+        <div className="px-6 pt-5 pb-4 border-b border-[#F0E3E5]">
+          <h2 className="text-base font-semibold text-[#2B2B2B]">建立推播</h2>
+          <p className="mt-0.5 text-sm text-[#6B6B6B]">直接選擇已建立好的草稿，送到 LINE OA 廣播。</p>
         </div>
 
         <form onSubmit={handleSave}>
-          <div className="p-7 grid gap-8 lg:grid-cols-2">
+          <div className="p-6 grid gap-6 lg:grid-cols-2">
 
-            {/* ── Left: form fields ───────────────────────────────────── */}
+            {/* Left: form fields */}
             <div className="flex flex-col gap-5">
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-[#2B2B2B]">
                   推播名稱 <span className="text-red-400">*</span>
                 </label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="例如：3 月活動推播"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                  className="w-full rounded-xl border border-[#E7C9CD] px-4 py-2.5 text-sm text-[#2B2B2B] placeholder-[#AAAAAA] focus:border-[#A35D5D] focus:ring-2 focus:ring-[#A35D5D]/15 outline-none transition"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-700">
+                <label className="block text-sm font-medium text-[#2B2B2B]">
                   選擇草稿 <span className="text-red-400">*</span>
                 </label>
                 <GlassSelect
@@ -153,38 +138,38 @@ export default function Campaigns() {
                 />
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 space-y-2">
+              <div className="rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] px-4 py-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-800">Quick Reply 設定</span>
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                  <span className="text-sm font-medium text-[#2B2B2B]">Quick Reply 設定</span>
+                  <label className="inline-flex items-center gap-2 text-sm text-[#555555] cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={includeQuickReply}
                       onChange={(e) => setIncludeQuickReply(e.target.checked)}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-[#E7C9CD] text-[#A35D5D] focus:ring-[#A35D5D]"
                     />
                     保留 Quick Reply
                   </label>
                 </div>
                 {selectedDraft ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#6B6B6B]">
                     此草稿&nbsp;
                     {selectedDraftQr
-                      ? <span className="font-medium text-pink-600">含 {selectedDraftQr.items.length} 個 Quick Reply</span>
-                      : <span className="text-slate-400">不含 Quick Reply</span>
+                      ? <span className="font-medium text-[#A35D5D]">含 {selectedDraftQr.items.length} 個 Quick Reply</span>
+                      : <span className="text-[#AAAAAA]">不含 Quick Reply</span>
                     }
                   </p>
                 ) : (
-                  <p className="text-xs text-slate-400">請先選擇草稿以確認是否含有 Quick Reply</p>
+                  <p className="text-xs text-[#AAAAAA]">請先選擇草稿以確認是否含有 Quick Reply</p>
                 )}
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <p className="text-xs text-slate-400">建立後會新增一筆推播紀錄</p>
+                <p className="text-xs text-[#AAAAAA]">建立後會新增一筆推播紀錄</p>
                 <button
                   type="submit"
                   disabled={!canSubmit}
-                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 active:bg-slate-950 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#A35D5D] hover:bg-[#8F4A4A] px-5 py-2.5 text-sm font-semibold text-white shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition"
                 >
                   {loading
                     ? <><Spinner />建立中…</>
@@ -194,24 +179,22 @@ export default function Campaigns() {
               </div>
             </div>
 
-            {/* ── Right: draft preview ─────────────────────────────────── */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 flex flex-col gap-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">草稿預覽</p>
+            {/* Right: draft preview */}
+            <div className="rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] p-5 flex flex-col gap-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#AAAAAA]">草稿預覽</p>
               {selectedDraft ? (
-                <>
-                  <div className="w-full rounded-lg bg-white border border-slate-200 p-3 overflow-x-auto">
-                    <FlexPreview doc={selectedDraft.content} />
-                  </div>
-                </>
+                <div className="w-full rounded-lg bg-white border border-[#EBEBEB] p-3 overflow-x-auto">
+                  <FlexPreview doc={selectedDraft.content} />
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-400">
+                  <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[#AAAAAA]">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                     </svg>
                   </div>
-                  <p className="text-sm font-medium text-slate-600">尚未選擇草稿</p>
-                  <p className="text-xs text-slate-400 leading-relaxed">選擇草稿後，<br/>這裡將顯示內容摘要與預覽</p>
+                  <p className="text-sm font-medium text-[#6B6B6B]">尚未選擇草稿</p>
+                  <p className="text-xs text-[#AAAAAA] leading-relaxed">選擇草稿後，<br/>這裡將顯示內容摘要與預覽</p>
                 </div>
               )}
             </div>
@@ -220,39 +203,41 @@ export default function Campaigns() {
         </form>
       </section>
 
-      {/* ══ SECTION 2: 推播文章列表 ═══════════════════════════════════════ */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* ── Section 2: 推播文章列表 ─────────────────────────────────────── */}
+      <section className="bg-white rounded-2xl border border-[#EBEBEB] shadow-sm overflow-hidden">
 
-        {/* Card header */}
-        <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[#F0F0F0] flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">推播文章列表</h2>
-            <p className="text-xs text-slate-400 mt-0.5">從草稿引用內容，發送後會記錄狀態。</p>
+            <h2 className="text-base font-semibold text-[#2B2B2B]">推播文章列表</h2>
+            <p className="text-xs text-[#AAAAAA] mt-0.5">從草稿引用內容，發送後會記錄狀態。</p>
           </div>
-          <span className="text-xs text-slate-400 tabular-nums">{rows.length} 筆</span>
+          <span className="text-xs text-[#AAAAAA] tabular-nums">{rows.length} 筆</span>
         </div>
 
-        {/* List */}
         {rows.length === 0 ? (
-          <EmptyState />
+          <div className="flex flex-col items-center justify-center py-20 text-center opacity-70">
+            <div className="w-16 h-16 bg-[#F0F0F0] rounded-full flex items-center justify-center mb-4 text-3xl">📮</div>
+            <p className="text-[#2B2B2B] font-medium text-sm">尚未建立任何推播</p>
+            <p className="text-xs text-[#6B6B6B] mt-1">可先從上方選擇草稿建立第一則推播</p>
+          </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-[#F0F0F0]">
             {rows.map((row) => (
               <li
                 key={row.id}
-                className="px-7 py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-slate-50/60 transition-colors"
+                className="px-6 py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:bg-[#FAFAFA] transition-colors"
               >
                 {/* Left: info */}
                 <div className="flex flex-col gap-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-slate-900 leading-snug">{row.name}</span>
+                    <span className="font-medium text-sm text-[#2B2B2B] leading-snug">{row.name}</span>
                     <StatusBadge status={row.status ?? 'pending'} />
                   </div>
-                  <p className="text-xs text-slate-500 truncate">
+                  <p className="text-xs text-[#6B6B6B] truncate">
                     草稿：{row.doc_title || row.draft_id}
                   </p>
                   {row.sent_at && (
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#AAAAAA]">
                       最後發送：{new Date(row.sent_at).toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' })}
                     </p>
                   )}
@@ -260,12 +245,12 @@ export default function Campaigns() {
 
                 {/* Right: actions */}
                 <div className="flex flex-col items-start sm:items-end gap-2.5 shrink-0">
-                  <label className="inline-flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+                  <label className="inline-flex items-center gap-2 text-xs text-[#555555] cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={sendOptions[row.id] ?? true}
                       onChange={(e) => setSendOptions((prev) => ({ ...prev, [row.id]: e.target.checked }))}
-                      className="rounded border-slate-300 text-pink-600 focus:ring-pink-500"
+                      className="rounded border-[#E7C9CD] text-[#A35D5D] focus:ring-[#A35D5D]"
                     />
                     推播時保留 Quick Reply
                   </label>
@@ -273,7 +258,7 @@ export default function Campaigns() {
                     <button
                       disabled={sending === row.id}
                       onClick={() => handleSend(row)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-pink-400 text-white px-4 py-2 text-xs font-medium hover:bg-pink-500 active:bg-pink-600 disabled:opacity-50 transition"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-4 py-2 text-xs font-semibold disabled:opacity-50 transition-colors"
                     >
                       {sending === row.id
                         ? <><Spinner />推播中…</>
@@ -286,7 +271,7 @@ export default function Campaigns() {
                     <button
                       disabled={sending === row.id}
                       onClick={async () => { await deleteCampaign(row.id); await load(); }}
-                      className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 transition"
+                      className="rounded-lg border border-[#E8E8E8] px-4 py-2 text-xs font-medium text-[#555555] hover:bg-[#F5F5F5] hover:border-[#DDDDDD] disabled:opacity-50 transition-colors"
                     >
                       刪除
                     </button>
@@ -301,7 +286,7 @@ export default function Campaigns() {
   );
 }
 
-// ─── Spinner ─────────────────────────────────────────────────────────────────
+// ─── Spinner ──────────────────────────────────────────────────────────────────
 function Spinner() {
   return (
     <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

@@ -124,53 +124,101 @@ export default function Keywords() {
 
   return (
     <div className="space-y-6">
-      <section className="bg-white rounded-3xl border border-neutral-200 p-6 shadow-sm">
+      {/* Header Card */}
+      <section className="bg-white rounded-2xl border border-[#E7C9CD] p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-stone-900">自動回應</h2>
-            <div className="mt-6">
-              <div className="text-xl font-semibold text-stone-900">關鍵字規則</div>
-              <div className="mt-2 text-stone-500">{usageCount} keywords rules / 200 keyword rules</div>
-              <div className="mt-2 text-xs text-stone-400">支援拖曳排序，或使用上下移動按鈕快速調整優先順序。{savingOrder ? ' 目前正在儲存排序...' : ''}</div>
-            </div>
+            <h2 className="text-xl font-semibold text-[#2B2B2B]">關鍵字規則</h2>
+            <p className="mt-1 text-sm text-[#6B6B6B]">
+              {usageCount} 條規則啟用中 / 共 200 條上限
+              {savingOrder && <span className="ml-2 text-[#A35D5D]">正在儲存排序...</span>}
+            </p>
+            <p className="mt-1 text-xs text-[#AAAAAA]">支援拖曳排序，或使用上下移動按鈕快速調整優先順序。</p>
           </div>
-          <button onClick={openCreate} className="rounded-2xl bg-pink-400 text-white px-5 py-3 font-medium shadow-sm hover:bg-pink-500">＋ 建立關鍵字規則</button>
+          <button
+            onClick={openCreate}
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-4 py-2.5 text-sm font-semibold shadow-md transition-colors"
+          >
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            建立關鍵字規則
+          </button>
         </div>
       </section>
 
-      <section className="bg-white rounded-3xl border border-neutral-200 shadow-sm overflow-hidden">
+      {/* Table */}
+      <section className="bg-white rounded-2xl border border-[#EBEBEB] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-neutral-50 text-stone-500">
-              <tr>
-                <th className="px-6 py-4 text-left font-medium">排序</th>
-                <th className="px-6 py-4 text-left font-medium">規則名稱</th>
-                <th className="px-6 py-4 text-left font-medium">匹配</th>
-                <th className="px-6 py-4 text-left font-medium">關鍵字</th>
-                <th className="px-6 py-4 text-left font-medium">參與</th>
-                <th className="px-6 py-4 text-left font-medium">狀態</th>
-                <th className="px-6 py-4 text-right font-medium"></th>
+            <thead>
+              <tr className="border-b border-[#F0F0F0] bg-[#FAFAFA]">
+                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">排序</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">規則名稱</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">匹配</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">關鍵字</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">參與</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">狀態</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[#4F4F4F] tracking-wide">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-200">
+            <tbody className="divide-y divide-[#F0F0F0]">
               {rows.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-10 text-center text-stone-400">尚未建立關鍵字規則</td></tr>
+                <tr>
+                  <td colSpan={7} className="py-20 text-center">
+                    <div className="flex flex-col items-center justify-center opacity-70">
+                      <div className="w-16 h-16 bg-[#F0F0F0] rounded-full flex items-center justify-center mb-4 text-3xl">🔍</div>
+                      <p className="text-[#2B2B2B] font-medium">尚未建立關鍵字規則</p>
+                      <p className="text-sm text-[#6B6B6B] mt-1">點擊右上角「建立關鍵字規則」開始建立</p>
+                    </div>
+                  </td>
+                </tr>
               ) : rows.map((row, index) => (
-                <tr key={row.id} className="hover:bg-neutral-50/80">
-                  <td className="px-6 py-5 text-stone-700">{index + 1}</td>
-                  <td className="px-6 py-5 font-semibold text-pink-600">{row.name || row.keyword}</td>
-                  <td className="px-6 py-5 text-stone-600">{row.match_type === 'exact' ? '完全' : '包含'}</td>
-                  <td className="px-6 py-5 text-stone-700">{row.keyword}</td>
-                  <td className="px-6 py-5 text-stone-600">1</td>
-                  <td className="px-6 py-5">
-                    <button onClick={() => toggleEnabled(row)} className={`rounded-full px-4 py-2 text-sm font-medium ${row.is_enabled ? 'bg-pink-100 text-pink-700' : 'bg-neutral-100 text-stone-500'}`}>
+                <tr
+                  key={row.id}
+                  className="hover:bg-[#FAFAFA] transition-colors"
+                  draggable
+                  onDragStart={() => setDraggingId(row.id)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(row.id)}
+                >
+                  <td className="px-5 py-4 text-[#6B6B6B] tabular-nums">{index + 1}</td>
+                  <td className="px-5 py-4 font-medium text-[#A35D5D]">{row.name || row.keyword}</td>
+                  <td className="px-5 py-4 text-[#555555]">{row.match_type === 'exact' ? '完全' : '包含'}</td>
+                  <td className="px-5 py-4 text-[#2B2B2B]">{row.keyword}</td>
+                  <td className="px-5 py-4 text-[#6B6B6B]">1</td>
+                  <td className="px-5 py-4">
+                    <button
+                      onClick={() => toggleEnabled(row)}
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        row.is_enabled
+                          ? 'bg-[#FBEBEE] text-[#A35D5D] hover:bg-[#F6D9DD]'
+                          : 'bg-[#F0F0F0] text-[#6B6B6B] hover:bg-[#E8E8E8]'
+                      }`}
+                    >
                       {row.is_enabled ? '使用中' : '已停用'}
                     </button>
                   </td>
-                  <td className="px-6 py-5 text-right">
-                    <div className="inline-flex items-center gap-2">
-                      <button onClick={() => openEdit(row)} className="rounded-xl border border-stone-300 px-3 py-2 text-stone-600">編輯</button>
-                      <button onClick={() => setDeleteId(row.id)} className="rounded-xl border border-red-200 px-3 py-2 text-red-600">刪除</button>
+                  <td className="px-5 py-4 text-right">
+                    <div className="inline-flex items-center gap-1">
+                      <button
+                        onClick={() => openEdit(row)}
+                        className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#A35D5D] hover:bg-[#FBEBEE] rounded-lg transition-colors"
+                        title="編輯"
+                      >
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(row.id)}
+                        className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#B85C5C] hover:bg-[#FEF2F2] rounded-lg transition-colors"
+                        title="刪除"
+                      >
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -180,80 +228,141 @@ export default function Keywords() {
         </div>
       </section>
 
+      {/* Create / Edit Modal */}
       {open && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center">
-          <div className="absolute inset-0 bg-stone-950/40" onClick={() => !busy && setOpen(false)} />
-          <form onSubmit={handleSubmit} className="relative w-[94%] max-w-3xl rounded-3xl bg-white shadow-2xl border border-neutral-200 overflow-hidden">
-            <div className="px-6 py-5 border-b border-neutral-200">
-              <div className="text-xl font-bold text-stone-900">{form.id ? '編輯關鍵字規則' : '建立關鍵字規則'}</div>
-              <div className="mt-1 text-sm text-stone-500">設定這個關鍵字收到後要回覆什麼內容。V1 先以完全符合為主。</div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !busy && setOpen(false)} />
+          <form
+            onSubmit={handleSubmit}
+            className="relative w-[94%] max-w-3xl rounded-2xl bg-white shadow-2xl border border-[#E7C9CD] overflow-hidden"
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-[#F0E3E5]">
+              <div className="text-base font-semibold text-[#2B2B2B]">
+                {form.id ? '編輯關鍵字規則' : '建立關鍵字規則'}
+              </div>
+              <div className="mt-1 text-sm text-[#6B6B6B]">設定這個關鍵字收到後要回覆什麼內容。</div>
             </div>
+
             <div className="p-6 grid gap-4 md:grid-cols-2">
               <Field label="規則名稱" value={form.name} onChange={(v: string) => setForm({ ...form, name: v })} placeholder="例如：優惠自動回覆" />
               <Field label="關鍵字" value={form.keyword} onChange={(v: string) => setForm({ ...form, keyword: v })} placeholder="例如：優惠" />
+
               <label className="block space-y-2">
-                <div className="text-sm font-medium text-stone-700">匹配方式</div>
+                <div className="text-sm font-medium text-[#2B2B2B]">匹配方式</div>
                 <GlassSelect
                   size="lg"
                   className="w-full"
-                  rounded="rounded-2xl"
+                  rounded="rounded-xl"
                   value={form.match_type}
                   onChange={(val) => setForm({ ...form, match_type: val as any })}
                   options={[{value:"exact",label:"完全"},{value:"contains",label:"包含（保留結構）"}]}
                 />
               </label>
+
               <Field label="排序 priority" value={String(form.priority)} onChange={(v: string) => setForm({ ...form, priority: Number(v || 1) })} placeholder="1" />
+
               <label className="block space-y-2 md:col-span-2">
-                <div className="text-sm font-medium text-stone-700">回覆方式</div>
+                <div className="text-sm font-medium text-[#2B2B2B]">回覆方式</div>
                 <div className="grid gap-3 md:grid-cols-2">
-                  <button type="button" onClick={() => setForm({ ...form, reply_mode: 'text' })} className={`rounded-2xl border px-4 py-4 text-left ${form.reply_mode === 'text' ? 'border-pink-500 bg-pink-50' : 'border-neutral-200 bg-white'}`}>
-                    <div className="font-semibold text-stone-900">純文字</div>
-                    <div className="text-sm text-stone-500 mt-1">適合地址、電話、FAQ</div>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, reply_mode: 'text' })}
+                    className={`rounded-xl border px-4 py-3.5 text-left transition-colors ${
+                      form.reply_mode === 'text'
+                        ? 'border-[#A35D5D] bg-[#FBEBEE]'
+                        : 'border-[#E7C9CD] bg-white hover:bg-[#FFF7F8]'
+                    }`}
+                  >
+                    <div className="font-semibold text-[#2B2B2B] text-sm">純文字</div>
+                    <div className="text-xs text-[#6B6B6B] mt-1">適合地址、電話、FAQ</div>
                   </button>
-                  <button type="button" onClick={() => setForm({ ...form, reply_mode: 'draft' })} className={`rounded-2xl border px-4 py-4 text-left ${form.reply_mode === 'draft' ? 'border-pink-500 bg-pink-50' : 'border-neutral-200 bg-white'}`}>
-                    <div className="font-semibold text-stone-900">選擇草稿</div>
-                    <div className="text-sm text-stone-500 mt-1">連動單卡、多頁或影片 Bubble</div>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, reply_mode: 'draft' })}
+                    className={`rounded-xl border px-4 py-3.5 text-left transition-colors ${
+                      form.reply_mode === 'draft'
+                        ? 'border-[#A35D5D] bg-[#FBEBEE]'
+                        : 'border-[#E7C9CD] bg-white hover:bg-[#FFF7F8]'
+                    }`}
+                  >
+                    <div className="font-semibold text-[#2B2B2B] text-sm">選擇草稿</div>
+                    <div className="text-xs text-[#6B6B6B] mt-1">連動單卡、多頁或影片 Bubble</div>
                   </button>
                 </div>
               </label>
 
               {form.reply_mode === 'text' ? (
                 <label className="block space-y-2 md:col-span-2">
-                  <div className="text-sm font-medium text-stone-700">文字內容</div>
-                  <textarea rows={5} value={form.reply_text} onChange={(e) => setForm({ ...form, reply_text: e.target.value })} className="w-full rounded-2xl border border-stone-300 px-4 py-3" placeholder="輸入收到關鍵字後要回覆的文字" />
+                  <div className="text-sm font-medium text-[#2B2B2B]">文字內容</div>
+                  <textarea
+                    rows={5}
+                    value={form.reply_text}
+                    onChange={(e) => setForm({ ...form, reply_text: e.target.value })}
+                    className="w-full rounded-xl border border-[#E7C9CD] px-4 py-3 text-sm text-[#2B2B2B] placeholder-[#AAAAAA] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition"
+                    placeholder="輸入收到關鍵字後要回覆的文字"
+                  />
                 </label>
               ) : (
                 <>
                   <label className="block space-y-2 md:col-span-2">
-                    <div className="text-sm font-medium text-stone-700">選擇草稿</div>
+                    <div className="text-sm font-medium text-[#2B2B2B]">選擇草稿</div>
                     <GlassSelect
                       size="lg"
                       className="w-full"
-                      rounded="rounded-2xl"
+                      rounded="rounded-xl"
                       value={form.draft_id}
                       onChange={(val) => setForm({ ...form, draft_id: val })}
                       options={[{value:"",label:"請選擇草稿"},...drafts.map(d => ({value:d.id,label:d.title}))]}
                     />
                   </label>
                   {currentDraft && (
-                    <div className="md:col-span-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                      <div className="text-sm text-stone-500">已選擇內容</div>
-                      <div className="mt-2 font-semibold text-stone-900">{currentDraft.title}</div>
-                      <div className="mt-1 text-sm text-stone-500">類型：{currentDraft.content?.type === 'carousel' ? '多卡滑動訊息' : '單卡 / 影片卡片訊息'}</div>
+                    <div className="md:col-span-2 rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] p-4">
+                      <div className="text-xs text-[#6B6B6B]">已選擇內容</div>
+                      <div className="mt-1.5 font-semibold text-[#2B2B2B] text-sm">{currentDraft.title}</div>
+                      <div className="mt-1 text-xs text-[#6B6B6B]">類型：{currentDraft.content?.type === 'carousel' ? '多卡滑動訊息' : '單卡 / 影片卡片訊息'}</div>
                       {!!currentDraft.content?.quickReply?.items?.length && (
-                        <div className="mt-2 inline-flex rounded-full bg-pink-100 px-3 py-1 text-xs font-medium text-pink-600">包含 {currentDraft.content.quickReply.items.length} 個 Quick Reply</div>
+                        <div className="mt-2 inline-flex rounded-full bg-[#FBEBEE] px-3 py-1 text-xs font-medium text-[#A35D5D]">
+                          包含 {currentDraft.content.quickReply.items.length} 個 Quick Reply
+                        </div>
                       )}
                     </div>
                   )}
                 </>
               )}
 
-              <label className="inline-flex items-center gap-3 text-sm text-stone-700 md:col-span-2"><input type="checkbox" checked={form.is_enabled} onChange={(e) => setForm({ ...form, is_enabled: e.target.checked })} /> 儲存後立即啟用</label>
-              {msg && <div className="md:col-span-2 rounded-2xl bg-red-50 text-red-600 px-4 py-3 text-sm">{msg}</div>}
+              <label className="inline-flex items-center gap-3 text-sm text-[#555555] md:col-span-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.is_enabled}
+                  onChange={(e) => setForm({ ...form, is_enabled: e.target.checked })}
+                  className="rounded border-[#E7C9CD] text-[#A35D5D] focus:ring-[#A35D5D]"
+                />
+                儲存後立即啟用
+              </label>
+
+              {msg && (
+                <div className="md:col-span-2 rounded-xl bg-red-50 text-red-600 border border-red-200 px-4 py-3 text-sm">
+                  {msg}
+                </div>
+              )}
             </div>
-            <div className="px-6 py-5 border-t border-neutral-200 flex justify-end gap-3">
-              <button type="button" onClick={() => setOpen(false)} className="rounded-2xl border border-stone-300 px-4 py-3 text-stone-600">取消</button>
-              <button disabled={busy} className="rounded-2xl bg-pink-400 hover:bg-pink-500 text-white px-5 py-3 font-medium disabled:opacity-60 transition-colors">{busy ? '儲存中...' : form.id ? '更新規則' : '建立規則'}</button>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-[#F0E3E5] bg-[#FFF7F8]/50 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="px-4 py-2 text-sm text-[#555555] hover:bg-[#F5F5F5] rounded-lg transition-colors"
+              >
+                取消
+              </button>
+              <button
+                disabled={busy}
+                className="px-5 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {busy ? '儲存中...' : form.id ? '更新規則' : '建立規則'}
+              </button>
             </div>
           </form>
         </div>
@@ -280,8 +389,13 @@ export default function Keywords() {
 function Field({ label, value, onChange, placeholder }: any) {
   return (
     <label className="block space-y-2">
-      <div className="text-sm font-medium text-stone-700">{label}</div>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full rounded-2xl border border-stone-300 px-4 py-3" />
+      <div className="text-sm font-medium text-[#2B2B2B]">{label}</div>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-[#E7C9CD] px-4 py-2.5 text-sm text-[#2B2B2B] placeholder-[#AAAAAA] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition"
+      />
     </label>
   );
 }

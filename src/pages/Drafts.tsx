@@ -26,21 +26,21 @@ function FolderCreateModal({ open, onClose, onCreate }: { open: boolean; onClose
         {/* Header */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 border border-pink-200/60 flex items-center justify-center">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-9 h-9 rounded-xl bg-[#FBEBEE] border border-[#E7C9CD] flex items-center justify-center">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#A35D5D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
             <div>
-              <div className="text-base font-semibold text-stone-900">新增資料夾</div>
-              <div className="text-xs text-stone-400">為訊息建立分類資料夾</div>
+              <div className="text-base font-semibold text-[#2B2B2B]">新增資料夾</div>
+              <div className="text-xs text-[#AAAAAA]">為訊息建立分類資料夾</div>
             </div>
           </div>
         </div>
 
         {/* Body */}
         <form onSubmit={handleSubmit} className="px-6 pb-6">
-          <label className="block text-xs font-medium text-stone-500 mb-2">資料夾名稱</label>
+          <label className="block text-xs font-medium text-[#6B6B6B] mb-2">資料夾名稱</label>
           <input
             autoFocus
             type="text"
@@ -124,7 +124,7 @@ function TypeIcon({ type, doc }: { type: string; doc?: any }) {
       </span>
     );
   }
-  return <span className="text-stone-400 text-xs">{type}</span>;
+  return <span className="text-[#AAAAAA] text-xs">{type}</span>;
 }
 
 // ─── Message type definitions ─────────────────────────────────────────────────
@@ -278,10 +278,10 @@ function NewMessageModal({
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0E3E5]">
-          <h2 className="text-base font-semibold text-stone-900">建立新訊息</h2>
+          <h2 className="text-base font-semibold text-[#2B2B2B]">建立新訊息</h2>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-stone-400 hover:bg-neutral-100 hover:text-stone-600 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:bg-[#F5F5F5] hover:text-[#6B6B6B] transition-colors"
           >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -291,7 +291,7 @@ function NewMessageModal({
 
         <div className="px-6 py-5">
           <>
-            <p className="text-xs font-medium text-stone-500 mb-3 tracking-wide uppercase">選擇訊息類型</p>
+            <p className="text-xs font-medium text-[#6B6B6B] mb-3 tracking-wide uppercase">選擇訊息類型</p>
 
             {/* Type Grid */}
             <div className="grid grid-cols-6 gap-2 mb-4">
@@ -301,13 +301,13 @@ function NewMessageModal({
                   disabled={!t.enabled}
                   onClick={() => t.enabled && setSelectedType(t.id)}
                   className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all
-                      ${!t.enabled ? "opacity-40 cursor-not-allowed border-neutral-100 bg-neutral-50 text-stone-400" :
+                      ${!t.enabled ? "opacity-40 cursor-not-allowed border-[#F0E3E5] bg-[#FAFAFA] text-[#AAAAAA]" :
                       selectedType === t.id
                         ? "border-[#A35D5D] bg-[#FBEBEE] text-[#A35D5D] ring-1 ring-[#A35D5D]"
                         : "border-[#E7C9CD] bg-white text-[#6B6B6B] hover:border-[#A35D5D] hover:bg-[#FFF7F8]"
                     }`}
                 >
-                  <span className={selectedType === t.id && t.enabled ? "text-[#A35D5D]" : "text-stone-400"}>
+                  <span className={selectedType === t.id && t.enabled ? "text-[#A35D5D]" : "text-[#AAAAAA]"}>
                     {t.icon}
                   </span>
                   {t.label}
@@ -317,10 +317,10 @@ function NewMessageModal({
 
             {/* Description */}
             <div className="bg-[#FFF7F8] rounded-xl px-4 py-3 flex items-start gap-3 min-h-[64px]">
-              <span className="text-stone-400 mt-0.5 shrink-0">{currentType.icon}</span>
+              <span className="text-[#AAAAAA] mt-0.5 shrink-0">{currentType.icon}</span>
               <div>
-                <span className="text-sm font-medium text-stone-700 block mb-0.5">{currentType.label}</span>
-                <span className="text-xs text-stone-500">{currentType.desc}</span>
+                <span className="text-sm font-medium text-[#555555] block mb-0.5">{currentType.label}</span>
+                <span className="text-xs text-[#6B6B6B]">{currentType.desc}</span>
               </div>
             </div>
 
@@ -676,7 +676,7 @@ export default function Drafts() {
                   <td className="px-5 py-3.5">
                     <TypeIcon type={r.content.type} doc={r.content} />
                   </td>
-                  <td className="px-5 py-3.5 text-stone-500">{getFolderName(r)}</td>
+                  <td className="px-5 py-3.5 text-[#6B6B6B]">{getFolderName(r)}</td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${r.status === "publishable"
                       ? "bg-[#EAF4ED] text-[#4E735D]"
@@ -685,7 +685,7 @@ export default function Drafts() {
                       {r.status === "publishable" ? "已使用" : "未使用"}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-stone-400 text-xs tabular-nums">
+                  <td className="px-5 py-3.5 text-[#AAAAAA] text-xs tabular-nums">
                     {new Date(r.updated_at).toLocaleString("zh-TW", {
                       year: "numeric", month: "2-digit", day: "2-digit",
                       hour: "2-digit", minute: "2-digit", hour12: false,

@@ -58,9 +58,9 @@ export default function PreviewDraft() {
   };
 
   if (!doc || !id) return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#FCF7F8]">
       <div className="mx-auto max-w-5xl px-4 py-10">
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">載入中…</div>
+        <div className="bg-white border border-[#E7C9CD] rounded-xl shadow-sm p-6">載入中…</div>
       </div>
     </div>
   );
@@ -73,13 +73,13 @@ export default function PreviewDraft() {
   const liffUrl = active && liffId ? `https://liff.line.me/${liffId}?token=${active.token}` : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#FCF7F8]">
       <PageHeader title="預覽與發布" subtitle={doc.name || "Flex Message"} backPath={`/drafts/${id}/edit`} />
 
       <ProgressBar docId={id} />
 
       <div className="mx-auto max-w-5xl px-4 pt-4">
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex items-center justify-between">
+        <div className="bg-white border border-[#E7C9CD] rounded-xl shadow-sm p-4 flex items-center justify-between">
           <div>
             <div className="text-lg font-semibold">
               {rep.status === "publishable" ? "✅ 可發布" : rep.status === "previewable" ? "⚠️ 可預覽不可發布（外部圖）" : "📝 草稿（有錯誤）"}
@@ -87,13 +87,13 @@ export default function PreviewDraft() {
           </div>
           <div className="flex gap-2">
             <button
-              className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              className="px-3 py-1.5 bg-white border border-[#E8E8E8] text-[#555555] rounded-lg hover:bg-[#F5F5F5] transition-colors shadow-sm"
               onClick={() => nav(`/drafts/${id}/edit`)}
             >
               返回編輯
             </button>
             <button
-              className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              className="px-3 py-1.5 bg-white border border-[#E8E8E8] text-[#555555] rounded-lg hover:bg-[#F5F5F5] transition-colors shadow-sm"
               onClick={() => nav("/drafts")}
             >
               草稿列表
@@ -104,14 +104,14 @@ export default function PreviewDraft() {
 
       <div className="mx-auto max-w-5xl px-4 py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 預覽區 */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+        <div className="bg-white border border-[#E7C9CD] rounded-xl shadow-sm p-4">
           <div className="font-semibold mb-4">預覽</div>
           <FlexPreview doc={doc} />
         </div>
 
         <div className="space-y-4">
           {/* 驗證結果 */}
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+          <div className="bg-white border border-[#E7C9CD] rounded-xl shadow-sm p-4">
             <div className="font-semibold">驗證結果</div>
             <div className="mt-2 text-sm space-y-2">
               {rep.errors.map((e, i) => <div key={i} className="text-red-600">❌ {e.message}</div>)}

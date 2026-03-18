@@ -52,10 +52,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   // 顯示載入畫面
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#FCF7F8] flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <div className="text-slate-500 font-medium">驗證登入狀態...</div>
+          <div className="text-[#6B6B6B] font-medium">驗證登入狀態...</div>
         </div>
       </div>
     );

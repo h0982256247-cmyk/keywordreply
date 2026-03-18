@@ -37,7 +37,7 @@ export function PageHeader({
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-50 bg-white border-b border-[#F0E3E5] shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* 左側：返回按鈕 + 標題 */}
@@ -45,7 +45,7 @@ export function PageHeader({
             {showBackButton && (
               <button
                 onClick={handleBack}
-                className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                className="p-2 hover:bg-[#F5F5F5] rounded-lg text-[#6B6B6B] hover:text-[#2B2B2B] transition-colors"
                 title="返回"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -55,8 +55,8 @@ export function PageHeader({
             )}
 
             <div>
-              <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-              {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+              <h1 className="text-xl font-bold text-[#2B2B2B]">{title}</h1>
+              {subtitle && <p className="text-sm text-[#6B6B6B] mt-0.5">{subtitle}</p>}
             </div>
           </div>
 
@@ -67,7 +67,7 @@ export function PageHeader({
           {showHomeButton && (
             <button
               onClick={handleHome}
-              className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+              className="p-2 hover:bg-[#F5F5F5] rounded-lg text-[#6B6B6B] hover:text-[#2B2B2B] transition-colors"
               title="回到主頁"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

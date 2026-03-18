@@ -28,21 +28,21 @@ export default function ConfirmModal({
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={busy ? undefined : onClose} />
-      <div className="relative w-[92%] max-w-md bg-white rounded-xl shadow-xl border border-slate-200 p-5">
-        <div className="text-lg font-semibold text-slate-900">{title}</div>
-        {description && <div className="text-sm text-slate-600 mt-2 leading-relaxed">{description}</div>}
+      <div className="relative w-[92%] max-w-md bg-white rounded-2xl shadow-xl border border-[#E7C9CD] p-5">
+        <div className="text-lg font-semibold text-[#2B2B2B]">{title}</div>
+        {description && <div className="text-sm text-[#6B6B6B] mt-2 leading-relaxed">{description}</div>}
 
         <div className="mt-5 flex justify-end gap-2">
           <button
-            className="px-3 py-2 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="px-3 py-2 text-sm rounded-lg border border-[#E8E8E8] text-[#555555] hover:bg-[#F5F5F5] disabled:opacity-50 transition-colors"
             onClick={onClose}
             disabled={busy}
           >
             {cancelText}
           </button>
           <button
-            className={`px-3 py-2 text-sm rounded-lg text-white disabled:opacity-50 ${
-              danger ? "bg-red-600 hover:bg-red-700" : "bg-pink-400 hover:bg-pink-500"
+            className={`px-3 py-2 text-sm rounded-lg text-white font-semibold disabled:opacity-50 transition-colors ${
+              danger ? "bg-red-600 hover:bg-red-700" : "bg-[#A35D5D] hover:bg-[#8F4A4A]"
             }`}
             onClick={onConfirm}
             disabled={busy}

@@ -10,6 +10,8 @@ import AppShell from "@/layouts/AppShell";
 import Campaigns from "@/pages/Campaigns";
 import Keywords from "@/pages/Keywords";
 import Settings from "@/pages/Settings";
+import RichMenus from "@/pages/RichMenus";
+import RichMenuEditor from "@/pages/RichMenuEditor";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { diagnoseSupabase } from "@/debug-supabase";
 
@@ -28,6 +30,8 @@ export default function App() {
         <Route path="drafts/new" element={<NewDraft />} />
         <Route path="drafts/:id/edit" element={<EditDraft />} />
         <Route path="drafts/:id/preview" element={<PreviewDraft />} />
+        <Route path="rich-menus" element={<RichMenus />} />
+        <Route path="rich-menus/:id/edit" element={<RichMenuEditor />} />
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="keywords" element={<Keywords />} />
         <Route path="settings" element={<Settings />} />

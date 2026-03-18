@@ -5,6 +5,7 @@ import { hasChannel } from '@/lib/channel';
 
 const items = [
   { to: '/drafts', label: '訊息管理' },
+  { to: '/rich-menus', label: '圖文選單' },
   { to: '/campaigns', label: '推播設定' },
   { to: '/keywords', label: '自動回應訊息' },
 ];
@@ -14,7 +15,7 @@ export default function AppShell() {
   const location = useLocation();
   const [checkingChannel, setCheckingChannel] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const isEditRoute = /^\/drafts\/[^/]+\/edit$/.test(location.pathname);
+  const isEditRoute = /^\/drafts\/[^/]+\/edit$/.test(location.pathname) || /^\/rich-menus\/[^/]+\/edit$/.test(location.pathname);
 
   useEffect(() => {
     let active = true;
@@ -114,6 +115,8 @@ export default function AppShell() {
                 const crumbs: { parent: string; child: string } | { single: string } =
                   location.pathname.startsWith('/drafts')
                     ? { parent: '訊息管理', child: '草稿內容中心' }
+                    : location.pathname.startsWith('/rich-menus')
+                    ? { parent: '圖文選單', child: '多層圖文選單管理' }
                     : location.pathname.startsWith('/campaigns')
                     ? { parent: '推播設定', child: '推播發送中心' }
                     : location.pathname.startsWith('/keywords')

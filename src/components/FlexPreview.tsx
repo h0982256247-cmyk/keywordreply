@@ -95,7 +95,7 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex gap-3 overflow-x-auto pb-4 snap-x px-4 no-scrollbar scroll-smooth"
+        className="flex gap-3 overflow-x-auto pb-4 snap-x px-2 no-scrollbar scroll-smooth"
       >
         {root.contents.map((bubble: any, i: number) => (
           <div
@@ -192,7 +192,7 @@ function FlexBubble({ bubble }: { bubble: any }) {
   }
 
   return (
-    <div className="bg-white rounded-[16px] overflow-hidden border border-gray-100 font-sans">
+    <div className="bg-white rounded-[16px] overflow-hidden font-sans">
       {heroEl}
 
       {/* Body */}

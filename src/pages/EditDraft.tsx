@@ -1658,8 +1658,8 @@ export default function EditDraft() {
                             <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center overflow-hidden mt-1">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="#06C755"><path d="M21.99 12.06c0-5.7-4.93-10.31-10-10.31S2 6.36 2 12.06c0 5.1 4 9.35 8.89 10.16.34.07.8.22.92.51.1.25.07.62 0 1.05l-.18 1.09c-.05.32-.24 1.25 1.09.66s7.24-4.26 7.24-4.26a9.55 9.55 0 004.03-9.21z"/></svg>
                             </div>
-                            <div style={{ width: "192px", height: "300px", overflow: "hidden" }}>
-                              <div style={{ transform: "scale(0.6)", transformOrigin: "top left", width: "320px" }}>
+                            <div style={{ width: "168px", height: "300px", overflow: "hidden" }}>
+                              <div style={{ transform: "scale(0.6)", transformOrigin: "top left", width: "320px", marginLeft: "-8px" }}>
                                 <FlexPreview
                                   doc={doc}
                                   selectedIndex={currentCardIdx}

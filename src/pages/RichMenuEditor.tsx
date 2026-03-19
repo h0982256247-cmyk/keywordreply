@@ -1,0 +1,735 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import {
+  getRmDraft, saveRmDraft, publishRmDraft, makeDefaultMenu,
+  RmDraft, RmMenu, RmArea,
+} from "@/lib/richMenuDb";
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function uid() { return crypto.randomUUID(); }
+
+const CANVAS_W = 2500;
+const CANVAS_H = 1686;
+
+// ── Action type labels ─────────────────────────────────────────────────────────
+const ACTION_TYPES = [
+  { value: "uri", label: "開啟網址" },
+  { value: "message", label: "發送訊息" },
+  { value: "richmenuswitch", label: "切換選單" },
+  { value: "postback", label: "Postback" },
+];
+
+// ── Area draw / edit canvas ────────────────────────────────────────────────────
+function RichMenuCanvas({
+  menu,
+  selectedAreaId,
+  onAreasChange,
+  onSelectArea,
+}: {
+  menu: RmMenu;
+  selectedAreaId: string | null;
+  onAreasChange: (areas: RmArea[]) => void;
+  onSelectArea: (id: string | null) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [drawing, setDrawing] = useState(false);
+  const [startPt, setStartPt] = useState({ x: 0, y: 0 });
+  const [drawRect, setDrawRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [dragging, setDragging] = useState<{ areaId: string; startX: number; startY: number; origBounds: RmArea["bounds"] } | null>(null);
+  const [resizing, setResizing] = useState<{ areaId: string; handle: string; startX: number; startY: number; origBounds: RmArea["bounds"] } | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      if (containerRef.current) {
+        const w = containerRef.current.clientWidth;
+        setScale(w / CANVAS_W);
+      }
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  const ptFromEvent = useCallback((e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    return {
+      x: Math.round((e.clientX - rect.left) / scale),
+      y: Math.round((e.clientY - rect.top) / scale),
+    };
+  }, [scale]);
+
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    // Check if clicked on an existing area
+    const pt = ptFromEvent(e);
+    const hit = [...menu.areas].reverse().find(a =>
+      pt.x >= a.bounds.x && pt.x <= a.bounds.x + a.bounds.width &&
+      pt.y >= a.bounds.y && pt.y <= a.bounds.y + a.bounds.height
+    );
+    if (hit) {
+      onSelectArea(hit.id);
+      return;
+    }
+    onSelectArea(null);
+    setDrawing(true);
+    setStartPt(pt);
+    setDrawRect(null);
+    e.preventDefault();
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    if (!drawing) return;
+    const pt = ptFromEvent(e);
+    setDrawRect({
+      x: Math.min(pt.x, startPt.x),
+      y: Math.min(pt.y, startPt.y),
+      w: Math.abs(pt.x - startPt.x),
+      h: Math.abs(pt.y - startPt.y),
+    });
+  };
+
+  const handleCanvasMouseUp = (e: React.MouseEvent) => {
+    if (!drawing) return;
+    setDrawing(false);
+    if (!drawRect || drawRect.w < 20 || drawRect.h < 20) { setDrawRect(null); return; }
+    const newArea: RmArea = {
+      id: uid(),
+      bounds: { x: drawRect.x, y: drawRect.y, width: drawRect.w, height: drawRect.h },
+      action: { type: "uri", label: "", uri: "" },
+    };
+    const updated = [...menu.areas, newArea];
+    onAreasChange(updated);
+    onSelectArea(newArea.id);
+    setDrawRect(null);
+  };
+
+  // Area drag handlers
+  const handleAreaMouseDown = (e: React.MouseEvent, area: RmArea) => {
+    e.stopPropagation();
+    onSelectArea(area.id);
+    const rect = containerRef.current!.getBoundingClientRect();
+    setDragging({
+      areaId: area.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      origBounds: { ...area.bounds },
+    });
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent, area: RmArea, handle: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setResizing({
+      areaId: area.id,
+      handle,
+      startX: e.clientX,
+      startY: e.clientY,
+      origBounds: { ...area.bounds },
+    });
+  };
+
+  const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
+    if (dragging) {
+      const dx = Math.round((e.clientX - dragging.startX) / scale);
+      const dy = Math.round((e.clientY - dragging.startY) / scale);
+      const b = dragging.origBounds;
+      const newX = Math.max(0, Math.min(CANVAS_W - b.width, b.x + dx));
+      const newY = Math.max(0, Math.min(CANVAS_H - b.height, b.y + dy));
+      onAreasChange(menu.areas.map(a => a.id === dragging.areaId ? { ...a, bounds: { ...a.bounds, x: newX, y: newY } } : a));
+    }
+    if (resizing) {
+      const dx = Math.round((e.clientX - resizing.startX) / scale);
+      const dy = Math.round((e.clientY - resizing.startY) / scale);
+      const b = resizing.origBounds;
+      let { x, y, width, height } = b;
+      const h = resizing.handle;
+      if (h.includes("e")) width = Math.max(20, b.width + dx);
+      if (h.includes("s")) height = Math.max(20, b.height + dy);
+      if (h.includes("w")) { x = Math.min(b.x + b.width - 20, b.x + dx); width = b.width - (x - b.x); }
+      if (h.includes("n")) { y = Math.min(b.y + b.height - 20, b.y + dy); height = b.height - (y - b.y); }
+      x = Math.max(0, x); y = Math.max(0, y);
+      width = Math.min(width, CANVAS_W - x); height = Math.min(height, CANVAS_H - y);
+      onAreasChange(menu.areas.map(a => a.id === resizing.areaId ? { ...a, bounds: { x, y, width, height } } : a));
+    }
+  }, [dragging, resizing, scale, menu.areas, onAreasChange]);
+
+  const handleGlobalMouseUp = useCallback(() => {
+    setDragging(null);
+    setResizing(null);
+  }, []);
+
+  useEffect(() => {
+    if (dragging || resizing) {
+      window.addEventListener("mousemove", handleGlobalMouseMove);
+      window.addEventListener("mouseup", handleGlobalMouseUp);
+      return () => {
+        window.removeEventListener("mousemove", handleGlobalMouseMove);
+        window.removeEventListener("mouseup", handleGlobalMouseUp);
+      };
+    }
+  }, [dragging, resizing, handleGlobalMouseMove, handleGlobalMouseUp]);
+
+  const handles = ["n", "ne", "e", "se", "s", "sw", "w", "nw"];
+  const handlePos: Record<string, { top?: string; bottom?: string; left?: string; right?: string; transform: string }> = {
+    n:  { top: "-4px", left: "50%", transform: "translateX(-50%)" },
+    ne: { top: "-4px", right: "-4px", transform: "" },
+    e:  { top: "50%", right: "-4px", transform: "translateY(-50%)" },
+    se: { bottom: "-4px", right: "-4px", transform: "" },
+    s:  { bottom: "-4px", left: "50%", transform: "translateX(-50%)" },
+    sw: { bottom: "-4px", left: "-4px", transform: "" },
+    w:  { top: "50%", left: "-4px", transform: "translateY(-50%)" },
+    nw: { top: "-4px", left: "-4px", transform: "" },
+  };
+  const handleCursor: Record<string, string> = {
+    n: "n-resize", ne: "ne-resize", e: "e-resize", se: "se-resize",
+    s: "s-resize", sw: "sw-resize", w: "w-resize", nw: "nw-resize",
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full rounded-xl overflow-hidden border border-[#E0E0E0] bg-[#F5F5F5] select-none"
+      style={{ aspectRatio: `${CANVAS_W} / ${CANVAS_H}` }}
+    >
+      {/* Background image or placeholder */}
+      {menu.imageUrl ? (
+        <img src={menu.imageUrl} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center text-[#AAAAAA]">
+            <svg className="w-12 h-12 mx-auto mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <p className="text-sm">尚未上傳圖片</p>
+            <p className="text-xs mt-0.5">在右側面板上傳選單背景圖</p>
+          </div>
+        </div>
+      )}
+
+      {/* Draw overlay */}
+      <div
+        className="absolute inset-0"
+        style={{ cursor: drawing ? "crosshair" : "crosshair" }}
+        onMouseDown={handleCanvasMouseDown}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseUp={handleCanvasMouseUp}
+      />
+
+      {/* Existing areas */}
+      {menu.areas.map(area => {
+        const isSelected = area.id === selectedAreaId;
+        const left = area.bounds.x * scale;
+        const top = area.bounds.y * scale;
+        const width = area.bounds.width * scale;
+        const height = area.bounds.height * scale;
+        return (
+          <div
+            key={area.id}
+            style={{ position: "absolute", left, top, width, height, boxSizing: "border-box" }}
+            className={`border-2 rounded transition-colors ${isSelected ? "border-blue-500 bg-blue-500/20" : "border-white/70 bg-white/10 hover:bg-white/20"}`}
+            onMouseDown={e => handleAreaMouseDown(e, area)}
+          >
+            {/* Action type badge */}
+            <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-medium pointer-events-none select-none truncate max-w-[90%]">
+              {ACTION_TYPES.find(t => t.value === area.action.type)?.label || area.action.type}
+            </div>
+            {/* Resize handles */}
+            {isSelected && handles.map(h => (
+              <div
+                key={h}
+                style={{
+                  position: "absolute",
+                  width: 8, height: 8,
+                  borderRadius: 2,
+                  background: "white",
+                  border: "1.5px solid #3B82F6",
+                  cursor: handleCursor[h],
+                  zIndex: 10,
+                  ...handlePos[h],
+                }}
+                onMouseDown={e => handleResizeMouseDown(e, area, h)}
+              />
+            ))}
+          </div>
+        );
+      })}
+
+      {/* Drawing preview rect */}
+      {drawing && drawRect && drawRect.w > 4 && drawRect.h > 4 && (
+        <div
+          style={{
+            position: "absolute",
+            left: drawRect.x * scale,
+            top: drawRect.y * scale,
+            width: drawRect.w * scale,
+            height: drawRect.h * scale,
+            border: "2px dashed #3B82F6",
+            background: "rgba(59,130,246,0.15)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Area Settings Panel ────────────────────────────────────────────────────────
+function AreaSettings({
+  area,
+  allMenus,
+  onChange,
+  onDelete,
+}: {
+  area: RmArea;
+  allMenus: RmMenu[];
+  onChange: (updated: RmArea) => void;
+  onDelete: () => void;
+}) {
+  const update = (patch: Partial<RmArea["action"]>) => onChange({ ...area, action: { ...area.action, ...patch } });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-[#2B2B2B] uppercase tracking-wide">熱區動作</span>
+        <button onClick={onDelete} className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          刪除熱區
+        </button>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-[#6B6B6B] mb-1">動作類型</label>
+        <select
+          value={area.action.type}
+          onChange={e => update({ type: e.target.value as any })}
+          className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+        >
+          {ACTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-[#6B6B6B] mb-1">標籤（可選）</label>
+        <input
+          type="text" value={area.action.label || ""}
+          onChange={e => update({ label: e.target.value })}
+          placeholder="按鈕標籤"
+          className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+        />
+      </div>
+
+      {area.action.type === "uri" && (
+        <div>
+          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">網址</label>
+          <input
+            type="url" value={area.action.uri || ""}
+            onChange={e => update({ uri: e.target.value })}
+            placeholder="https://..."
+            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+          />
+        </div>
+      )}
+
+      {area.action.type === "message" && (
+        <div>
+          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">訊息文字</label>
+          <input
+            type="text" value={area.action.text || ""}
+            onChange={e => update({ text: e.target.value })}
+            placeholder="用戶點擊後發送的文字"
+            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+          />
+        </div>
+      )}
+
+      {area.action.type === "richmenuswitch" && (
+        <div>
+          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">切換到選單</label>
+          <select
+            value={area.action.richMenuAliasId || ""}
+            onChange={e => update({ richMenuAliasId: e.target.value })}
+            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+          >
+            <option value="">— 選擇選單 —</option>
+            {allMenus.map(m => <option key={m.aliasId} value={m.aliasId}>{m.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      {area.action.type === "postback" && (
+        <div>
+          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">Data</label>
+          <input
+            type="text" value={area.action.data || ""}
+            onChange={e => update({ data: e.target.value })}
+            placeholder="postback data"
+            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+          />
+        </div>
+      )}
+
+      <div className="text-xs text-[#AAAAAA] pt-1 border-t border-[#F0F0F0]">
+        位置: {area.bounds.x}, {area.bounds.y} &nbsp;|&nbsp; 大小: {area.bounds.width} × {area.bounds.height}
+      </div>
+    </div>
+  );
+}
+
+// ── Image Uploader ─────────────────────────────────────────────────────────────
+function ImageUploader({ menu, onUploaded }: { menu: RmMenu; onUploaded: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) { setErr("請選擇圖片檔案"); return; }
+    setUploading(true);
+    setErr(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `rich-menus/${user.id}/${menu.id}.${ext}`;
+      const { error } = await supabase.storage.from("flex-assets").upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+      onUploaded(publicUrl + "?t=" + Date.now());
+    } catch (e: any) {
+      setErr(e.message || "上傳失敗");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs font-medium text-[#6B6B6B] mb-2">選單背景圖片</label>
+      <div
+        className="border-2 border-dashed border-[#E0E0E0] rounded-xl p-4 text-center cursor-pointer hover:border-[#A35D5D] hover:bg-[#FFF7F8] transition-colors"
+        onClick={() => inputRef.current?.click()}
+        onDragOver={e => e.preventDefault()}
+        onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+      >
+        {menu.imageUrl ? (
+          <div className="relative">
+            <img src={menu.imageUrl} className="w-full h-20 object-cover rounded-lg" />
+            <div className="mt-2 text-xs text-[#6B6B6B]">點擊或拖曳更換圖片</div>
+          </div>
+        ) : (
+          <>
+            <svg className="w-8 h-8 mx-auto mb-2 text-[#CCCCCC]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            <p className="text-sm text-[#AAAAAA]">{uploading ? "上傳中..." : "點擊或拖曳上傳圖片"}</p>
+            <p className="text-xs text-[#CCCCCC] mt-0.5">建議尺寸 2500 × 1686px</p>
+          </>
+        )}
+      </div>
+      {err && <p className="mt-1 text-xs text-red-500">{err}</p>}
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+    </div>
+  );
+}
+
+// ── Main Editor ────────────────────────────────────────────────────────────────
+export default function RichMenuEditor() {
+  const { id } = useParams<{ id: string }>();
+  const nav = useNavigate();
+  const [draft, setDraft] = useState<RmDraft | null>(null);
+  const [menus, setMenus] = useState<RmMenu[]>([]);
+  const [selectedMenuIdx, setSelectedMenuIdx] = useState(0);
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState("");
+  const [editingName, setEditingName] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    getRmDraft(id).then(d => {
+      setDraft(d);
+      setDraftName(d.name);
+      setMenus(d.data?.menus ?? [makeDefaultMenu(0)]);
+    }).catch(e => setErr(e.message));
+  }, [id]);
+
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Auto-save
+  const triggerSave = useCallback((updatedMenus: RmMenu[], updatedName?: string) => {
+    if (!id) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await saveRmDraft(id, { data: { menus: updatedMenus }, name: updatedName ?? draftName });
+      } catch {}
+      setSaving(false);
+    }, 800);
+  }, [id, draftName]);
+
+  const currentMenu = menus[selectedMenuIdx];
+  const selectedArea = currentMenu?.areas.find(a => a.id === selectedAreaId) ?? null;
+
+  const updateMenu = (patch: Partial<RmMenu>) => {
+    const updated = menus.map((m, i) => i === selectedMenuIdx ? { ...m, ...patch } : m);
+    setMenus(updated);
+    triggerSave(updated);
+  };
+
+  const updateAreas = (areas: RmArea[]) => {
+    updateMenu({ areas });
+  };
+
+  const updateArea = (updated: RmArea) => {
+    if (!currentMenu) return;
+    updateMenu({ areas: currentMenu.areas.map(a => a.id === updated.id ? updated : a) });
+  };
+
+  const deleteArea = (areaId: string) => {
+    if (!currentMenu) return;
+    updateMenu({ areas: currentMenu.areas.filter(a => a.id !== areaId) });
+    setSelectedAreaId(null);
+  };
+
+  const addMenu = () => {
+    const newMenu = makeDefaultMenu(menus.length);
+    const updated = [...menus, newMenu];
+    setMenus(updated);
+    setSelectedMenuIdx(updated.length - 1);
+    setSelectedAreaId(null);
+    triggerSave(updated);
+  };
+
+  const deleteMenu = (idx: number) => {
+    if (menus.length <= 1) { showToast("至少需要保留一個選單層", "error"); return; }
+    if (!confirm(`確定要刪除「${menus[idx].name}」？`)) return;
+    const updated = menus.filter((_, i) => i !== idx);
+    const newIdx = Math.min(selectedMenuIdx, updated.length - 1);
+    setMenus(updated);
+    setSelectedMenuIdx(newIdx);
+    setSelectedAreaId(null);
+    triggerSave(updated);
+  };
+
+  const handlePublish = async () => {
+    if (!id) return;
+    setPublishing(true);
+    try {
+      const result = await publishRmDraft(id);
+      showToast(`已成功發布 ${result.publishedMenus.length} 個選單`);
+    } catch (e: any) {
+      showToast(e.message || "發布失敗", "error");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleNameSave = async () => {
+    setEditingName(false);
+    if (!id || !draftName.trim()) return;
+    await saveRmDraft(id, { name: draftName.trim(), data: { menus } });
+  };
+
+  if (err) return (
+    <div className="h-screen flex items-center justify-center text-red-500">{err}</div>
+  );
+  if (!draft) return (
+    <div className="h-screen flex items-center justify-center text-[#6B6B6B]">載入中...</div>
+  );
+
+  return (
+    <div className="h-screen overflow-hidden flex flex-col bg-[#F7F7F7]">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-sm font-medium transition-all ${toast.type === "error" ? "bg-red-600 text-white" : "bg-[#1A1A1A] text-white"}`}>
+          {toast.type === "success" ? (
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#4ADE80" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          ) : (
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#FCA5A5" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          )}
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Top bar */}
+      <header className="h-12 bg-white border-b border-[#EBEBEB] flex items-center px-4 gap-3 shrink-0 z-30">
+        <button onClick={() => nav("/rich-menus")} className="text-[#8A8A8A] hover:text-[#2B2B2B] transition-colors p-1 rounded-lg hover:bg-[#F5F5F5]">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <div className="h-4 w-px bg-[#EBEBEB]" />
+
+        {editingName ? (
+          <input
+            autoFocus value={draftName}
+            onChange={e => setDraftName(e.target.value)}
+            onBlur={handleNameSave}
+            onKeyDown={e => { if (e.key === "Enter") handleNameSave(); if (e.key === "Escape") { setDraftName(draft.name); setEditingName(false); } }}
+            className="text-sm font-semibold text-[#2B2B2B] border-b border-[#A35D5D] focus:outline-none bg-transparent w-48"
+          />
+        ) : (
+          <button onClick={() => setEditingName(true)} className="flex items-center gap-1.5 text-sm font-semibold text-[#2B2B2B] hover:text-[#A35D5D] transition-colors group">
+            {draftName}
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="opacity-0 group-hover:opacity-100 transition-opacity"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4z" /></svg>
+          </button>
+        )}
+
+        <div className="flex-1" />
+
+        {saving && <span className="text-xs text-[#AAAAAA]">儲存中...</span>}
+
+        <button
+          onClick={handlePublish}
+          disabled={publishing}
+          className="px-4 py-1.5 text-sm font-semibold text-white bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+        >
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+          {publishing ? "發布中..." : "發布到 LINE"}
+        </button>
+      </header>
+
+      <div className="flex flex-1 min-h-0">
+        {/* Left: Menu Layer List */}
+        <aside className="w-52 bg-white border-r border-[#EBEBEB] flex flex-col shrink-0">
+          <div className="px-3 py-3 border-b border-[#F0F0F0]">
+            <div className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wide mb-2">選單層</div>
+            <div className="space-y-1">
+              {menus.map((m, i) => (
+                <div
+                  key={m.id}
+                  onClick={() => { setSelectedMenuIdx(i); setSelectedAreaId(null); }}
+                  className={`group flex items-center justify-between rounded-lg px-2.5 py-2 cursor-pointer transition-colors text-sm ${selectedMenuIdx === i ? "bg-[#EEF4FF] text-[#2563EB]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 text-[10px] font-bold ${selectedMenuIdx === i ? "bg-[#3B82F6] text-white" : "bg-[#E8E8E8] text-[#888888]"}`}>{i + 1}</div>
+                    <span className="truncate font-medium">{m.name}</span>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); deleteMenu(i); }}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:text-red-500 transition-all shrink-0"
+                    title="刪除此選單層"
+                  >
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={addMenu}
+              className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-[#888888] border border-dashed border-[#DDDDDD] hover:border-[#3B82F6] hover:text-[#3B82F6] transition-colors"
+            >
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              新增選單層
+            </button>
+          </div>
+
+          {/* Area list for selected menu */}
+          {currentMenu && (
+            <div className="flex-1 overflow-y-auto px-3 py-3">
+              <div className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wide mb-2">熱區列表</div>
+              {currentMenu.areas.length === 0 ? (
+                <p className="text-xs text-[#AAAAAA] text-center py-4">在畫布上拖曳繪製熱區</p>
+              ) : (
+                <div className="space-y-1">
+                  {currentMenu.areas.map((a, i) => (
+                    <div
+                      key={a.id}
+                      onClick={() => setSelectedAreaId(a.id)}
+                      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 cursor-pointer text-xs transition-colors ${selectedAreaId === a.id ? "bg-[#EEF4FF] text-[#2563EB]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                    >
+                      <span className="font-medium shrink-0">#{i + 1}</span>
+                      <span className="truncate">{ACTION_TYPES.find(t => t.value === a.action.type)?.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </aside>
+
+        {/* Center: Canvas */}
+        <div className="flex-1 overflow-auto p-6 flex flex-col gap-4">
+          {currentMenu && (
+            <>
+              <div className="text-xs text-[#AAAAAA] text-center">在畫布上拖曳繪製熱區 · 點擊選取後可調整</div>
+              <RichMenuCanvas
+                menu={currentMenu}
+                selectedAreaId={selectedAreaId}
+                onAreasChange={updateAreas}
+                onSelectArea={setSelectedAreaId}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Right: Settings Panel */}
+        <aside className="w-72 bg-white border-l border-[#EBEBEB] flex flex-col shrink-0 overflow-y-auto">
+          <div className="p-4 space-y-5">
+            {/* Menu settings */}
+            {currentMenu && (
+              <>
+                <div>
+                  <div className="text-xs font-semibold text-[#6B6B6B] uppercase tracking-wide mb-3">選單設定</div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-[#6B6B6B] mb-1">選單名稱</label>
+                      <input
+                        type="text" value={currentMenu.name}
+                        onChange={e => updateMenu({ name: e.target.value })}
+                        className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#6B6B6B] mb-1">底欄文字</label>
+                      <input
+                        type="text" value={currentMenu.chatBarText}
+                        onChange={e => updateMenu({ chatBarText: e.target.value })}
+                        placeholder="選單"
+                        className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+                      />
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="border-t border-[#F0F0F0] pt-4">
+                  <ImageUploader
+                    menu={currentMenu}
+                    onUploaded={url => { updateMenu({ imageUrl: url }); showToast("圖片上傳成功"); }}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Area settings */}
+            {selectedArea && currentMenu && (
+              <div className="border-t border-[#F0F0F0] pt-4">
+                <AreaSettings
+                  area={selectedArea}
+                  allMenus={menus}
+                  onChange={updateArea}
+                  onDelete={() => deleteArea(selectedArea.id)}
+                />
+              </div>
+            )}
+
+            {!selectedArea && currentMenu && (
+              <div className="border-t border-[#F0F0F0] pt-4 text-center text-xs text-[#AAAAAA] py-4">
+                點擊畫布上的熱區以編輯動作
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}

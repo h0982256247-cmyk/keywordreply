@@ -552,11 +552,19 @@ export default function Drafts() {
               </div>
             )}
           </div>
+          <button
+            className="shrink-0 ml-auto px-4 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-md"
+            onClick={() => setShowNewModal(true)}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            建立訊息
+          </button>
         </div>
 
-        {/* Folder Tabs + Create Button */}
-        <div className="flex items-center justify-between gap-2 mb-5">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
+        {/* Folder Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-5">
           {tabs.map(tab => {
             const isActive = selectedFolder === tab.id;
             const isEditing = editingFolderId === tab.id;
@@ -652,16 +660,6 @@ export default function Drafts() {
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-          </button>
-        </div>
-          <button
-            className="shrink-0 ml-4 px-4 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-md"
-            onClick={() => setShowNewModal(true)}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            建立訊息
           </button>
         </div>
 

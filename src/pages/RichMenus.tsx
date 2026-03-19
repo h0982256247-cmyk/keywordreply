@@ -322,7 +322,6 @@ export default function RichMenus() {
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
           </button>
         </div>
-      </div>
 
       {/* Table */}
       <div className="bg-white border border-[#EBEBEB] rounded-2xl shadow-sm">
@@ -411,6 +410,7 @@ export default function RichMenus() {
             )}
           </tbody>
         </table>
+      </div>
       </div>
 
       {showNewModal && (

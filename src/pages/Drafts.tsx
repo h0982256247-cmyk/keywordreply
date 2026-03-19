@@ -566,7 +566,7 @@ export default function Drafts() {
         </div>
 
         {/* Folder Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-5 pl-3">
           <span className="shrink-0 text-[#AAAAAA]">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>

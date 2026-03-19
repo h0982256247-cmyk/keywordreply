@@ -415,6 +415,16 @@ export default function Drafts() {
     }
   }
 
+  async function handleDuplicate(r: any) {
+    try {
+      const name = (r.content?.name || r.title || "未命名") + " (副本)";
+      await createDoc({ ...r.content, name, folder_id: r.folder_id ?? null } as any);
+      await load();
+    } catch (e: any) {
+      setErr(e.message || "複製失敗");
+    }
+  }
+
   async function handleDelete(id: string, title: string) {
     if (!confirm(`確定要刪除「${title}」嗎？此操作無法復原。`)) return;
     setDeleting(id);
@@ -721,6 +731,15 @@ export default function Drafts() {
                       >
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button
+                        className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#A35D5D] hover:bg-[#FBEBEE] rounded-lg transition-colors"
+                        onClick={e => { e.stopPropagation(); handleDuplicate(r); }}
+                        title="複製"
+                      >
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
                         </svg>
                       </button>
                       <button

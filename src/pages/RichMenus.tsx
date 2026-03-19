@@ -227,10 +227,33 @@ export default function RichMenus() {
     <div className="space-y-6">
       {err && <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100">{err}</div>}
 
-      {/* Folder Tabs + Create Button */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-1">
-          {tabs.map(tab => {
+      {/* Search Bar */}
+      <div className="bg-white border border-[#EBEBEB] rounded-xl px-4 py-3 mb-4 flex items-center gap-3 shadow-sm">
+        <div className="relative flex-1">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="m21 21-4.35-4.35" /></svg>
+          <input
+            type="text" placeholder="搜尋圖文選單名稱..."
+            value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#E8E8E8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#A35D5D] focus:border-[#A35D5D] placeholder-[#AAAAAA]"
+          />
+        </div>
+        <button
+          className="shrink-0 px-4 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-md"
+          onClick={() => setShowNewModal(true)}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+          新增多層圖文選單
+        </button>
+      </div>
+
+      {/* Folder Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none mb-5 pl-3">
+        <span className="shrink-0 text-[#AAAAAA]">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+        </span>
+        {tabs.map(tab => {
             const isActive = selectedFolder === tab.id;
             const isEditing = editingFolderId === tab.id;
 
@@ -298,26 +321,6 @@ export default function RichMenus() {
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
           </button>
         </div>
-        <button
-          className="shrink-0 ml-4 px-4 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors flex items-center gap-1.5 shadow-md"
-          onClick={() => setShowNewModal(true)}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-          新增多層圖文選單
-        </button>
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-white border border-[#EBEBEB] rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
-        <div className="relative flex-1 min-w-[160px] max-w-xs">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="m21 21-4.35-4.35" /></svg>
-          <input
-            type="text" placeholder="搜尋圖文選單名稱..."
-            value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-sm border border-[#E8E8E8] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#A35D5D] focus:border-[#A35D5D] placeholder-[#AAAAAA]"
-          />
-        </div>
-      </div>
 
       {/* Table */}
       <div className="bg-white border border-[#EBEBEB] rounded-2xl shadow-sm">

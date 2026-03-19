@@ -227,6 +227,7 @@ export default function RichMenus() {
     <div className="space-y-6">
       {err && <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-100">{err}</div>}
 
+      <div>
       {/* Search Bar */}
       <div className="bg-white border border-[#EBEBEB] rounded-xl px-4 py-3 mb-4 flex items-center gap-3 shadow-sm">
         <div className="relative flex-1">
@@ -321,6 +322,7 @@ export default function RichMenus() {
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
           </button>
         </div>
+      </div>
 
       {/* Table */}
       <div className="bg-white border border-[#EBEBEB] rounded-2xl shadow-sm">

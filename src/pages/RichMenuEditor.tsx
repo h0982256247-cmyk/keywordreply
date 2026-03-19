@@ -229,7 +229,7 @@ function RichMenuCanvas({
           <div
             key={area.id}
             style={{ position: "absolute", left, top, width, height, boxSizing: "border-box" }}
-            className={`border-2 rounded transition-colors ${isSelected ? "border-blue-500 bg-blue-500/20" : "border-white/70 bg-white/10 hover:bg-white/20"}`}
+            className={`border-2 rounded transition-colors ${isSelected ? "border-[#A35D5D] bg-[#A35D5D]/20" : "border-white/70 bg-white/10 hover:bg-white/20"}`}
             onMouseDown={e => handleAreaMouseDown(e, area)}
           >
             {/* Action type badge */}
@@ -245,7 +245,7 @@ function RichMenuCanvas({
                   width: 8, height: 8,
                   borderRadius: 2,
                   background: "white",
-                  border: "1.5px solid #3B82F6",
+                  border: "1.5px solid #A35D5D",
                   cursor: handleCursor[h],
                   zIndex: 10,
                   ...handlePos[h],
@@ -266,8 +266,8 @@ function RichMenuCanvas({
             top: drawRect.y * scale,
             width: drawRect.w * scale,
             height: drawRect.h * scale,
-            border: "2px dashed #3B82F6",
-            background: "rgba(59,130,246,0.15)",
+            border: "2px dashed #A35D5D",
+            background: "rgba(163,93,93,0.15)",
             pointerEvents: "none",
           }}
         />
@@ -588,7 +588,7 @@ export default function RichMenuEditor() {
         <button
           onClick={handlePublish}
           disabled={publishing}
-          className="px-4 py-1.5 text-sm font-semibold text-white bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          className="px-4 py-1.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
         >
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
           {publishing ? "發布中..." : "發布到 LINE"}
@@ -605,10 +605,10 @@ export default function RichMenuEditor() {
                 <div
                   key={m.id}
                   onClick={() => { setSelectedMenuIdx(i); setSelectedAreaId(null); }}
-                  className={`group flex items-center justify-between rounded-lg px-2.5 py-2 cursor-pointer transition-colors text-sm ${selectedMenuIdx === i ? "bg-[#EEF4FF] text-[#2563EB]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                  className={`group flex items-center justify-between rounded-lg px-2.5 py-2 cursor-pointer transition-colors text-sm ${selectedMenuIdx === i ? "bg-[#FBEBEE] text-[#A35D5D]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 text-[10px] font-bold ${selectedMenuIdx === i ? "bg-[#3B82F6] text-white" : "bg-[#E8E8E8] text-[#888888]"}`}>{i + 1}</div>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 text-[10px] font-bold ${selectedMenuIdx === i ? "bg-[#A35D5D] text-white" : "bg-[#E8E8E8] text-[#888888]"}`}>{i + 1}</div>
                     <span className="truncate font-medium">{m.name}</span>
                   </div>
                   <button
@@ -623,7 +623,7 @@ export default function RichMenuEditor() {
             </div>
             <button
               onClick={addMenu}
-              className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-[#888888] border border-dashed border-[#DDDDDD] hover:border-[#3B82F6] hover:text-[#3B82F6] transition-colors"
+              className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-[#888888] border border-dashed border-[#DDDDDD] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors"
             >
               <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               新增選單層
@@ -642,7 +642,7 @@ export default function RichMenuEditor() {
                     <div
                       key={a.id}
                       onClick={() => setSelectedAreaId(a.id)}
-                      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 cursor-pointer text-xs transition-colors ${selectedAreaId === a.id ? "bg-[#EEF4FF] text-[#2563EB]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                      className={`flex items-center gap-2 rounded-lg px-2.5 py-2 cursor-pointer text-xs transition-colors ${selectedAreaId === a.id ? "bg-[#FBEBEE] text-[#A35D5D]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
                     >
                       <span className="font-medium shrink-0">#{i + 1}</span>
                       <span className="truncate">{ACTION_TYPES.find(t => t.value === a.action.type)?.label}</span>

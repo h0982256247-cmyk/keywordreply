@@ -698,40 +698,6 @@ export default function RichMenuEditor() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-[#6B6B6B] mb-1">別名 ID（英數）</label>
-                      <input
-                        type="text" value={currentMenu.aliasId}
-                        onChange={e => updateMenu({ aliasId: e.target.value.replace(/[^a-z0-9_-]/g, "-").toLowerCase() })}
-                        className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between py-1">
-                      <div>
-                        <div className="text-xs font-medium text-[#6B6B6B]">設為預設選單</div>
-                        <div className="text-xs text-[#AAAAAA]">發布後套用給所有用戶</div>
-                      </div>
-                      <button
-                        onClick={() => updateMenu({ isDefault: !currentMenu.isDefault })}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${currentMenu.isDefault ? "bg-[#3B82F6]" : "bg-[#E0E0E0]"}`}
-                      >
-                        <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${currentMenu.isDefault ? "translate-x-4.5" : "translate-x-0.5"}`} style={{ transform: currentMenu.isDefault ? "translateX(18px)" : "translateX(2px)" }} />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between py-1">
-                      <div>
-                        <div className="text-xs font-medium text-[#6B6B6B]">預設展開</div>
-                        <div className="text-xs text-[#AAAAAA]">進入對話時自動展開選單</div>
-                      </div>
-                      <button
-                        onClick={() => updateMenu({ selected: !currentMenu.selected })}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${currentMenu.selected ? "bg-[#3B82F6]" : "bg-[#E0E0E0]"}`}
-                      >
-                        <span className="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform" style={{ transform: currentMenu.selected ? "translateX(18px)" : "translateX(2px)" }} />
-                      </button>
-                    </div>
                   </div>
                 </div>
 

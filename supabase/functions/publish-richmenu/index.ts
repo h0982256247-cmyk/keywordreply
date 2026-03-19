@@ -143,10 +143,14 @@ serve(async (req) => {
 
       // ── Build LINE payload ─────────────────────────────────────────────
       const size = menu.size || { width: 2500, height: 1686 };
-      const areas = (menu.areas || []).map((a: any) => ({
-        bounds: a.bounds,
-        action: a.action,
-      }));
+      const areas = (menu.areas || []).map((a: any) => {
+        let action = { ...a.action };
+        // LINE requires `data` field for richmenuswitch actions
+        if (action.type === "richmenuswitch" && !action.data) {
+          action.data = `switch-to-${action.richMenuAliasId || "menu"}`;
+        }
+        return { bounds: a.bounds, action };
+      });
 
       const rmPayload = {
         size,

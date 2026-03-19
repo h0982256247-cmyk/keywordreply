@@ -368,6 +368,7 @@ export default function Drafts() {
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "used" | "unused">("all");
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
   const [showNewModal, setShowNewModal] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
@@ -635,17 +636,32 @@ export default function Drafts() {
             </svg>
             篩選類型
           </button>
-          <div className="ml-auto flex items-center rounded-lg border border-[#E8E8E8] overflow-hidden text-sm">
-            {(["all", "used", "unused"] as const).map((v, i) => (
-              <button
-                key={v}
-                onClick={() => setStatusFilter(v)}
-                className={`px-3 py-1.5 transition-colors ${i > 0 ? "border-l border-[#E8E8E8]" : ""} ${statusFilter === v ? "bg-[#A35D5D] text-white" : "bg-white text-[#555555] hover:bg-[#F5F5F5]"
-                  }`}
-              >
-                {v === "all" ? "全部" : v === "used" ? "已使用" : "未使用"}
-              </button>
-            ))}
+          <div className="relative">
+            <button
+              onClick={() => setStatusDropdownOpen(o => !o)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors ${statusFilter !== "all" ? "border-[#A35D5D] text-[#A35D5D] bg-[#FBEBEE]" : "border-[#E8E8E8] text-[#555555] hover:bg-[#F5F5F5] hover:text-[#1A1A1A]"}`}
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <circle cx="12" cy="12" r="3"/><path d="M3 12h3m12 0h3M12 3v3m0 12v3"/>
+              </svg>
+              篩選狀態{statusFilter !== "all" && <span className="ml-0.5 text-xs">：{statusFilter === "used" ? "已使用" : "未使用"}</span>}
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} className={`transition-transform ${statusDropdownOpen ? "rotate-180" : ""}`}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+            {statusDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-[#E8E8E8] rounded-lg shadow-lg py-1 min-w-[96px]">
+                {(["all", "used", "unused"] as const).map(v => (
+                  <button
+                    key={v}
+                    onClick={() => { setStatusFilter(v); setStatusDropdownOpen(false); }}
+                    className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${statusFilter === v ? "text-[#A35D5D] bg-[#FBEBEE]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                  >
+                    {v === "all" ? "全部" : v === "used" ? "已使用" : "未使用"}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

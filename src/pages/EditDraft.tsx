@@ -33,6 +33,7 @@ export default function EditDraft() {
   const [showBodyAdd, setShowBodyAdd] = useState(false);
   const [showFooterAdd, setShowFooterAdd] = useState(false);
   const [showAddCardMenu, setShowAddCardMenu] = useState(false);
+  const [addCardMenuPos, setAddCardMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [activeShare, setActiveShare] = useState<{ token: string; version_no: number } | null>(null);
@@ -47,6 +48,7 @@ export default function EditDraft() {
   };
   const saveTimer = useRef<number | null>(null);
   const cardTabsRef = useRef<HTMLDivElement>(null);
+  const addCardBtnRef = useRef<HTMLButtonElement>(null);
   const dragBodyRef = useRef<number>(-1);
   const dragFooterRef = useRef<number>(-1);
 
@@ -87,6 +89,14 @@ export default function EditDraft() {
       }
     }
   }, [selectedCardIdx, doc?.type]);
+
+  // 點擊外部關閉 + 新增卡片 dropdown
+  useEffect(() => {
+    if (!showAddCardMenu) return;
+    const handler = () => setShowAddCardMenu(false);
+    window.addEventListener("mousedown", handler);
+    return () => window.removeEventListener("mousedown", handler);
+  }, [showAddCardMenu]);
 
   const scheduleSave = (next: DocModel) => {
     setDoc(next);
@@ -508,7 +518,7 @@ export default function EditDraft() {
             <div className="flex-shrink-0 bg-white border-b border-[#E7C9CD]">
               <div className="flex items-center px-2 pt-2 gap-1">
                 {/* Scrollable tabs */}
-                <div className="flex items-end overflow-x-auto flex-1 gap-0.5 scrollbar-hide" ref={cardTabsRef}>
+                <div className="flex items-end overflow-x-auto flex-1 gap-0.5 scrollbar-hide min-w-0" ref={cardTabsRef}>
                   {doc.cards.map((c, idx) => {
                     const isSpec = (c.section as SpecialSection).kind === "special";
                     const displayName = getCardDisplayName(c, idx);
@@ -583,32 +593,43 @@ export default function EditDraft() {
                       </div>
                     );
                   })}
+                  {/* + 新增卡片按鈕：緊接在最後一張卡片右方 */}
+                  {doc.cards.length < 10 && (
+                    <div className="flex-shrink-0 self-end pb-1.5 ml-1">
+                      <button
+                        ref={addCardBtnRef}
+                        title="新增卡片"
+                        className="w-6 h-6 flex items-center justify-center rounded-full border border-[#E7C9CD] hover:bg-[#FBEBEE] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors text-[#AAAAAA]"
+                        onClick={() => {
+                          if (!showAddCardMenu && addCardBtnRef.current) {
+                            const rect = addCardBtnRef.current.getBoundingClientRect();
+                            setAddCardMenuPos({ top: rect.bottom + 4, left: rect.left });
+                          }
+                          setShowAddCardMenu(v => !v);
+                        }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {/* Add card — outside overflow container so dropdown is not clipped */}
-                {doc.cards.length < 10 && (
-                  <div className="relative flex-shrink-0 self-center ml-1">
-                    <button
-                      title="新增卡片"
-                      className="w-6 h-6 flex items-center justify-center rounded-full border border-[#E7C9CD] hover:bg-[#FBEBEE] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors text-[#AAAAAA]"
-                      onClick={() => setShowAddCardMenu(v => !v)}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                    </button>
-                    {showAddCardMenu && (
-                      <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]">
-                        {[{ val: "regular", label: "一般卡片" }, { val: "special", label: "特殊卡片" }].map(({ val, label }) => (
-                          <button key={val} className="w-full text-left px-4 py-2 text-sm text-[#555555] hover:bg-[#FCF7F8] transition-colors" onClick={() => {
-                            const newCard = val === "regular"
-                              ? { id: uid("card_"), section: { hero: [{ id: uid("hero_"), kind: "hero_image", enabled: true, image: { kind: "external", url: "https://placehold.co/600x390/E2E8F0/94A3B8/png?text=+", lastCheck: { ok: true, level: "pass" } }, ratio: "20:13", mode: "cover" }], body: [], footer: [] } as any }
-                              : { id: uid("card_"), section: seedSpecialSection() };
-                            scheduleSave({ ...doc, cards: [...doc.cards, newCard] });
-                            setSelectedCardIdx(doc.cards.length);
-                            setShowAddCardMenu(false);
-                          }}>{label}</button>
-                        ))}
-                      </div>
-                    )}
+                {/* Fixed dropdown — 在 overflow 容器外渲染，不會被裁切 */}
+                {showAddCardMenu && addCardMenuPos && (
+                  <div
+                    className="fixed z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]"
+                    style={{ top: addCardMenuPos.top, left: addCardMenuPos.left }}
+                  >
+                    {[{ val: "regular", label: "一般卡片" }, { val: "special", label: "特殊卡片" }].map(({ val, label }) => (
+                      <button key={val} className="w-full text-left px-4 py-2 text-sm text-[#555555] hover:bg-[#FCF7F8] transition-colors" onClick={() => {
+                        const newCard = val === "regular"
+                          ? { id: uid("card_"), section: { hero: [{ id: uid("hero_"), kind: "hero_image", enabled: true, image: { kind: "external", url: "https://placehold.co/600x390/E2E8F0/94A3B8/png?text=+", lastCheck: { ok: true, level: "pass" } }, ratio: "20:13", mode: "cover" }], body: [], footer: [] } as any }
+                          : { id: uid("card_"), section: seedSpecialSection() };
+                        scheduleSave({ ...doc, cards: [...doc.cards, newCard] });
+                        setSelectedCardIdx(doc.cards.length);
+                        setShowAddCardMenu(false);
+                      }}>{label}</button>
+                    ))}
                   </div>
                 )}
 
@@ -1815,11 +1836,104 @@ export default function EditDraft() {
                 </>
               ) : (
                 <>
-                  <AccordionSection title="封面圖片" accent="bg-orange-400" open={open === "hero"} onToggle={() => setOpen(open === "hero" ? "body" : "hero")}>
-                    <div className="space-y-3">
-                      <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return alert("上傳失敗：" + error.message); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { alert("上傳錯誤：" + err.message); } }} /></label>
-                      <div className="mt-3"><div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div><GlassSelect size="sm" className="w-full" value={(() => { const heroArr = (section as any).hero || []; const heroImage = heroArr.find((c: any) => c.kind === "hero_image"); return heroImage?.ratio || "20:13"; })()} onChange={(val) => { const ratio = val as any; const heroArr = (section as any).hero || []; const hero = heroArr.map((c: any) => c.kind === "hero_image" ? { ...c, ratio } : c); setSection({ ...section, hero }); }} options={[{value:"20:13",label:"20:13 (標準卡片)"},{value:"9:16",label:"9:16 (滿版/直向)"},{value:"1.91:1",label:"1.91:1 (矩形)"},{value:"16:9",label:"16:9 (寬螢幕)"},{value:"4:3",label:"4:3 (標準)"},{value:"1:1",label:"1:1 (正方形)"}]} /></div>
-                    </div>
+                  <AccordionSection
+                    title={isVideoHero ? "影片封面" : "封面圖片"}
+                    accent={isVideoHero ? "bg-red-400" : "bg-orange-400"}
+                    subtitle={isVideoHero ? "上傳影片檔案（MP4，最大 200MB）與預覽圖" : undefined}
+                    open={open === "hero"}
+                    onToggle={() => setOpen(open === "hero" ? "body" : "hero")}
+                    right={isVideoHero ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">影片</span> : undefined}
+                  >
+                    {isVideoHero && heroVideo ? (
+                      <div className="space-y-3">
+                        <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center text-[#AAAAAA] group-hover:bg-white group-hover:text-red-500 transition-colors">
+                              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </div>
+                            <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#2B2B2B]">上傳影片 (MP4)</span>
+                            <span className="text-xs text-[#AAAAAA]">Max 200MB</span>
+                          </div>
+                          <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 200 * 1024 * 1024) return alert(`影片檔案過大，請小於 200 MB\n目前大小：${(file.size / 1024 / 1024).toFixed(1)} MB`);
+                            try {
+                              const ext = file.name.split(".").pop();
+                              const path = `${uid("video_")}.${ext}`;
+                              const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+                              if (error) return alert("上傳失敗：" + error.message);
+                              const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+                              let previewUrl = heroVideo.video?.previewUrl || "";
+                              let previewAssetId = heroVideo.video?.kind === "upload" ? heroVideo.video.previewAssetId : "";
+                              try {
+                                const frameBlob = await extractVideoFrame(publicUrl, 0.1);
+                                const previewPath = `${uid("preview_")}.jpg`;
+                                const { error: previewError } = await supabase.storage.from("flex-assets").upload(previewPath, frameBlob, { contentType: "image/jpeg" });
+                                if (!previewError) {
+                                  const { data: { publicUrl: previewPublicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(previewPath);
+                                  previewUrl = previewPublicUrl;
+                                  previewAssetId = previewPath;
+                                }
+                              } catch (frameErr) {
+                                console.warn("自動擷取預覽圖失敗，請手動上傳：", frameErr);
+                              }
+                              await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
+                              showToast("影片上傳成功");
+                            } catch (err: any) {
+                              alert("上傳錯誤：" + err.message);
+                            }
+                          }} />
+                        </label>
+                        <label className="flex items-center justify-center w-full px-4 py-4 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
+                          <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#555555] flex items-center gap-2">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            上傳預覽圖
+                          </span>
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB");
+                            try {
+                              const ext = file.name.split(".").pop();
+                              const path = `${uid("img_")}.${ext}`;
+                              const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+                              if (error) return alert("上傳失敗：" + error.message);
+                              const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+                              await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
+                              showToast("預覽圖上傳成功");
+                            } catch (err: any) {
+                              alert("上傳錯誤：" + err.message);
+                            }
+                          }} />
+                        </label>
+                        <div className="mt-4">
+                          <div className="text-sm font-semibold text-[#555555] mb-2">影片比例</div>
+                          <GlassSelect
+                            value={heroVideo.ratio || "16:9"}
+                            onChange={(val) => {
+                              const regularSection = section as any;
+                              const hero = regularSection.hero.map((c: any) => (c.kind === "hero_video" ? { ...c, ratio: val } : c));
+                              setSection({ ...regularSection, hero });
+                            }}
+                            options={[
+                              {value: "20:13", label: "20:13 (標準卡片)"},
+                              {value: "9:16", label: "9:16 (滿版/直向)"},
+                              {value: "16:9", label: "16:9 (寬螢幕)"},
+                              {value: "4:3", label: "4:3 (標準)"},
+                              {value: "1:1", label: "1:1 (正方形)"},
+                            ]}
+                            size="sm"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return alert("上傳失敗：" + error.message); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { alert("上傳錯誤：" + err.message); } }} /></label>
+                        <div className="mt-3"><div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div><GlassSelect size="sm" className="w-full" value={(() => { const heroArr = (section as any).hero || []; const heroImage = heroArr.find((c: any) => c.kind === "hero_image"); return heroImage?.ratio || "20:13"; })()} onChange={(val) => { const ratio = val as any; const heroArr = (section as any).hero || []; const hero = heroArr.map((c: any) => c.kind === "hero_image" ? { ...c, ratio } : c); setSection({ ...section, hero }); }} options={[{value:"20:13",label:"20:13 (標準卡片)"},{value:"9:16",label:"9:16 (滿版/直向)"},{value:"1.91:1",label:"1.91:1 (矩形)"},{value:"16:9",label:"16:9 (寬螢幕)"},{value:"4:3",label:"4:3 (標準)"},{value:"1:1",label:"1:1 (正方形)"}]} /></div>
+                      </div>
+                    )}
                   </AccordionSection>
                   <AccordionSection title="內容設定" accent="bg-[#A35D5D]" open={open === "body"} onToggle={() => setOpen(open === "body" ? "footer" : "body")} right={<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F0F0F0] text-[#2B2B2B] border border-[#E7C9CD]">{section.body.filter((c: any) => c.enabled).length} 個</span>}>
                     <div className="space-y-3">

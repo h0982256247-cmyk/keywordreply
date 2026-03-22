@@ -49,6 +49,7 @@ export default function EditDraft() {
   const saveTimer = useRef<number | null>(null);
   const cardTabsRef = useRef<HTMLDivElement>(null);
   const addCardBtnRef = useRef<HTMLButtonElement>(null);
+  const addCardMenuRef = useRef<HTMLDivElement>(null);
   const dragBodyRef = useRef<number>(-1);
   const dragFooterRef = useRef<number>(-1);
 
@@ -90,10 +91,14 @@ export default function EditDraft() {
     }
   }, [selectedCardIdx, doc?.type]);
 
-  // 點擊外部關閉 + 新增卡片 dropdown
+  // 點擊外部關閉 + 新增卡片 dropdown（排除 button 和 dropdown 本身）
   useEffect(() => {
     if (!showAddCardMenu) return;
-    const handler = () => setShowAddCardMenu(false);
+    const handler = (e: MouseEvent) => {
+      if (addCardBtnRef.current?.contains(e.target as Node)) return;
+      if (addCardMenuRef.current?.contains(e.target as Node)) return;
+      setShowAddCardMenu(false);
+    };
     window.addEventListener("mousedown", handler);
     return () => window.removeEventListener("mousedown", handler);
   }, [showAddCardMenu]);
@@ -617,6 +622,7 @@ export default function EditDraft() {
                 {/* Fixed dropdown — 在 overflow 容器外渲染，不會被裁切 */}
                 {showAddCardMenu && addCardMenuPos && (
                   <div
+                    ref={addCardMenuRef}
                     className="fixed z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]"
                     style={{ top: addCardMenuPos.top, left: addCardMenuPos.left }}
                   >

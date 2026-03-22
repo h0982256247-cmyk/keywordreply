@@ -2212,6 +2212,7 @@ function RatioPicker({ value, onChange, options }: {
 
 function QuickReplyEditor({ doc, onChange }: { doc: EditableMessageDoc; onChange: (quickReply: any) => void }) {
   const items = doc.quickReply?.items || [];
+  const dragIdx = useRef<number>(-1);
 
   function updateItem(id: string, patch: Partial<QuickReplyItem>) {
     onChange({ items: items.map((item) => item.id === id ? { ...item, ...patch, action: { ...item.action, ...(patch as any).action } } : item) });
@@ -2228,6 +2229,13 @@ function QuickReplyEditor({ doc, onChange }: { doc: EditableMessageDoc; onChange
     });
   }
 
+  function moveItem(from: number, to: number) {
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange({ items: next });
+  }
+
   return (
     <div className="bg-white border border-[#E7C9CD] rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
@@ -2240,10 +2248,18 @@ function QuickReplyEditor({ doc, onChange }: { doc: EditableMessageDoc; onChange
       {items.length === 0 ? null : (
         <>
           <div className="mt-4 rounded-2xl border border-[#E7C9CD] bg-[#FCF7F8] p-4">
-            <div className="text-sm font-medium text-[#555555]">Quick Reply 預覽</div>
+            <div className="text-sm font-medium text-[#555555]">Quick Reply 預覽 <span className="text-xs text-[#AAAAAA] font-normal ml-1">拖拉可調整順序</span></div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {items.map((item) => (
-                <div key={item.id} className="inline-flex items-center rounded-full border border-[#E7C9CD] bg-white px-3 py-2 text-sm text-[#555555] shadow-sm">
+              {items.map((item, idx) => (
+                <div
+                  key={item.id}
+                  draggable
+                  onDragStart={() => { dragIdx.current = idx; }}
+                  onDragOver={(e) => { e.preventDefault(); }}
+                  onDrop={(e) => { e.preventDefault(); if (dragIdx.current !== -1 && dragIdx.current !== idx) moveItem(dragIdx.current, idx); dragIdx.current = -1; }}
+                  onDragEnd={() => { dragIdx.current = -1; }}
+                  className="inline-flex items-center rounded-full border border-[#E7C9CD] bg-white px-3 py-2 text-sm text-[#555555] shadow-sm cursor-grab active:cursor-grabbing select-none"
+                >
                   <span>{item.action.label || '未命名按鈕'}</span>
                   <span className="ml-2 text-xs text-[#AAAAAA]">{item.action.type === 'message' ? '傳文字' : '開連結'}</span>
                 </div>

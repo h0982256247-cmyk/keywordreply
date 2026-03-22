@@ -1700,6 +1700,15 @@ export default function EditDraft() {
                             </div>
                           </div>
                         </div>
+                        {((doc as any).quickReply?.items?.length ?? 0) > 0 && (
+                          <div className="bg-white border-t border-gray-100 px-2 py-1.5 flex gap-1.5 overflow-x-auto">
+                            {(doc as any).quickReply.items.map((item: any) => (
+                              <div key={item.id} className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white border border-[#06C755] rounded-full text-[9px] text-[#06C755] font-medium whitespace-nowrap">
+                                {item.action.label || "按鈕"}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         <div className="px-2 py-2 flex items-center gap-2 bg-white border-t border-gray-200">
                           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>

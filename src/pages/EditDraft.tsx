@@ -1701,7 +1701,7 @@ export default function EditDraft() {
                           </div>
                         </div>
                         {((doc as any).quickReply?.items?.length ?? 0) > 0 && (
-                          <div className="bg-white border-t border-gray-100 px-2 py-1.5 flex gap-1.5 overflow-x-auto">
+                          <div className="px-2 py-1.5 flex gap-1.5 overflow-x-auto" style={{ background: "#90AACB" }}>
                             {(doc as any).quickReply.items.map((item: any) => (
                               <div key={item.id} className="flex-shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white border border-[#06C755] rounded-full text-[9px] text-[#06C755] font-medium whitespace-nowrap">
                                 {item.action.label || "按鈕"}

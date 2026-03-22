@@ -1930,7 +1930,24 @@ export default function EditDraft() {
                     ) : (
                       <div className="space-y-3">
                         <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return alert("上傳失敗：" + error.message); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { alert("上傳錯誤：" + err.message); } }} /></label>
-                        <div className="mt-3"><div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div><GlassSelect size="sm" className="w-full" value={(() => { const heroArr = (section as any).hero || []; const heroImage = heroArr.find((c: any) => c.kind === "hero_image"); return heroImage?.ratio || "20:13"; })()} onChange={(val) => { const ratio = val as any; const heroArr = (section as any).hero || []; const hero = heroArr.map((c: any) => c.kind === "hero_image" ? { ...c, ratio } : c); setSection({ ...section, hero }); }} options={[{value:"20:13",label:"20:13 (標準卡片)"},{value:"9:16",label:"9:16 (滿版/直向)"},{value:"1.91:1",label:"1.91:1 (矩形)"},{value:"16:9",label:"16:9 (寬螢幕)"},{value:"4:3",label:"4:3 (標準)"},{value:"1:1",label:"1:1 (正方形)"}]} /></div>
+                        <div className="mt-3">
+                          <div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div>
+                          <RatioPicker
+                            value={(() => { const heroArr = (section as any).hero || []; const heroImage = heroArr.find((c: any) => c.kind === "hero_image"); return heroImage?.ratio || "20:13"; })()}
+                            onChange={(val) => {
+                              const ratioDims: Record<string, string> = { "20:13": "600x390", "16:9": "640x360", "4:3": "640x480", "1:1": "600x600", "9:16": "360x640", "1.91:1": "640x335" };
+                              const heroArr = (section as any).hero || [];
+                              const hero = heroArr.map((c: any) => {
+                                if (c.kind !== "hero_image") return c;
+                                const isPlaceholder = !c.image?.url || c.image?.url?.includes("placehold.co");
+                                const image = isPlaceholder ? { kind: "external", url: `https://placehold.co/${ratioDims[val] || "600x400"}/E2E8F0/94A3B8/png?text=+`, lastCheck: { ok: true, level: "pass" } } : c.image;
+                                return { ...c, ratio: val, image };
+                              });
+                              setSection({ ...section, hero });
+                            }}
+                            options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"},{value:"1.91:1",label:"1.91:1"}]}
+                          />
+                        </div>
                       </div>
                     )}
                   </AccordionSection>

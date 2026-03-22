@@ -583,33 +583,34 @@ export default function EditDraft() {
                       </div>
                     );
                   })}
-                  {/* Add card — inline after last tab */}
-                  {doc.cards.length < 10 && (
-                    <div className="relative flex-shrink-0 self-center ml-1">
-                      <button
-                        title="新增卡片"
-                        className="w-6 h-6 flex items-center justify-center rounded-full border border-[#E7C9CD] hover:bg-[#FBEBEE] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors text-[#AAAAAA]"
-                        onClick={() => setShowAddCardMenu(v => !v)}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                      </button>
-                      {showAddCardMenu && (
-                        <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]">
-                          {[{ val: "regular", label: "一般卡片" }, { val: "special", label: "特殊卡片" }].map(({ val, label }) => (
-                            <button key={val} className="w-full text-left px-4 py-2 text-sm text-[#555555] hover:bg-[#FCF7F8] transition-colors" onClick={() => {
-                              const newCard = val === "regular"
-                                ? { id: uid("card_"), section: { hero: [{ id: uid("hero_"), kind: "hero_image", enabled: true, image: { kind: "external", url: "https://placehold.co/600x390/E2E8F0/94A3B8/png?text=+", lastCheck: { ok: true, level: "pass" } }, ratio: "20:13", mode: "cover" }], body: [], footer: [] } as any }
-                                : { id: uid("card_"), section: seedSpecialSection() };
-                              scheduleSave({ ...doc, cards: [...doc.cards, newCard] });
-                              setSelectedCardIdx(doc.cards.length);
-                              setShowAddCardMenu(false);
-                            }}>{label}</button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
+
+                {/* Add card — outside overflow container so dropdown is not clipped */}
+                {doc.cards.length < 10 && (
+                  <div className="relative flex-shrink-0 self-center ml-1">
+                    <button
+                      title="新增卡片"
+                      className="w-6 h-6 flex items-center justify-center rounded-full border border-[#E7C9CD] hover:bg-[#FBEBEE] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors text-[#AAAAAA]"
+                      onClick={() => setShowAddCardMenu(v => !v)}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                    {showAddCardMenu && (
+                      <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[110px]">
+                        {[{ val: "regular", label: "一般卡片" }, { val: "special", label: "特殊卡片" }].map(({ val, label }) => (
+                          <button key={val} className="w-full text-left px-4 py-2 text-sm text-[#555555] hover:bg-[#FCF7F8] transition-colors" onClick={() => {
+                            const newCard = val === "regular"
+                              ? { id: uid("card_"), section: { hero: [{ id: uid("hero_"), kind: "hero_image", enabled: true, image: { kind: "external", url: "https://placehold.co/600x390/E2E8F0/94A3B8/png?text=+", lastCheck: { ok: true, level: "pass" } }, ratio: "20:13", mode: "cover" }], body: [], footer: [] } as any }
+                              : { id: uid("card_"), section: seedSpecialSection() };
+                            scheduleSave({ ...doc, cards: [...doc.cards, newCard] });
+                            setSelectedCardIdx(doc.cards.length);
+                            setShowAddCardMenu(false);
+                          }}>{label}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Right actions */}
                 <div className="flex items-center gap-1.5 flex-shrink-0 pb-1">

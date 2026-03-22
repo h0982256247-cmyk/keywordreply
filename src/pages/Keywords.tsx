@@ -263,72 +263,27 @@ export default function Keywords() {
               <Field label="排序 priority" value={String(form.priority)} onChange={(v: string) => setForm({ ...form, priority: Number(v || 1) })} placeholder="1" />
 
               <label className="block space-y-2 md:col-span-2">
-                <div className="text-sm font-medium text-[#2B2B2B]">回覆方式</div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, reply_mode: 'text' })}
-                    className={`rounded-xl border px-4 py-3.5 text-left transition-colors ${
-                      form.reply_mode === 'text'
-                        ? 'border-[#A35D5D] bg-[#FBEBEE]'
-                        : 'border-[#E7C9CD] bg-white hover:bg-[#FFF7F8]'
-                    }`}
-                  >
-                    <div className="font-semibold text-[#2B2B2B] text-sm">純文字</div>
-                    <div className="text-xs text-[#6B6B6B] mt-1">適合地址、電話、FAQ</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, reply_mode: 'draft' })}
-                    className={`rounded-xl border px-4 py-3.5 text-left transition-colors ${
-                      form.reply_mode === 'draft'
-                        ? 'border-[#A35D5D] bg-[#FBEBEE]'
-                        : 'border-[#E7C9CD] bg-white hover:bg-[#FFF7F8]'
-                    }`}
-                  >
-                    <div className="font-semibold text-[#2B2B2B] text-sm">選擇草稿</div>
-                    <div className="text-xs text-[#6B6B6B] mt-1">連動單卡、多頁或影片 Bubble</div>
-                  </button>
-                </div>
+                <div className="text-sm font-medium text-[#2B2B2B]">選擇草稿</div>
+                <GlassSelect
+                  size="lg"
+                  className="w-full"
+                  rounded="rounded-xl"
+                  value={form.draft_id}
+                  onChange={(val) => setForm({ ...form, draft_id: val })}
+                  options={[{value:"",label:"請選擇草稿"},...drafts.map(d => ({value:d.id,label:d.title}))]}
+                />
               </label>
-
-              {form.reply_mode === 'text' ? (
-                <label className="block space-y-2 md:col-span-2">
-                  <div className="text-sm font-medium text-[#2B2B2B]">文字內容</div>
-                  <textarea
-                    rows={5}
-                    value={form.reply_text}
-                    onChange={(e) => setForm({ ...form, reply_text: e.target.value })}
-                    className="w-full rounded-xl border border-[#E7C9CD] px-4 py-3 text-sm text-[#2B2B2B] placeholder-[#AAAAAA] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition"
-                    placeholder="輸入收到關鍵字後要回覆的文字"
-                  />
-                </label>
-              ) : (
-                <>
-                  <label className="block space-y-2 md:col-span-2">
-                    <div className="text-sm font-medium text-[#2B2B2B]">選擇草稿</div>
-                    <GlassSelect
-                      size="lg"
-                      className="w-full"
-                      rounded="rounded-xl"
-                      value={form.draft_id}
-                      onChange={(val) => setForm({ ...form, draft_id: val })}
-                      options={[{value:"",label:"請選擇草稿"},...drafts.map(d => ({value:d.id,label:d.title}))]}
-                    />
-                  </label>
-                  {currentDraft && (
-                    <div className="md:col-span-2 rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] p-4">
-                      <div className="text-xs text-[#6B6B6B]">已選擇內容</div>
-                      <div className="mt-1.5 font-semibold text-[#2B2B2B] text-sm">{currentDraft.title}</div>
-                      <div className="mt-1 text-xs text-[#6B6B6B]">類型：{currentDraft.content?.type === 'carousel' ? '多卡滑動訊息' : '單卡 / 影片卡片訊息'}</div>
-                      {!!currentDraft.content?.quickReply?.items?.length && (
-                        <div className="mt-2 inline-flex rounded-full bg-[#FBEBEE] px-3 py-1 text-xs font-medium text-[#A35D5D]">
-                          包含 {currentDraft.content.quickReply.items.length} 個 Quick Reply
-                        </div>
-                      )}
+              {currentDraft && (
+                <div className="md:col-span-2 rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] p-4">
+                  <div className="text-xs text-[#6B6B6B]">已選擇內容</div>
+                  <div className="mt-1.5 font-semibold text-[#2B2B2B] text-sm">{currentDraft.title}</div>
+                  <div className="mt-1 text-xs text-[#6B6B6B]">類型：{currentDraft.content?.type === 'carousel' ? '多卡滑動訊息' : '單卡 / 影片卡片訊息'}</div>
+                  {!!currentDraft.content?.quickReply?.items?.length && (
+                    <div className="mt-2 inline-flex rounded-full bg-[#FBEBEE] px-3 py-1 text-xs font-medium text-[#A35D5D]">
+                      包含 {currentDraft.content.quickReply.items.length} 個 Quick Reply
                     </div>
                   )}
-                </>
+                </div>
               )}
 
               <label className="inline-flex items-center gap-3 text-sm text-[#555555] md:col-span-2 cursor-pointer">

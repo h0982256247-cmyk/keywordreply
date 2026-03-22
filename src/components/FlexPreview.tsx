@@ -24,6 +24,15 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
     return null;
   }, [doc, flex]);
 
+  // Dynamically calculate card width based on bubble size in content
+  const cardWidthNum = useMemo(() => {
+    if (!content || content.type === "text") return 292;
+    const root = content.type === "flex" ? content.contents : content;
+    if (!root || root.type !== "carousel") return 292;
+    const bubbleSize = root.contents[0]?.size || "kilo";
+    return parseInt(getBubbleWidth(bubbleSize)) + 12; // +12 for gap-3
+  }, [content]);
+
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const lastIndexRef = React.useRef<number>(-1);
   const isScrollingFromClick = React.useRef(false);
@@ -33,28 +42,24 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
   React.useEffect(() => {
     if (selectedIndex !== undefined && scrollRef.current && selectedIndex !== lastIndexRef.current) {
       isScrollingFromClick.current = true;
-      const cardWidth = 280 + 12; // width + gap
-      const target = selectedIndex * cardWidth;
+      const target = selectedIndex * cardWidthNum;
       scrollRef.current.scrollTo({ left: target, behavior: "smooth" });
       lastIndexRef.current = selectedIndex;
 
       // Reset flag after scroll animation completes
-      // Use longer timeout to cover smooth scroll across many cards
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
         isScrollingFromClick.current = false;
-        // Force lastIndexRef to selectedIndex so any residual scroll events don't fire wrong onIndexChange
         lastIndexRef.current = selectedIndex;
       }, 1200);
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, cardWidthNum]);
 
   // Handle manual scroll - debounced to avoid conflicts
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (!onIndexChange || isScrollingFromClick.current) return;
 
-    const cardWidth = 280 + 12;
-    const idx = Math.round(e.currentTarget.scrollLeft / cardWidth);
+    const idx = Math.round(e.currentTarget.scrollLeft / cardWidthNum);
 
     if (idx !== lastIndexRef.current && idx >= 0) {
       lastIndexRef.current = idx;

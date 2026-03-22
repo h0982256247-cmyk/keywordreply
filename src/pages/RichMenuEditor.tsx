@@ -6,6 +6,7 @@ import {
   RmDraft, RmMenu, RmArea, RmFolder,
 } from "@/lib/richMenuDb";
 import GlassSelect from "@/components/GlassSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function uid() { return crypto.randomUUID(); }
@@ -449,6 +450,7 @@ export default function RichMenuEditor() {
   const [err, setErr] = useState<string | null>(null);
   const [folders, setFolders] = useState<RmFolder[]>([]);
   const [folderId, setFolderId] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -515,13 +517,18 @@ export default function RichMenuEditor() {
 
   const deleteMenu = (idx: number) => {
     if (menus.length <= 1) { showToast("至少需要保留一個選單層", "error"); return; }
-    if (!confirm(`確定要刪除「${menus[idx].name}」？`)) return;
-    const updated = menus.filter((_, i) => i !== idx);
-    const newIdx = Math.min(selectedMenuIdx, updated.length - 1);
-    setMenus(updated);
-    setSelectedMenuIdx(newIdx);
-    setSelectedAreaId(null);
-    triggerSave(updated);
+    setConfirmState({
+      title: `刪除「${menus[idx].name}」`,
+      description: "此操作無法復原。",
+      onConfirm: () => {
+        const updated = menus.filter((_, i) => i !== idx);
+        const newIdx = Math.min(selectedMenuIdx, updated.length - 1);
+        setMenus(updated);
+        setSelectedMenuIdx(newIdx);
+        setSelectedAreaId(null);
+        triggerSave(updated);
+      },
+    });
   };
 
   const handlePublish = async () => {
@@ -746,6 +753,16 @@ export default function RichMenuEditor() {
           </div>
         </aside>
       </div>
+
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title || ""}
+        description={confirmState?.description || ""}
+        confirmText="刪除"
+        danger
+        onConfirm={confirmState?.onConfirm || (() => {})}
+        onClose={() => setConfirmState(null)}
+      />
     </div>
   );
 }

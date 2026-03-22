@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { createDoc, deleteTemplate, listTemplates, TemplateRow } from "@/lib/db";
 import { seedBubble, seedCarousel, seedVideoBubble } from "@/lib/templates";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function NewDraft() {
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
   const [tpls, setTpls] = useState<TemplateRow[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -47,18 +49,23 @@ export default function NewDraft() {
 
   async function onDeleteTemplate(tpl: TemplateRow) {
     if (!tpl.owner_id) return;
-    if (!confirm(`要刪除範本「${tpl.name}」嗎？`)) return;
-    setLoading(true);
-    setErr(null);
-    try {
-      await deleteTemplate(tpl.id);
-      const rows = await listTemplates();
-      setTpls(rows);
-    } catch (e: any) {
-      setErr(e?.message || String(e));
-    } finally {
-      setLoading(false);
-    }
+    setConfirmState({
+      title: `刪除範本「${tpl.name}」`,
+      description: "此操作無法復原。",
+      onConfirm: async () => {
+        setLoading(true);
+        setErr(null);
+        try {
+          await deleteTemplate(tpl.id);
+          const rows = await listTemplates();
+          setTpls(rows);
+        } catch (e: any) {
+          setErr(e?.message || String(e));
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   }
 
   return (
@@ -139,6 +146,16 @@ export default function NewDraft() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title || ""}
+        description={confirmState?.description || ""}
+        confirmText="刪除"
+        danger
+        onConfirm={confirmState?.onConfirm || (() => {})}
+        onClose={() => setConfirmState(null)}
+      />
     </div>
   );
 }

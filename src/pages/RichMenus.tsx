@@ -5,35 +5,7 @@ import {
   listRmFolders, createRmFolder, renameRmFolder, deleteRmFolder, saveRmFolderOrder,
   RmDraft, RmFolder,
 } from "@/lib/richMenuDb";
-
-// ── Confirm Modal ──────────────────────────────────────────────────────────────
-function ConfirmModal({ open, title, message, onConfirm, onClose }: { open: boolean; title: string; message: string; onConfirm: () => void; onClose: () => void }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="relative w-[92%] max-w-sm bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 overflow-hidden">
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-              </svg>
-            </div>
-            <div>
-              <div className="text-base font-semibold text-[#2B2B2B]">{title}</div>
-              <div className="text-xs text-[#AAAAAA]">{message}</div>
-            </div>
-          </div>
-        </div>
-        <div className="px-6 pb-6 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="px-4 py-2.5 text-sm text-[#555555] hover:bg-[#F5F5F5] rounded-xl transition-colors font-medium">取消</button>
-          <button type="button" onClick={() => { onConfirm(); onClose(); }} className="px-5 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors shadow-sm">刪除</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import ConfirmModal from "@/components/ConfirmModal";
 
 // ── Folder Create Modal ────────────────────────────────────────────────────────
 function FolderCreateModal({ open, onClose, onCreate }: { open: boolean; onClose: () => void; onCreate: (name: string) => void }) {
@@ -156,7 +128,7 @@ export default function RichMenus() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewModal, setShowNewModal] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
-  const [confirmState, setConfirmState] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+  const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingFolderName, setEditingFolderName] = useState("");
   const [folderOrder, setFolderOrder] = useState<string[]>([]);
@@ -186,7 +158,7 @@ export default function RichMenus() {
   async function handleDelete(id: string, name: string) {
     setConfirmState({
       title: `刪除「${name}」`,
-      message: "此操作無法復原。",
+      description: "此操作無法復原。",
       onConfirm: async () => {
         setDeleting(id);
         setErr(null);
@@ -226,7 +198,7 @@ export default function RichMenus() {
   async function handleDeleteFolder(id: string, name: string) {
     setConfirmState({
       title: `刪除資料夾「${name}」`,
-      message: "資料夾內的草稿不會被刪除。",
+      description: "資料夾內的草稿不會被刪除。",
       onConfirm: async () => {
         try {
           await deleteRmFolder(id);
@@ -469,7 +441,9 @@ export default function RichMenus() {
       <ConfirmModal
         open={!!confirmState}
         title={confirmState?.title || ""}
-        message={confirmState?.message || ""}
+        description={confirmState?.description || ""}
+        confirmText="刪除"
+        danger
         onConfirm={confirmState?.onConfirm || (() => {})}
         onClose={() => setConfirmState(null)}
       />

@@ -14,6 +14,7 @@ import { validateDoc } from "@/lib/validate";
 import { extractVideoFrame } from "@/lib/extractVideoFrame";
 import EmojiPicker from "emoji-picker-react";
 import GlassSelect from "@/components/GlassSelect";
+import ConfirmModal from "@/components/ConfirmModal";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -39,6 +40,7 @@ export default function EditDraft() {
   const [activeShare, setActiveShare] = useState<{ token: string; version_no: number } | null>(null);
   const [editingNameIdx, setEditingNameIdx] = useState<number | null>(null);
   const [folders, setFolders] = useState<any[]>([]);
+  const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
   const showToast = (msg: string) => {
@@ -572,10 +574,15 @@ export default function EditDraft() {
                             className="w-5 h-5 flex items-center justify-center rounded text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (!confirm("確定刪除此卡片？")) return;
-                              const nextCards = doc.cards.filter((_, i) => i !== idx);
-                              scheduleSave({ ...doc, cards: nextCards });
-                              setSelectedCardIdx(Math.max(0, idx - 1));
+                              setConfirmState({
+                                title: "刪除此卡片",
+                                description: "此操作無法復原。",
+                                onConfirm: () => {
+                                  const nextCards = doc.cards.filter((_, i) => i !== idx);
+                                  scheduleSave({ ...doc, cards: nextCards });
+                                  setSelectedCardIdx(Math.max(0, idx - 1));
+                                },
+                              });
                             }}
                             title="刪除卡片"
                           >
@@ -2167,6 +2174,16 @@ export default function EditDraft() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title || ""}
+        description={confirmState?.description || ""}
+        confirmText="刪除"
+        danger
+        onConfirm={confirmState?.onConfirm || (() => {})}
+        onClose={() => setConfirmState(null)}
+      />
     </div>
   );
 }

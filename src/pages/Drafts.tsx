@@ -3,6 +3,7 @@ import { listDocs, deleteDoc, createDoc, listTemplates, TemplateRow, deleteTempl
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { seedBubble, seedCarousel, seedVideoBubble } from "@/lib/templates";
+import ConfirmModal from "@/components/ConfirmModal";
 
 // ─── Folder create modal ────────────────────────────────────────────────────
 function FolderCreateModal({ open, onClose, onCreate }: { open: boolean; onClose: () => void; onCreate: (name: string) => void }) {
@@ -372,6 +373,7 @@ export default function Drafts() {
 
   const [showNewModal, setShowNewModal] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
+  const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingFolderName, setEditingFolderName] = useState("");
   const [folderOrder, setFolderOrder] = useState<string[]>([]);
@@ -426,18 +428,23 @@ export default function Drafts() {
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(`確定要刪除「${title}」嗎？此操作無法復原。`)) return;
-    setDeleting(id);
-    setErr(null);
-    try {
-      await deleteDoc(id);
-      await load();
-      if (id === selectedFolder) setSelectedFolder("all");
-    } catch (e: any) {
-      setErr(e.message || "刪除失敗");
-    } finally {
-      setDeleting(null);
-    }
+    setConfirmState({
+      title: `刪除「${title}」`,
+      description: "此操作無法復原。",
+      onConfirm: async () => {
+        setDeleting(id);
+        setErr(null);
+        try {
+          await deleteDoc(id);
+          await load();
+          if (id === selectedFolder) setSelectedFolder("all");
+        } catch (e: any) {
+          setErr(e.message || "刪除失敗");
+        } finally {
+          setDeleting(null);
+        }
+      },
+    });
   }
 
   async function handleCreateFolder(name: string) {
@@ -469,14 +476,19 @@ export default function Drafts() {
   }
 
   async function handleDeleteFolder(id: string, name: string) {
-    if (!confirm(`確定要刪除資料夾「${name}」嗎？資料夾內的訊息不會被刪除。`)) return;
-    try {
-      await deleteDoc(id);
-      if (selectedFolder === id) setSelectedFolder("all");
-      await load();
-    } catch (e: any) {
-      setErr(e.message || "刪除資料夾失敗");
-    }
+    setConfirmState({
+      title: `刪除資料夾「${name}」`,
+      description: "資料夾內的訊息不會被刪除。",
+      onConfirm: async () => {
+        try {
+          await deleteDoc(id);
+          if (selectedFolder === id) setSelectedFolder("all");
+          await load();
+        } catch (e: any) {
+          setErr(e.message || "刪除資料夾失敗");
+        }
+      },
+    });
   }
 
   const allFolders = rows.filter(r => r.content.type === "folder");
@@ -791,6 +803,16 @@ export default function Drafts() {
         open={showFolderModal}
         onClose={() => setShowFolderModal(false)}
         onCreate={handleCreateFolder}
+      />
+
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title || ""}
+        description={confirmState?.description || ""}
+        confirmText="刪除"
+        danger
+        onConfirm={confirmState?.onConfirm || (() => {})}
+        onClose={() => setConfirmState(null)}
       />
     </div>
   );

@@ -10,6 +10,7 @@ export default function Settings() {
   const [accessToken, setAccessToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [hasChannel, setHasChannel] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -18,6 +19,7 @@ export default function Settings() {
         setChannelName(channel.name);
         setChannelId((channel as any).channel_id || '');
         setChannelSecret((channel as any).channel_secret_masked || '');
+        setHasChannel(true);
       }
     })();
   }, []);
@@ -52,10 +54,10 @@ export default function Settings() {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#E7C9CD] p-6 shadow-sm space-y-5">
         <div className="grid md:grid-cols-2 gap-4">
-          <Field label="Channel 名稱" value={channelName} onChange={setChannelName} placeholder="例如：品牌客服 OA" />
-          <Field label="Channel ID" value={channelId} onChange={setChannelId} placeholder="LINE Developers 的 Channel ID" />
-          <Field label="Channel Secret" value={channelSecret} onChange={setChannelSecret} placeholder="貼上 Channel Secret" type="password" />
-          <Field label="Channel Access Token" value={accessToken} onChange={setAccessToken} placeholder="貼上長期 Access Token" type="password" />
+          <Field label="Channel 名稱" value={channelName} onChange={setChannelName} placeholder="例如：品牌客服 OA" disabled={hasChannel} />
+          <Field label="Channel ID" value={channelId} onChange={setChannelId} placeholder="LINE Developers 的 Channel ID" disabled={hasChannel} />
+          <Field label="Channel Secret" value={channelSecret} onChange={setChannelSecret} placeholder="貼上 Channel Secret" type="password" disabled={hasChannel} />
+          <Field label="Channel Access Token" value={accessToken} onChange={setAccessToken} placeholder="貼上長期 Access Token" type="password" disabled={hasChannel} />
         </div>
 
         <div className="rounded-xl bg-[#FFF7F8] border border-[#E7C9CD] p-4">
@@ -83,27 +85,34 @@ export default function Settings() {
           </div>
         )}
 
-        <button
-          disabled={loading}
-          className="rounded-xl bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-5 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-60 transition-colors"
-        >
-          {loading ? '儲存中...' : '儲存設定'}
-        </button>
+        {!hasChannel && (
+          <button
+            disabled={loading}
+            className="rounded-xl bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-5 py-2.5 text-sm font-semibold shadow-sm disabled:opacity-60 transition-colors"
+          >
+            {loading ? '儲存中...' : '儲存設定'}
+          </button>
+        )}
       </form>
     </div>
   );
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text' }: any) {
+function Field({ label, value, onChange, placeholder, type = 'text', disabled = false }: any) {
   return (
     <label className="block space-y-2">
-      <div className="text-sm font-medium text-[#2B2B2B]">{label}</div>
+      <div className={`text-sm font-medium ${disabled ? 'text-[#AAAAAA]' : 'text-[#2B2B2B]'}`}>{label}</div>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         type={type}
-        className="w-full rounded-xl border border-[#E7C9CD] px-4 py-2.5 text-sm text-[#2B2B2B] placeholder-[#AAAAAA] outline-none focus:border-[#A35D5D] focus:ring-2 focus:ring-[#A35D5D]/15 transition"
+        disabled={disabled}
+        className={`w-full rounded-xl border px-4 py-2.5 text-sm placeholder-[#AAAAAA] outline-none transition ${
+          disabled
+            ? 'border-[#E7C9CD] bg-[#F5F5F5] text-[#AAAAAA] cursor-not-allowed'
+            : 'border-[#E7C9CD] bg-white text-[#2B2B2B] focus:border-[#A35D5D] focus:ring-2 focus:ring-[#A35D5D]/15'
+        }`}
       />
     </label>
   );

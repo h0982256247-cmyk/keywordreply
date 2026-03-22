@@ -18,7 +18,7 @@ const ACTION_TYPES = [
   { value: "uri", label: "開啟網址" },
   { value: "message", label: "發送訊息" },
   { value: "richmenuswitch", label: "切換選單" },
-  { value: "postback", label: "Postback" },
+  { value: "postback", label: "預填欄位" },
 ];
 
 // ── Area draw / edit canvas ────────────────────────────────────────────────────

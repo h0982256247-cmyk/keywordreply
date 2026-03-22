@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import {
-  getRmDraft, saveRmDraft, publishRmDraft, makeDefaultMenu,
-  RmDraft, RmMenu, RmArea,
+  getRmDraft, saveRmDraft, publishRmDraft, makeDefaultMenu, listRmFolders,
+  RmDraft, RmMenu, RmArea, RmFolder,
 } from "@/lib/richMenuDb";
+import GlassSelect from "@/components/GlassSelect";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function uid() { return crypto.randomUUID(); }
@@ -446,6 +447,8 @@ export default function RichMenuEditor() {
   const [publishing, setPublishing] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [folders, setFolders] = useState<RmFolder[]>([]);
+  const [folderId, setFolderId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -453,8 +456,10 @@ export default function RichMenuEditor() {
     getRmDraft(id).then(d => {
       setDraft(d);
       setDraftName(d.name);
+      setFolderId(d.folder_id);
       setMenus(d.data?.menus ?? [makeDefaultMenu(0)]);
     }).catch(e => setErr(e.message));
+    listRmFolders().then(setFolders).catch(() => {});
   }, [id]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
@@ -580,6 +585,17 @@ export default function RichMenuEditor() {
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} className="opacity-0 group-hover:opacity-100 transition-opacity"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L7.5 19.79l-4 1 1-4z" /></svg>
           </button>
         )}
+
+        <GlassSelect
+          size="xs"
+          value={folderId || ""}
+          onChange={(val) => {
+            const newFolderId = val || null;
+            setFolderId(newFolderId);
+            saveRmDraft(id!, { folder_id: newFolderId });
+          }}
+          options={[{ value: "", label: "未分類" }, ...folders.map(f => ({ value: f.id, label: f.name }))]}
+        />
 
         <div className="flex-1" />
 

@@ -39,10 +39,13 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
       lastIndexRef.current = selectedIndex;
 
       // Reset flag after scroll animation completes
+      // Use longer timeout to cover smooth scroll across many cards
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
         isScrollingFromClick.current = false;
-      }, 350);
+        // Force lastIndexRef to selectedIndex so any residual scroll events don't fire wrong onIndexChange
+        lastIndexRef.current = selectedIndex;
+      }, 1200);
     }
   }, [selectedIndex]);
 

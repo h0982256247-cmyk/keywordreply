@@ -247,7 +247,7 @@ export default function EditDraft() {
 
         {/* Sticky top bar — full width */}
         <div className="sticky top-0 z-30 bg-white border-b border-[#E7C9CD] px-4 py-2 flex items-center gap-3">
-          {/* Left: back + folder + title + pencil + save dot */}
+          {/* Left: back + title + folder selector */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {/* Back */}
             <button
@@ -257,27 +257,6 @@ export default function EditDraft() {
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
             </button>
-            {/* Folder icon dropdown */}
-            <div className="relative flex-shrink-0">
-              <button
-                title={folders.find((f: any) => f.id === (doc as any).folderId)?.content?.name || "未分類"}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-[#555555] hover:bg-[#F0F0F0] transition-colors"
-                onClick={() => setShowFolderMenu(v => !v)}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-              </button>
-              {showFolderMenu && (
-                <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E7C9CD] rounded-xl shadow-lg overflow-hidden min-w-[120px]">
-                  {[{value: "", label: "未分類"}, ...folders.map((f: any) => ({value: f.id, label: f.content.name}))].map((opt) => (
-                    <button
-                      key={opt.value}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-[#FCF7F8] transition-colors ${(doc as any).folderId === opt.value || (!( doc as any).folderId && opt.value === "") ? "text-[#A35D5D] font-medium" : "text-[#555555]"}`}
-                      onClick={() => { scheduleSave({ ...doc, folderId: opt.value || undefined }); setShowFolderMenu(false); }}
-                    >{opt.label}</button>
-                  ))}
-                </div>
-              )}
-            </div>
             {/* Title */}
             <input
               autoFocus
@@ -286,6 +265,14 @@ export default function EditDraft() {
               onChange={(e) => handleTitleChange(e.target.value)}
               className="text-sm font-semibold text-[#2B2B2B] border-none bg-transparent p-0 focus:ring-0 placeholder:text-[#CCCCCC] min-w-0 w-40"
               placeholder="草稿名稱..."
+            />
+            {/* Folder selector — shows folder name like bubble editor */}
+            <GlassSelect
+              size="xs"
+              value={(doc as any).folderId || ""}
+              onChange={(val) => scheduleSave({ ...doc, folderId: val || undefined })}
+              options={[{value:"",label:"未分類"},...folders.map((f: any) => ({value: f.id, label: f.content.name}))]}
+              className="flex-shrink-0"
             />
           </div>
 

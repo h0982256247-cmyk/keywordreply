@@ -82,7 +82,9 @@ function sectionToBubble(section: any, bubbleSize: string) {
   } else if (imageUrl) {
     bubble.hero = { type: "image", url: imageUrl, size: "full", aspectRatio: heroImage?.ratio || "20:13", aspectMode: heroImage?.mode || "cover" };
   }
-  bubble.body = { type: "box", layout: "vertical", spacing: "md", contents: bodyContents, backgroundColor: section.styles?.body?.backgroundColor, paddingAll: "20px" };
+  if (bodyContents.length > 0) {
+    bubble.body = { type: "box", layout: "vertical", spacing: "md", contents: bodyContents, backgroundColor: section.styles?.body?.backgroundColor, paddingAll: "20px" };
+  }
   const buttons = (section.footer || []).filter((x: any) => x.enabled).slice(0, 3);
   if (buttons.length) {
     bubble.footer = {

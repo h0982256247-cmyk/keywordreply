@@ -54,7 +54,7 @@ export default function ConfirmModal({
             className={`px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors shadow-sm disabled:opacity-50 ${
               danger ? "bg-red-500 hover:bg-red-600" : "bg-[#A35D5D] hover:bg-[#8F4A4A]"
             }`}
-            onClick={onConfirm}
+            onClick={() => { onConfirm(); onClose(); }}
             disabled={busy}
           >
             {busy ? "處理中…" : confirmText}

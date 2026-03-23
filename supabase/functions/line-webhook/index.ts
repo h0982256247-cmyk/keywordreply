@@ -77,7 +77,7 @@ function sectionToBubble(section: any, bubbleSize: string) {
       previewUrl,
       aspectRatio: heroVideo.ratio || "16:9",
       altContent: { type: "image", url: previewUrl, size: "full", aspectRatio: heroVideo.ratio || "16:9", aspectMode: "cover" },
-      ...(heroVideo.action ? { action: actionToFlex(heroVideo.action) } : {}),
+      action: heroVideo.action ? actionToFlex(heroVideo.action) : { type: "uri", uri: "https://line.me", label: "查看" },
     };
   } else if (imageUrl) {
     bubble.hero = { type: "image", url: imageUrl, size: "full", aspectRatio: heroImage?.ratio || "20:13", aspectMode: heroImage?.mode || "cover" };

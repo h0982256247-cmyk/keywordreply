@@ -1650,7 +1650,7 @@ export default function EditDraft() {
               )}
             </div>
 
-            <div className="flex-1 px-4 py-4 flex flex-col items-center gap-3">
+            <div className="px-4 py-4 flex flex-col items-center gap-3">
               <>
                   {/* iPhone frame */}
                   <div className="relative" style={{ width: "270px" }}>

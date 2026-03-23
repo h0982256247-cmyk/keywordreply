@@ -1623,7 +1623,7 @@ export default function EditDraft() {
           </div>{/* end Column 2 */}
 
           {/* Column 3: Right panel — LINE live preview */}
-          <div className="w-[380px] flex-shrink-0 bg-white border-l border-[#E7C9CD] overflow-y-auto">
+          <div className="w-[380px] flex-shrink-0 min-h-0 bg-white border-l border-[#E7C9CD] overflow-y-auto">
             {/* Header */}
             <div className="px-4 pt-3 pb-2 border-b border-[#F0E3E5]">
               <div className="flex items-center justify-between">

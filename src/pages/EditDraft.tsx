@@ -237,6 +237,7 @@ export default function EditDraft() {
     };
 
     return (
+      <>
       <div className="h-screen overflow-hidden flex flex-col bg-[#FCF7F8]">
 
         {/* Toast notification */}
@@ -1730,6 +1731,17 @@ export default function EditDraft() {
 
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!confirmState}
+        title={confirmState?.title || ""}
+        description={confirmState?.description || ""}
+        confirmText="刪除"
+        danger
+        onConfirm={confirmState?.onConfirm || (() => {})}
+        onClose={() => setConfirmState(null)}
+      />
+      </>
     );
   } // end if (doc.type === "carousel")
 

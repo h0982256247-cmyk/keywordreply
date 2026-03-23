@@ -894,22 +894,14 @@ export default function EditDraft() {
                       </label>
                       <div className="mt-4">
                         <div className="text-sm font-semibold text-[#555555] mb-2">影片比例</div>
-                        <GlassSelect
+                        <RatioPicker
                           value={heroVideo.ratio || "16:9"}
                           onChange={(val) => {
                             const regularSection = section as any;
                             const hero = regularSection.hero.map((c: any) => (c.kind === "hero_video" ? { ...c, ratio: val } : c));
                             setSection({ ...regularSection, hero });
                           }}
-                          options={[
-                            {value: "20:13", label: "20:13 (標準卡片)"},
-                            {value: "9:16", label: "9:16 (滿版/直向)"},
-                            {value: "16:9", label: "16:9 (寬螢幕)"},
-                            {value: "4:3", label: "4:3 (標準)"},
-                            {value: "1:1", label: "1:1 (正方形)"},
-                          ]}
-                          size="sm"
-                          className="w-full"
+                          options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"}]}
                         />
                       </div>
                     </div>
@@ -2090,22 +2082,14 @@ export default function EditDraft() {
                         </label>
                         <div className="mt-4">
                           <div className="text-sm font-semibold text-[#555555] mb-2">影片比例</div>
-                          <GlassSelect
+                          <RatioPicker
                             value={heroVideo.ratio || "16:9"}
                             onChange={(val) => {
                               const regularSection = section as any;
                               const hero = regularSection.hero.map((c: any) => (c.kind === "hero_video" ? { ...c, ratio: val } : c));
                               setSection({ ...regularSection, hero });
                             }}
-                            options={[
-                              {value: "20:13", label: "20:13 (標準卡片)"},
-                              {value: "9:16", label: "9:16 (滿版/直向)"},
-                              {value: "16:9", label: "16:9 (寬螢幕)"},
-                              {value: "4:3", label: "4:3 (標準)"},
-                              {value: "1:1", label: "1:1 (正方形)"},
-                            ]}
-                            size="sm"
-                            className="w-full"
+                            options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"}]}
                           />
                         </div>
                       </div>

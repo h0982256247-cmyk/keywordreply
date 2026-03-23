@@ -1789,7 +1789,168 @@ export default function EditDraft() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="mx-auto max-w-6xl px-4 py-4 flex gap-4 items-start">
+
+        {/* Left sidebar: Card structure (bubble / video only) */}
+        {doc.type === "bubble" && (
+          <div className="w-52 flex-shrink-0 bg-white border border-[#E7C9CD] rounded-xl sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
+            <div className="px-3 pt-3 pb-4">
+              <div className="text-xs font-semibold text-[#AAAAAA] uppercase tracking-wide mb-3">卡片結構</div>
+              <div className="space-y-0.5">
+
+                {/* Bubble row */}
+                <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg text-sm font-medium text-[#6B6B6B]">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#AAAAAA] flex-shrink-0"><rect x="2" y="2" width="20" height="20" rx="5"/></svg>
+                  <span>{isVideoHero ? "影片 Bubble" : isSpecialCard ? "特殊卡片" : "單頁訊息"}</span>
+                </div>
+
+                {/* 封面 / 影片 row */}
+                {isVideoHero ? (
+                  <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg text-sm font-medium text-[#555555]">
+                    <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#FB923C" }}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </div>
+                    <span>影片</span>
+                  </div>
+                ) : !isSpecialCard ? (
+                  <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg text-sm font-medium text-[#555555]">
+                    <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#FB923C" }}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <span>封面圖片</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2.5 py-2 px-2 rounded-lg text-sm font-medium text-[#555555]">
+                    <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#A855F7" }}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <span>封面圖片 (特殊)</span>
+                  </div>
+                )}
+
+                {/* 內容設定 row */}
+                {section && section.body !== undefined && (
+                  <div>
+                    <div className={`flex items-center gap-2.5 py-2 px-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${open === "body" ? "bg-[#FBEBEE] text-[#A35D5D]" : "text-[#555555] hover:bg-[#FCF7F8]"}`}
+                      onClick={() => setOpen(open === "body" ? "hero" : "body")}>
+                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#EC4899" }}>
+                        <svg width="9" height="9" viewBox="0 0 12 10" fill="none"><rect x="0" y="0" width="12" height="2" rx="1" fill="white"/><rect x="0" y="4" width="12" height="2" rx="1" fill="white"/><rect x="0" y="8" width="8" height="2" rx="1" fill="white"/></svg>
+                      </div>
+                      <span className="flex-1">{isSpecialCard ? "覆蓋層內容" : "內容設定"}</span>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open === "body" ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    {open === "body" && (
+                      <div className="mt-0.5 space-y-0.5">
+                        {(isSpecialCard && specialSection ? specialSection.body : section.body || []).map((c: any, idx: number) => {
+                          const kindLabel = c.kind === "title" ? "標題" : c.kind === "paragraph" ? "段落" : c.kind === "divider" ? "分隔線" : c.kind === "key_value" ? "標籤數值" : c.kind === "list" ? "列表" : c.kind === "spacer" ? "留白" : c.kind;
+                          const iconBg = c.kind === "title" ? "#EC4899" : c.kind === "paragraph" ? "#EC4899" : c.kind === "divider" ? "#94A3B8" : c.kind === "key_value" ? "#A855F7" : c.kind === "list" ? "#10B981" : "#CBD5E1";
+                          return (
+                            <div key={c.id} className="flex items-center gap-2.5 py-2 px-2 pl-5 rounded-lg text-sm text-[#6B6B6B] hover:bg-[#FCF7F8] cursor-grab active:cursor-grabbing transition-colors" draggable
+                              onDragStart={() => { dragBodyRef.current = idx; }}
+                              onDragOver={(e) => { e.preventDefault(); }}
+                              onDrop={() => {
+                                if (dragBodyRef.current !== idx) {
+                                  const src = isSpecialCard && specialSection ? specialSection : section;
+                                  setSection({ ...src, body: moveItem(src.body, dragBodyRef.current, idx) });
+                                }
+                                dragBodyRef.current = -1;
+                              }}>
+                              <div className="w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0" style={{ background: iconBg }}>
+                                {c.kind === "title" && <span className="text-white font-bold" style={{ fontSize: "7px" }}>T</span>}
+                                {c.kind === "paragraph" && <svg width="7" height="6" viewBox="0 0 12 10" fill="none"><rect x="0" y="0" width="12" height="2" rx="1" fill="white"/><rect x="0" y="4" width="12" height="2" rx="1" fill="white"/><rect x="0" y="8" width="8" height="2" rx="1" fill="white"/></svg>}
+                                {c.kind === "divider" && <svg width="7" height="3" viewBox="0 0 12 4" fill="none"><rect x="0" y="1" width="12" height="2" rx="1" fill="white"/></svg>}
+                                {c.kind === "key_value" && <span className="text-white font-bold" style={{ fontSize: "6px" }}>KV</span>}
+                                {c.kind === "list" && <span className="text-white font-bold" style={{ fontSize: "7px" }}>≡</span>}
+                                {c.kind === "spacer" && <span className="text-white" style={{ fontSize: "7px" }}>↕</span>}
+                              </div>
+                              <span className="flex-1 truncate">{kindLabel}</span>
+                              <span className="text-[#CCCCCC] select-none flex-shrink-0">⠿</span>
+                            </div>
+                          );
+                        })}
+                        {/* + 新增內容 */}
+                        <div className="pl-4 pt-1">
+                          <button className={`flex items-center justify-center gap-1.5 py-2 px-3 w-full rounded-xl text-xs font-semibold transition-all shadow-sm ${showBodyAdd ? "bg-[#FBEBEE] text-[#A35D5D]" : "bg-[#FBEBEE] text-[#A35D5D] border border-[#E7C9CD] hover:bg-[#8F4A4A] hover:text-white"}`}
+                            onClick={() => setShowBodyAdd(v => !v)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span>新增內容</span>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`ml-auto transition-transform ${showBodyAdd ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+                          </button>
+                          {showBodyAdd && (
+                            <div className="mt-2 rounded-xl border border-[#E7C9CD] bg-white shadow-md overflow-hidden">
+                              {(isSpecialCard && specialSection ? [
+                                { label: "標題", onClick: () => { setSection({ ...specialSection!, body: [...specialSection!.body, { id: uid("t_"), kind: "title", enabled: true, text: "標題", size: "lg", weight: "bold", color: "#FFFFFF", align: "start" }] }); setShowBodyAdd(false); } },
+                                { label: "段落", onClick: () => { setSection({ ...specialSection!, body: [...specialSection!.body, { id: uid("p_"), kind: "paragraph", enabled: true, text: "描述文字…", size: "md", weight: "regular", color: "#FFFFFF", wrap: true }] }); setShowBodyAdd(false); } },
+                                { label: "標籤數值", onClick: () => { setSection({ ...specialSection!, body: [...specialSection!.body, { id: uid("kv_"), kind: "key_value", enabled: true, label: "標籤", value: "內容" }] }); setShowBodyAdd(false); } },
+                              ] : [
+                                { label: "標題", onClick: () => { setSection({ ...section, body: [...section.body, { id: uid("t_"), kind: "title", enabled: true, text: "新標題", size: "lg", weight: "bold", color: "#111111", align: "start" }] }); setShowBodyAdd(false); } },
+                                { label: "段落", onClick: () => { setSection({ ...section, body: [...section.body, { id: uid("p_"), kind: "paragraph", enabled: true, text: "新段落…", size: "md", color: "#333333", wrap: true }] }); setShowBodyAdd(false); } },
+                                { label: "標籤數值", onClick: () => { setSection({ ...section, body: [...section.body, { id: uid("kv_"), kind: "key_value", enabled: true, label: "標籤", value: "內容", action: { type: "uri", uri: "https://example.com" } }] }); setShowBodyAdd(false); } },
+                                { label: "列表", onClick: () => { setSection({ ...section, body: [...section.body, { id: uid("l_"), kind: "list", enabled: true, items: [{ id: uid("i_"), text: "清單項目" }] }] }); setShowBodyAdd(false); } },
+                                { label: "分隔線", onClick: () => { setSection({ ...section, body: [...section.body, { id: uid("d_"), kind: "divider", enabled: true }] }); setShowBodyAdd(false); } },
+                                { label: "留白", onClick: () => { setSection({ ...section, body: [...section.body, { id: uid("s_"), kind: "spacer", enabled: true, size: "md" }] }); setShowBodyAdd(false); } },
+                              ]).map((btn, i, arr) => (
+                                <button key={btn.label} className={`w-full text-left px-3 py-2.5 text-xs font-medium text-[#555555] hover:bg-[#FBEBEE] hover:text-[#A35D5D] transition-colors flex items-center gap-2 ${i < arr.length - 1 ? "border-b border-[#F0E3E5]" : ""}`} onClick={btn.onClick}>
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-[#A35D5D]"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                  {btn.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 底部按鈕 row */}
+                {section && section.footer !== undefined && (
+                  <div>
+                    <div className={`flex items-center gap-2.5 py-2 px-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${open === "footer" ? "bg-[#FBEBEE] text-[#A35D5D]" : "text-[#555555] hover:bg-[#FCF7F8]"}`}
+                      onClick={() => setOpen(open === "footer" ? "hero" : "footer")}>
+                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 bg-[#AAAAAA]">
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="15" width="20" height="7" rx="2"/></svg>
+                      </div>
+                      <span className="flex-1">底部按鈕</span>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open === "footer" ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    {open === "footer" && (
+                      <div className="mt-0.5 space-y-0.5">
+                        {((section as any).footer || []).map((b: any, idx: number) => (
+                          <div key={b.id} className="flex items-center gap-2 py-1.5 px-2 pl-4 rounded-lg text-xs text-[#6B6B6B] hover:bg-[#FCF7F8] cursor-grab active:cursor-grabbing transition-colors" draggable
+                            onDragStart={() => { dragFooterRef.current = idx; }}
+                            onDragOver={(e) => { e.preventDefault(); }}
+                            onDrop={() => {
+                              if (dragFooterRef.current !== idx) {
+                                setSection({ ...section, footer: moveItem((section as any).footer, dragFooterRef.current, idx) });
+                              }
+                              dragFooterRef.current = -1;
+                            }}>
+                            <span className="flex-1 truncate">{b.label || `按鈕 ${idx + 1}`}</span>
+                            <span className="text-[#CCCCCC] select-none flex-shrink-0">⠿</span>
+                          </div>
+                        ))}
+                        {!isSpecialCard && (
+                          <div className="pl-4">
+                            <button className="flex items-center gap-1.5 py-1.5 px-2 w-full text-left rounded-lg border border-dashed border-[#E7C9CD] text-xs text-[#6B6B6B] hover:text-[#A35D5D] hover:bg-[#FBEBEE] transition-colors"
+                              disabled={((section as any).footer?.length || 0) >= 3}
+                              onClick={() => { const bg = "#0A84FF"; const btn: FooterButton = { id: uid("btn_"), kind: "footer_button", enabled: true, label: "新按鈕", action: { type: "uri", uri: "https://example.com" }, style: "primary", bgColor: bg, textColor: autoTextColor(bg), autoTextColor: true }; setSection({ ...section, footer: [...((section as any).footer || []), btn].slice(0, 3) }); }}>
+                              + 新增按鈕
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Editor + Preview */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
         {/* Column 1: Editor */}
         <div className="space-y-4 relative flex flex-col min-h-[500px]">
           {doc.type === "text" ? (
@@ -2173,7 +2334,8 @@ export default function EditDraft() {
             </div>
           </div>
         </div>
-      </div>
+        </div>{/* end inner grid */}
+      </div>{/* end outer flex wrapper */}
 
       <ConfirmModal
         open={!!confirmState}

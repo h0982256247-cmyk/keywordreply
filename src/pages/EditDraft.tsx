@@ -1647,7 +1647,7 @@ export default function EditDraft() {
                   {/* iPhone frame */}
                   <div className="relative" style={{ width: "270px" }}>
                     <div className="rounded-[44px] p-[10px]" style={{ background: "#1C1C1E", boxShadow: "0 0 0 1px #3A3A3C, 0 24px 64px rgba(0,0,0,0.55)" }}>
-                      <div className="rounded-[36px] overflow-hidden flex flex-col" style={{ height: "580px", background: "#fff" }}>
+                      <div className="rounded-[36px] overflow-hidden" style={{ background: "#fff" }}>
                         <div className="flex justify-center pt-3 pb-1 bg-black">
                           <div className="bg-black rounded-full border border-[#2C2C2E]" style={{ width: "110px", height: "32px" }} />
                         </div>
@@ -1668,22 +1668,19 @@ export default function EditDraft() {
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                         </div>
-                        <div className="flex-1 overflow-hidden p-2" style={{ background: "#90AACB" }}>
+                        <div className="p-2 pb-3" style={{ background: "#90AACB" }}>
                           <div className="flex items-start gap-1">
                             <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center overflow-hidden mt-1">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="#06C755"><path d="M21.99 12.06c0-5.7-4.93-10.31-10-10.31S2 6.36 2 12.06c0 5.1 4 9.35 8.89 10.16.34.07.8.22.92.51.1.25.07.62 0 1.05l-.18 1.09c-.05.32-.24 1.25 1.09.66s7.24-4.26 7.24-4.26a9.55 9.55 0 004.03-9.21z"/></svg>
                             </div>
-                            <div style={{ width: "192px", height: "300px", overflow: "hidden" }}>
-                              <div style={{ transform: "scale(0.6)", transformOrigin: "top left", width: "320px" }}>
-                                <FlexPreview
-                                  doc={doc}
-                                  selectedIndex={currentCardIdx}
-                                  onIndexChange={(i) => {
-                                    if (i >= 0 && i < doc.cards.length) setSelectedCardIdx(i);
-                                  }}
-
-                                />
-                              </div>
+                            <div style={{ zoom: 0.6, width: "320px" }}>
+                              <FlexPreview
+                                doc={doc}
+                                selectedIndex={currentCardIdx}
+                                onIndexChange={(i) => {
+                                  if (i >= 0 && i < doc.cards.length) setSelectedCardIdx(i);
+                                }}
+                              />
                             </div>
                           </div>
                         </div>
@@ -2264,7 +2261,7 @@ export default function EditDraft() {
             <div className="px-4 py-4 flex flex-col items-center gap-3">
               <div className="relative" style={{ width: "270px" }}>
                 <div className="rounded-[44px] p-[10px]" style={{ background: "#1C1C1E", boxShadow: "0 0 0 1px #3A3A3C, 0 24px 64px rgba(0,0,0,0.55)" }}>
-                  <div className="rounded-[36px] overflow-hidden flex flex-col" style={{ height: "580px", background: "#fff" }}>
+                  <div className="rounded-[36px] overflow-hidden" style={{ background: "#fff" }}>
                     <div className="flex justify-center pt-3 pb-1 bg-black">
                       <div className="bg-black rounded-full border border-[#2C2C2E]" style={{ width: "110px", height: "32px" }} />
                     </div>
@@ -2285,15 +2282,13 @@ export default function EditDraft() {
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                     </div>
-                    <div className="flex-1 overflow-hidden p-2" style={{ background: "#90AACB" }}>
+                    <div className="p-2 pb-3" style={{ background: "#90AACB" }}>
                       <div className="flex items-start gap-1">
                         <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center overflow-hidden mt-1">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="#06C755"><path d="M21.99 12.06c0-5.7-4.93-10.31-10-10.31S2 6.36 2 12.06c0 5.1 4 9.35 8.89 10.16.34.07.8.22.92.51.1.25.07.62 0 1.05l-.18 1.09c-.05.32-.24 1.25 1.09.66s7.24-4.26 7.24-4.26a9.55 9.55 0 004.03-9.21z"/></svg>
                         </div>
-                        <div style={{ width: "192px", height: "300px", overflow: "hidden" }}>
-                          <div style={{ transform: "scale(0.6)", transformOrigin: "top left", width: "320px" }}>
-                            <FlexPreview doc={doc} selectedIndex={0} onIndexChange={() => {}} />
-                          </div>
+                        <div style={{ zoom: 0.6, width: "320px" }}>
+                          <FlexPreview doc={doc} selectedIndex={0} onIndexChange={() => {}} />
                         </div>
                       </div>
                     </div>

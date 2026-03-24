@@ -78,8 +78,8 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
 
   if (content.type === "text") {
     return (
-      <div className="flex justify-center w-full px-4 font-sans">
-        <div className="bg-[#06C755] text-white text-[15px] leading-[1.5] px-[14px] py-[10px] rounded-[18px] rounded-tl-[4px] shadow-sm max-w-[80%] whitespace-pre-wrap break-words relative self-start">
+      <div className="w-full font-sans pl-1">
+        <div className="inline-block bg-[#06C755] text-white text-[26px] leading-[1.55] px-[20px] py-[14px] rounded-[22px] rounded-tl-[4px] shadow-sm max-w-[88%] whitespace-pre-wrap break-words">
           {content.text || " "}
         </div>
       </div>

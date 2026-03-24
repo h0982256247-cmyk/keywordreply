@@ -2311,18 +2311,18 @@ export default function EditDraft() {
             <div className="px-4 py-4 flex flex-col items-center gap-3">
               <div className="relative" style={{ width: "270px" }}>
                 <div className="rounded-[46px]" style={{ background: "#111", padding: "6px", boxShadow: "0 0 0 1px #222, 0 20px 60px rgba(0,0,0,0.5)" }}>
-                  <div className="rounded-[42px] overflow-hidden" style={{ background: "#000" }}>
-                    <div className="flex justify-center pt-3 pb-2" style={{ background: "#000" }}>
-                      <div style={{ width: "100px", height: "28px", background: "#000", borderRadius: "14px", border: "1.5px solid #1a1a1a" }} />
+                  <div className="rounded-[42px] overflow-hidden" style={{ background: "#111" }}>
+                    <div className="flex justify-center pt-3 pb-2" style={{ background: "rgba(30,38,54,0.82)" }}>
+                      <div style={{ width: "100px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "14px", border: "1.5px solid rgba(255,255,255,0.08)" }} />
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "#ffffff", borderBottom: "1px solid #e5e7eb" }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "rgba(30,38,54,0.82)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#06C755" }} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-black font-semibold text-[12px] leading-tight truncate">LINE Official Account</div>
+                        <div className="font-semibold text-[12px] leading-tight truncate" style={{ color: "rgba(255,255,255,0.92)" }}>LINE Official Account</div>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                     </div>
                     <div className="p-2 pb-3" style={{ background: "#90AACB" }}>
                       <div className="flex items-start gap-1">

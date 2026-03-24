@@ -260,8 +260,6 @@ export default function Keywords() {
                 />
               </label>
 
-              <Field label="排序 priority" value={String(form.priority)} onChange={(v: string) => setForm({ ...form, priority: Number(v || 1) })} placeholder="1" />
-
               <label className="block space-y-2 md:col-span-2">
                 <div className="text-sm font-medium text-[#2B2B2B]">選擇草稿</div>
                 <GlassSelect

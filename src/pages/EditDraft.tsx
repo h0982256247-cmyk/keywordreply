@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import ProgressBar from "@/components/ProgressBar";
 import { supabase } from "@/lib/supabase";
@@ -225,6 +226,20 @@ export default function EditDraft() {
     return nodes;
   };
 
+  const toastPortal = createPortal(
+    <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] transition-all duration-300 ${toast ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
+      <div className={`flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-full shadow-xl ${toast?.type === "error" ? "bg-red-500" : "bg-[#2B2B2B]"}`}>
+        {toast?.type === "error" ? (
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        ) : (
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+        )}
+        {toast?.msg}
+      </div>
+    </div>,
+    document.body
+  );
+
   if (doc.type === "carousel") {
     const currentCard = doc.cards[currentCardIdx];
     const _cardTreeNodes = currentCard ? getCardTreeNodes(currentCard.section) : []; void _cardTreeNodes;
@@ -238,19 +253,8 @@ export default function EditDraft() {
 
     return (
       <>
+        {toastPortal}
       <div className="h-screen overflow-hidden flex flex-col bg-[#FCF7F8]">
-
-        {/* Toast notification */}
-        <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${toast ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
-          <div className={`flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-full shadow-lg ${toast?.type === "error" ? "bg-red-500" : "bg-[#2B2B2B]"}`}>
-            {toast?.type === "error" ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
-            )}
-            {toast?.msg}
-          </div>
-        </div>
 
         {/* Sticky top bar — full width */}
         <div className="sticky top-0 z-30 bg-white border-b border-[#E7C9CD] px-4 py-2 flex items-center gap-3">
@@ -1742,7 +1746,7 @@ export default function EditDraft() {
 
   return (
     <div className="min-h-screen bg-[#FCF7F8] pb-20">
-
+      {toastPortal}
       <div className="mx-auto max-w-5xl px-4 pt-4">
         <div className="bg-white border border-[#E7C9CD] shadow-sm rounded-xl p-4 flex items-center justify-between sticky top-4 z-30">
           <div className="flex-1 mr-4">

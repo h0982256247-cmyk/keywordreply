@@ -835,71 +835,93 @@ export default function EditDraft() {
                     right={<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">影片</span>}
                   >
                     <div className="space-y-3">
-                      <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center text-[#AAAAAA] group-hover:bg-white group-hover:text-red-500 transition-colors">
-                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                      {heroVideo.video?.url ? (
+                        <div className="flex items-center gap-3 px-4 py-3 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
+                          <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#DC2626" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                           </div>
-                          <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#2B2B2B]">上傳影片 (MP4)</span>
-                          <span className="text-xs text-[#AAAAAA]">Max 200MB</span>
+                          <span className="text-sm text-[#2B2B2B] truncate flex-1">{heroVideo.video.url.split("/").pop()?.split("?")[0] || "影片"}</span>
+                          <button type="button" onClick={() => { const r = section as any; const hero = r.hero.map((c: any) => c.kind === "hero_video" ? { ...c, video: { kind: "external", url: "", previewUrl: "" } } : c); setSection({ ...r, hero }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除影片">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                          </button>
                         </div>
-                        <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 200 * 1024 * 1024) return showToast(`影片檔案過大，請小於 200 MB（目前 ${(file.size / 1024 / 1024).toFixed(1)} MB）`, "error");
-                          try {
-                            // 1. 上傳影片
-                            const ext = file.name.split(".").pop();
-                            const path = `${uid("video_")}.${ext}`;
-                            const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                            if (error) return showToast("上傳失敗：" + error.message, "error");
-                            const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
-
-                            // 2. 自動擷取第一幀作為預覽圖
-                            let previewUrl = heroVideo.video?.previewUrl || "";
-                            let previewAssetId = heroVideo.video?.kind === "upload" ? heroVideo.video.previewAssetId : "";
+                      ) : (
+                        <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center text-[#AAAAAA] group-hover:bg-white group-hover:text-red-500 transition-colors">
+                              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </div>
+                            <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#2B2B2B]">上傳影片 (MP4)</span>
+                            <span className="text-xs text-[#AAAAAA]">Max 200MB</span>
+                          </div>
+                          <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 200 * 1024 * 1024) return showToast(`影片檔案過大，請小於 200 MB（目前 ${(file.size / 1024 / 1024).toFixed(1)} MB）`, "error");
                             try {
-                              const frameBlob = await extractVideoFrame(publicUrl, 0.1);
-                              const previewPath = `${uid("preview_")}.jpg`;
-                              const { error: previewError } = await supabase.storage.from("flex-assets").upload(previewPath, frameBlob, { contentType: "image/jpeg" });
-                              if (!previewError) {
-                                const { data: { publicUrl: previewPublicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(previewPath);
-                                previewUrl = previewPublicUrl;
-                                previewAssetId = previewPath;
-                              }
-                            } catch (frameErr) {
-                              console.warn("自動擷取預覽圖失敗，請手動上傳：", frameErr);
-                            }
+                              // 1. 上傳影片
+                              const ext = file.name.split(".").pop();
+                              const path = `${uid("video_")}.${ext}`;
+                              const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+                              if (error) return showToast("上傳失敗：" + error.message, "error");
+                              const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
 
-                            await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
-                            showToast("影片上傳成功");
-                          } catch (err: any) {
-                            showToast("上傳錯誤：" + err.message, "error");
-                          }
-                        }} />
-                      </label>
-                      <label className="flex items-center justify-center w-full px-4 py-4 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
-                        <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#555555] flex items-center gap-2">
-                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                          上傳預覽圖
-                        </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
-                          try {
-                            const ext = file.name.split(".").pop();
-                            const path = `${uid("img_")}.${ext}`;
-                            const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                            if (error) return showToast("上傳失敗：" + error.message, "error");
-                            const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
-                            await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
-                            showToast("預覽圖上傳成功");
-                          } catch (err: any) {
-                            showToast("上傳錯誤：" + err.message, "error");
-                          }
-                        }} />
-                      </label>
+                              // 2. 自動擷取第一幀作為預覽圖
+                              let previewUrl = heroVideo.video?.previewUrl || "";
+                              let previewAssetId = heroVideo.video?.kind === "upload" ? heroVideo.video.previewAssetId : "";
+                              try {
+                                const frameBlob = await extractVideoFrame(publicUrl, 0.1);
+                                const previewPath = `${uid("preview_")}.jpg`;
+                                const { error: previewError } = await supabase.storage.from("flex-assets").upload(previewPath, frameBlob, { contentType: "image/jpeg" });
+                                if (!previewError) {
+                                  const { data: { publicUrl: previewPublicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(previewPath);
+                                  previewUrl = previewPublicUrl;
+                                  previewAssetId = previewPath;
+                                }
+                              } catch (frameErr) {
+                                console.warn("自動擷取預覽圖失敗，請手動上傳：", frameErr);
+                              }
+
+                              await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
+                              showToast("影片上傳成功");
+                            } catch (err: any) {
+                              showToast("上傳錯誤：" + err.message, "error");
+                            }
+                          }} />
+                        </label>
+                      )}
+                      {heroVideo.video?.previewUrl ? (
+                        <div className="flex items-center gap-3 px-3 py-2 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
+                          <img src={heroVideo.video.previewUrl} alt="預覽圖" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[#E7C9CD]" />
+                          <span className="text-sm text-[#2B2B2B] truncate flex-1">預覽圖</span>
+                          <button type="button" onClick={() => updateHeroVideoSource(heroVideo.video?.url || "", "", heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", "")} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除預覽圖">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-center w-full px-4 py-4 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
+                          <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#555555] flex items-center gap-2">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            上傳預覽圖
+                          </span>
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
+                            try {
+                              const ext = file.name.split(".").pop();
+                              const path = `${uid("img_")}.${ext}`;
+                              const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+                              if (error) return showToast("上傳失敗：" + error.message, "error");
+                              const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+                              await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
+                              showToast("預覽圖上傳成功");
+                            } catch (err: any) {
+                              showToast("上傳錯誤：" + err.message, "error");
+                            }
+                          }} />
+                        </label>
+                      )}
                       <div className="mt-4">
                         <div className="text-sm font-semibold text-[#555555] mb-2">影片比例</div>
                         <RatioPicker
@@ -2024,67 +2046,89 @@ export default function EditDraft() {
                   >
                     {isVideoHero && heroVideo ? (
                       <div className="space-y-3">
-                        <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center text-[#AAAAAA] group-hover:bg-white group-hover:text-red-500 transition-colors">
-                              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        {heroVideo.video?.url ? (
+                          <div className="flex items-center gap-3 px-4 py-3 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
+                            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#DC2626" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                             </div>
-                            <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#2B2B2B]">上傳影片 (MP4)</span>
-                            <span className="text-xs text-[#AAAAAA]">Max 200MB</span>
+                            <span className="text-sm text-[#2B2B2B] truncate flex-1">{heroVideo.video.url.split("/").pop()?.split("?")[0] || "影片"}</span>
+                            <button type="button" onClick={() => { const r = section as any; const hero = r.hero.map((c: any) => c.kind === "hero_video" ? { ...c, video: { kind: "external", url: "", previewUrl: "" } } : c); setSection({ ...r, hero }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除影片">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
                           </div>
-                          <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            if (file.size > 200 * 1024 * 1024) return showToast(`影片檔案過大，請小於 200 MB（目前 ${(file.size / 1024 / 1024).toFixed(1)} MB）`, "error");
-                            try {
-                              const ext = file.name.split(".").pop();
-                              const path = `${uid("video_")}.${ext}`;
-                              const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                              if (error) return showToast("上傳失敗：" + error.message, "error");
-                              const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
-                              let previewUrl = heroVideo.video?.previewUrl || "";
-                              let previewAssetId = heroVideo.video?.kind === "upload" ? heroVideo.video.previewAssetId : "";
+                        ) : (
+                          <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="w-10 h-10 rounded-full bg-[#F0F0F0] flex items-center justify-center text-[#AAAAAA] group-hover:bg-white group-hover:text-red-500 transition-colors">
+                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                              </div>
+                              <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#2B2B2B]">上傳影片 (MP4)</span>
+                              <span className="text-xs text-[#AAAAAA]">Max 200MB</span>
+                            </div>
+                            <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 200 * 1024 * 1024) return showToast(`影片檔案過大，請小於 200 MB（目前 ${(file.size / 1024 / 1024).toFixed(1)} MB）`, "error");
                               try {
-                                const frameBlob = await extractVideoFrame(publicUrl, 0.1);
-                                const previewPath = `${uid("preview_")}.jpg`;
-                                const { error: previewError } = await supabase.storage.from("flex-assets").upload(previewPath, frameBlob, { contentType: "image/jpeg" });
-                                if (!previewError) {
-                                  const { data: { publicUrl: previewPublicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(previewPath);
-                                  previewUrl = previewPublicUrl;
-                                  previewAssetId = previewPath;
+                                const ext = file.name.split(".").pop();
+                                const path = `${uid("video_")}.${ext}`;
+                                const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+                                if (error) return showToast("上傳失敗：" + error.message, "error");
+                                const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+                                let previewUrl = heroVideo.video?.previewUrl || "";
+                                let previewAssetId = heroVideo.video?.kind === "upload" ? heroVideo.video.previewAssetId : "";
+                                try {
+                                  const frameBlob = await extractVideoFrame(publicUrl, 0.1);
+                                  const previewPath = `${uid("preview_")}.jpg`;
+                                  const { error: previewError } = await supabase.storage.from("flex-assets").upload(previewPath, frameBlob, { contentType: "image/jpeg" });
+                                  if (!previewError) {
+                                    const { data: { publicUrl: previewPublicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(previewPath);
+                                    previewUrl = previewPublicUrl;
+                                    previewAssetId = previewPath;
+                                  }
+                                } catch (frameErr) {
+                                  console.warn("自動擷取預覽圖失敗，請手動上傳：", frameErr);
                                 }
-                              } catch (frameErr) {
-                                console.warn("自動擷取預覽圖失敗，請手動上傳：", frameErr);
+                                await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
+                                showToast("影片上傳成功");
+                              } catch (err: any) {
+                                showToast("上傳錯誤：" + err.message, "error");
                               }
-                              await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
-                              showToast("影片上傳成功");
-                            } catch (err: any) {
-                              showToast("上傳錯誤：" + err.message, "error");
-                            }
-                          }} />
-                        </label>
-                        <label className="flex items-center justify-center w-full px-4 py-4 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
-                          <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#555555] flex items-center gap-2">
-                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                            上傳預覽圖
-                          </span>
-                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
-                            try {
-                              const ext = file.name.split(".").pop();
-                              const path = `${uid("img_")}.${ext}`;
-                              const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                              if (error) return showToast("上傳失敗：" + error.message, "error");
-                              const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
-                              await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
-                              showToast("預覽圖上傳成功");
-                            } catch (err: any) {
-                              showToast("上傳錯誤：" + err.message, "error");
-                            }
-                          }} />
-                        </label>
+                            }} />
+                          </label>
+                        )}
+                        {heroVideo.video?.previewUrl ? (
+                          <div className="flex items-center gap-3 px-3 py-2 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
+                            <img src={heroVideo.video.previewUrl} alt="預覽圖" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[#E7C9CD]" />
+                            <span className="text-sm text-[#2B2B2B] truncate flex-1">預覽圖</span>
+                            <button type="button" onClick={() => updateHeroVideoSource(heroVideo.video?.url || "", "", heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", "")} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除預覽圖">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center justify-center w-full px-4 py-4 border-2 border-dashed border-[#E7C9CD] rounded-xl hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all cursor-pointer group">
+                            <span className="text-sm font-medium text-[#6B6B6B] group-hover:text-[#555555] flex items-center gap-2">
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                              上傳預覽圖
+                            </span>
+                            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
+                              try {
+                                const ext = file.name.split(".").pop();
+                                const path = `${uid("img_")}.${ext}`;
+                                const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+                                if (error) return showToast("上傳失敗：" + error.message, "error");
+                                const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+                                await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
+                                showToast("預覽圖上傳成功");
+                              } catch (err: any) {
+                                showToast("上傳錯誤：" + err.message, "error");
+                              }
+                            }} />
+                          </label>
+                        )}
                         <div className="mt-4">
                           <div className="text-sm font-semibold text-[#555555] mb-2">影片比例</div>
                           <RatioPicker
@@ -2100,7 +2144,17 @@ export default function EditDraft() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return showToast("上傳失敗：" + error.message, "error"); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { showToast("上傳錯誤：" + err.message, "error"); } }} /></label>
+                        {(() => { const heroArr = (section as any).hero || []; const heroImage = heroArr.find((c: any) => c.kind === "hero_image"); const hasUpload = heroImage?.image?.url && !heroImage.image.url.includes("placehold.co"); return hasUpload ? (
+                          <div className="flex items-center gap-3 px-3 py-2 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
+                            <img src={heroImage.image.url} alt="封面圖" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[#E7C9CD]" />
+                            <span className="text-sm text-[#2B2B2B] truncate flex-1">封面圖片</span>
+                            <button type="button" onClick={() => { const ratio = heroImage?.ratio || "20:13"; const ratioDims: Record<string,string> = {"20:13":"600x390","16:9":"640x360","4:3":"640x480","1:1":"600x600","9:16":"360x640","1.91:1":"640x335"}; updateHeroImageSource({ kind: "external", url: `https://placehold.co/${ratioDims[ratio]||"600x390"}/E2E8F0/94A3B8/png?text=+` }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除圖片">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return showToast("上傳失敗：" + error.message, "error"); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { showToast("上傳錯誤：" + err.message, "error"); } }} /></label>
+                        ); })()}
                         <div className="mt-3">
                           <div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div>
                           <RatioPicker

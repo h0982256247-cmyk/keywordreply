@@ -1678,7 +1678,7 @@ export default function EditDraft() {
                   <div className="relative" style={{ width: "270px" }}>
                     <div className="rounded-[46px]" style={{ background: "#111", padding: "6px", boxShadow: "0 0 0 1px #222, 0 20px 60px rgba(0,0,0,0.5)" }}>
                       <div className="rounded-[42px] overflow-hidden" style={{ background: "#111" }}>
-                        <div className="flex justify-center pt-3 pb-2" style={{ background: "rgba(30,38,54,0.82)" }}>
+                        <div className="flex justify-center pt-3 pb-2" style={{ background: "rgba(55,72,100,0.60)" }}>
                           <div style={{ width: "100px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "14px", border: "1.5px solid rgba(255,255,255,0.08)" }} />
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "rgba(30,38,54,0.82)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -2312,7 +2312,7 @@ export default function EditDraft() {
               <div className="relative" style={{ width: "270px" }}>
                 <div className="rounded-[46px]" style={{ background: "#111", padding: "6px", boxShadow: "0 0 0 1px #222, 0 20px 60px rgba(0,0,0,0.5)" }}>
                   <div className="rounded-[42px] overflow-hidden" style={{ background: "#111" }}>
-                    <div className="flex justify-center pt-3 pb-2" style={{ background: "rgba(30,38,54,0.82)" }}>
+                    <div className="flex justify-center pt-3 pb-2" style={{ background: "rgba(55,72,100,0.60)" }}>
                       <div style={{ width: "100px", height: "28px", background: "rgba(0,0,0,0.7)", borderRadius: "14px", border: "1.5px solid rgba(255,255,255,0.08)" }} />
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "rgba(30,38,54,0.82)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>

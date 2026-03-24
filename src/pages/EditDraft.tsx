@@ -1676,27 +1676,19 @@ export default function EditDraft() {
               <>
                   {/* iPhone frame */}
                   <div className="relative" style={{ width: "270px" }}>
-                    <div className="rounded-[44px] p-[10px]" style={{ background: "#1C1C1E", boxShadow: "0 0 0 1px #3A3A3C, 0 24px 64px rgba(0,0,0,0.55)" }}>
-                      <div className="rounded-[36px] overflow-hidden" style={{ background: "#fff" }}>
-                        <div className="flex justify-center pt-3 pb-1 bg-black">
-                          <div className="bg-black rounded-full border border-[#2C2C2E]" style={{ width: "110px", height: "32px" }} />
+                    <div className="rounded-[46px]" style={{ background: "#111", padding: "6px", boxShadow: "0 0 0 1px #222, 0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div className="rounded-[42px] overflow-hidden" style={{ background: "#000" }}>
+                        <div className="flex justify-center pt-3 pb-2" style={{ background: "#000" }}>
+                          <div style={{ width: "100px", height: "28px", background: "#000", borderRadius: "14px", border: "1.5px solid #1a1a1a" }} />
                         </div>
-                        <div className="flex items-center justify-between px-5 py-1 bg-white">
-                          <span className="text-[11px] font-bold text-black">9:41</span>
-                          <div className="flex items-center gap-[5px]">
-                            <svg width="16" height="11" viewBox="0 0 16 11" fill="black"><rect x="0" y="4" width="3" height="7" rx="1"/><rect x="4.5" y="2.5" width="3" height="8.5" rx="1"/><rect x="9" y="0.5" width="3" height="10.5" rx="1"/><rect x="13.5" y="0" width="2.5" height="11" rx="1" opacity="0.3"/></svg>
-                            <svg width="15" height="11" viewBox="0 0 15 11" fill="black"><path d="M7.5 2.5C9.8 2.5 11.9 3.4 13.4 4.9L14.8 3.5C12.9 1.6 10.3 0.5 7.5 0.5C4.7 0.5 2.1 1.6 0.2 3.5L1.6 4.9C3.1 3.4 5.2 2.5 7.5 2.5Z" opacity="0.3"/><path d="M7.5 5.5C9 5.5 10.4 6.1 11.4 7.1L12.8 5.7C11.4 4.3 9.5 3.5 7.5 3.5C5.5 3.5 3.6 4.3 2.2 5.7L3.6 7.1C4.6 6.1 6 5.5 7.5 5.5Z"/><path d="M7.5 8.5C8.3 8.5 9 8.8 9.5 9.3L7.5 11.5L5.5 9.3C6 8.8 6.7 8.5 7.5 8.5Z"/></svg>
-                            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="black" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="19" height="9" rx="2.5" fill="black"/><path d="M23 4V8C23.8 7.5 24.5 6.5 24.5 6C24.5 5.5 23.8 4.5 23 4Z" fill="black" fillOpacity="0.4"/></svg>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-2" style={{ background: "#ffffff", borderBottom: "1px solid #e5e7eb" }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "#ffffff", borderBottom: "1px solid #e5e7eb" }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#06C755" }} />
                           <div className="flex-1 min-w-0">
-                            <div className="text-black font-semibold text-[13px] leading-tight truncate">LINE Official Account</div>
+                            <div className="text-black font-semibold text-[12px] leading-tight truncate">LINE Official Account</div>
                           </div>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                         </div>
                         <div className="p-2 pb-3" style={{ background: "#90AACB" }}>
                           <div className="flex items-start gap-1">
@@ -1723,25 +1715,21 @@ export default function EditDraft() {
                             ))}
                           </div>
                         )}
-                        <div className="px-2 py-2 flex items-center gap-2 bg-white border-t border-gray-200">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                          <div className="flex-1 h-7 bg-gray-100 rounded-full px-3 flex items-center">
-                            <span className="text-[11px] text-gray-400">Aa</span>
+                        <div className="px-2 py-1 flex items-center gap-1.5 bg-white border-t border-gray-200">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          <div className="flex-1 h-6 bg-gray-100 rounded-full px-3 flex items-center">
+                            <span className="text-[10px] text-gray-400">Aa</span>
                           </div>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                         </div>
-                        <div className="flex justify-center py-1.5 bg-white">
-                          <div className="w-28 h-1 bg-black rounded-full opacity-20" />
+                        <div className="flex justify-center py-1 bg-white">
+                          <div className="w-20 h-[3px] bg-black rounded-full opacity-20" />
                         </div>
                       </div>
                     </div>
-                    <div className="absolute rounded-l-full" style={{ left: "-4px", top: "100px", width: "4px", height: "32px", background: "#3A3A3C" }} />
-                    <div className="absolute rounded-l-full" style={{ left: "-4px", top: "145px", width: "4px", height: "60px", background: "#3A3A3C" }} />
-                    <div className="absolute rounded-l-full" style={{ left: "-4px", top: "218px", width: "4px", height: "60px", background: "#3A3A3C" }} />
-                    <div className="absolute rounded-r-full" style={{ right: "-4px", top: "155px", width: "4px", height: "90px", background: "#3A3A3C" }} />
                   </div>
                   <p className="text-xs text-[#AAAAAA] text-center">ⓘ 僅供參考，實際效果以手機為準</p>
                 </>
@@ -2322,27 +2310,19 @@ export default function EditDraft() {
             {/* iPhone frame */}
             <div className="px-4 py-4 flex flex-col items-center gap-3">
               <div className="relative" style={{ width: "270px" }}>
-                <div className="rounded-[44px] p-[10px]" style={{ background: "#1C1C1E", boxShadow: "0 0 0 1px #3A3A3C, 0 24px 64px rgba(0,0,0,0.55)" }}>
-                  <div className="rounded-[36px] overflow-hidden" style={{ background: "#fff" }}>
-                    <div className="flex justify-center pt-3 pb-1 bg-black">
-                      <div className="bg-black rounded-full border border-[#2C2C2E]" style={{ width: "110px", height: "32px" }} />
+                <div className="rounded-[46px]" style={{ background: "#111", padding: "6px", boxShadow: "0 0 0 1px #222, 0 20px 60px rgba(0,0,0,0.5)" }}>
+                  <div className="rounded-[42px] overflow-hidden" style={{ background: "#000" }}>
+                    <div className="flex justify-center pt-3 pb-2" style={{ background: "#000" }}>
+                      <div style={{ width: "100px", height: "28px", background: "#000", borderRadius: "14px", border: "1.5px solid #1a1a1a" }} />
                     </div>
-                    <div className="flex items-center justify-between px-5 py-1 bg-white">
-                      <span className="text-[11px] font-bold text-black">9:41</span>
-                      <div className="flex items-center gap-[5px]">
-                        <svg width="16" height="11" viewBox="0 0 16 11" fill="black"><rect x="0" y="4" width="3" height="7" rx="1"/><rect x="4.5" y="2.5" width="3" height="8.5" rx="1"/><rect x="9" y="0.5" width="3" height="10.5" rx="1"/><rect x="13.5" y="0" width="2.5" height="11" rx="1" opacity="0.3"/></svg>
-                        <svg width="15" height="11" viewBox="0 0 15 11" fill="black"><path d="M7.5 2.5C9.8 2.5 11.9 3.4 13.4 4.9L14.8 3.5C12.9 1.6 10.3 0.5 7.5 0.5C4.7 0.5 2.1 1.6 0.2 3.5L1.6 4.9C3.1 3.4 5.2 2.5 7.5 2.5Z" opacity="0.3"/><path d="M7.5 5.5C9 5.5 10.4 6.1 11.4 7.1L12.8 5.7C11.4 4.3 9.5 3.5 7.5 3.5C5.5 3.5 3.6 4.3 2.2 5.7L3.6 7.1C4.6 6.1 6 5.5 7.5 5.5Z"/><path d="M7.5 8.5C8.3 8.5 9 8.8 9.5 9.3L7.5 11.5L5.5 9.3C6 8.8 6.7 8.5 7.5 8.5Z"/></svg>
-                        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="black" strokeOpacity="0.35"/><rect x="1.5" y="1.5" width="19" height="9" rx="2.5" fill="black"/><path d="M23 4V8C23.8 7.5 24.5 6.5 24.5 6C24.5 5.5 23.8 4.5 23 4Z" fill="black" fillOpacity="0.4"/></svg>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-2" style={{ background: "#ffffff", borderBottom: "1px solid #e5e7eb" }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    <div className="flex items-center gap-2 px-3 py-1.5" style={{ background: "#ffffff", borderBottom: "1px solid #e5e7eb" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "#06C755" }} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-black font-semibold text-[13px] leading-tight truncate">LINE Official Account</div>
+                        <div className="text-black font-semibold text-[12px] leading-tight truncate">LINE Official Account</div>
                       </div>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                     </div>
                     <div className="p-2 pb-3" style={{ background: "#90AACB" }}>
                       <div className="flex items-start gap-1">
@@ -2363,25 +2343,21 @@ export default function EditDraft() {
                         ))}
                       </div>
                     )}
-                    <div className="px-2 py-2 flex items-center gap-2 bg-white border-t border-gray-200">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                      <div className="flex-1 h-7 bg-gray-100 rounded-full px-3 flex items-center">
-                        <span className="text-[11px] text-gray-400">Aa</span>
+                    <div className="px-2 py-1 flex items-center gap-1.5 bg-white border-t border-gray-200">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      <div className="flex-1 h-6 bg-gray-100 rounded-full px-3 flex items-center">
+                        <span className="text-[10px] text-gray-400">Aa</span>
                       </div>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                     </div>
-                    <div className="flex justify-center py-1.5 bg-white">
-                      <div className="w-28 h-1 bg-black rounded-full opacity-20" />
+                    <div className="flex justify-center py-1 bg-white">
+                      <div className="w-20 h-[3px] bg-black rounded-full opacity-20" />
                     </div>
                   </div>
                 </div>
-                <div className="absolute rounded-l-full" style={{ left: "-4px", top: "100px", width: "4px", height: "32px", background: "#3A3A3C" }} />
-                <div className="absolute rounded-l-full" style={{ left: "-4px", top: "145px", width: "4px", height: "60px", background: "#3A3A3C" }} />
-                <div className="absolute rounded-l-full" style={{ left: "-4px", top: "218px", width: "4px", height: "60px", background: "#3A3A3C" }} />
-                <div className="absolute rounded-r-full" style={{ right: "-4px", top: "155px", width: "4px", height: "90px", background: "#3A3A3C" }} />
               </div>
               <p className="text-xs text-[#AAAAAA] text-center">ⓘ 僅供參考，實際效果以手機為準</p>
             </div>

@@ -157,7 +157,6 @@ export default function Keywords() {
                 <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">規則名稱</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">匹配</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">關鍵字</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">參與</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-[#4F4F4F] tracking-wide">狀態</th>
                 <th className="px-5 py-3 text-right text-xs font-medium text-[#4F4F4F] tracking-wide">操作</th>
               </tr>
@@ -165,7 +164,7 @@ export default function Keywords() {
             <tbody className="divide-y divide-[#F0F0F0]">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-20 text-center">
+                  <td colSpan={6} className="py-20 text-center">
                     <div className="flex flex-col items-center justify-center opacity-70">
                       <div className="w-16 h-16 bg-[#F0F0F0] rounded-full flex items-center justify-center mb-4 text-3xl">🔍</div>
                       <p className="text-[#2B2B2B] font-medium">尚未建立關鍵字規則</p>
@@ -186,7 +185,6 @@ export default function Keywords() {
                   <td className="px-5 py-4 font-medium text-[#A35D5D]">{row.name || row.keyword}</td>
                   <td className="px-5 py-4 text-[#555555]">{row.match_type === 'exact' ? '完全' : '包含'}</td>
                   <td className="px-5 py-4 text-[#2B2B2B]">{row.keyword}</td>
-                  <td className="px-5 py-4 text-[#6B6B6B]">1</td>
                   <td className="px-5 py-4">
                     <button
                       onClick={() => toggleEnabled(row)}

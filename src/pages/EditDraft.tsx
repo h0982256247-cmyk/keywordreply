@@ -41,10 +41,10 @@ export default function EditDraft() {
   const [editingNameIdx, setEditingNameIdx] = useState<number | null>(null);
   const [folders, setFolders] = useState<any[]>([]);
   const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const toastTimer = useRef<number | null>(null);
-  const showToast = (msg: string) => {
-    setToast(msg);
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
+    setToast({ msg, type });
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), 3000);
   };
@@ -242,9 +242,13 @@ export default function EditDraft() {
 
         {/* Toast notification */}
         <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${toast ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"}`}>
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#2B2B2B] text-white text-sm font-medium rounded-full shadow-lg">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
-            {toast}
+          <div className={`flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-full shadow-lg ${toast?.type === "error" ? "bg-red-500" : "bg-[#2B2B2B]"}`}>
+            {toast?.type === "error" ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+            )}
+            {toast?.msg}
           </div>
         </div>
 
@@ -678,17 +682,17 @@ export default function EditDraft() {
                         <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB");
+                          if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
                           try {
                             const ext = file.name.split(".").pop();
                             const path = `${uid("img_")}.${ext}`;
                             const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                            if (error) return alert("上傳失敗：" + error.message);
+                            if (error) return showToast("上傳失敗：" + error.message, "error");
                             const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
                             setSection({ ...specialSection, image: { kind: "upload", assetId: path, url: publicUrl } });
                             showToast("圖片上傳成功");
                           } catch (err: any) {
-                            alert("上傳錯誤：" + err.message);
+                            showToast("上傳錯誤：" + err.message, "error");
                           }
                         }} />
                       </label>
@@ -838,13 +842,13 @@ export default function EditDraft() {
                         <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 200 * 1024 * 1024) return alert(`影片檔案過大，請小於 200 MB\n目前大小：${(file.size / 1024 / 1024).toFixed(1)} MB`);
+                          if (file.size > 200 * 1024 * 1024) return showToast(`影片檔案過大，請小於 200 MB（目前 ${(file.size / 1024 / 1024).toFixed(1)} MB）`, "error");
                           try {
                             // 1. 上傳影片
                             const ext = file.name.split(".").pop();
                             const path = `${uid("video_")}.${ext}`;
                             const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                            if (error) return alert("上傳失敗：" + error.message);
+                            if (error) return showToast("上傳失敗：" + error.message, "error");
                             const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
 
                             // 2. 自動擷取第一幀作為預覽圖
@@ -866,7 +870,7 @@ export default function EditDraft() {
                             await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
                             showToast("影片上傳成功");
                           } catch (err: any) {
-                            alert("上傳錯誤：" + err.message);
+                            showToast("上傳錯誤：" + err.message, "error");
                           }
                         }} />
                       </label>
@@ -878,17 +882,17 @@ export default function EditDraft() {
                         <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB");
+                          if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
                           try {
                             const ext = file.name.split(".").pop();
                             const path = `${uid("img_")}.${ext}`;
                             const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                            if (error) return alert("上傳失敗：" + error.message);
+                            if (error) return showToast("上傳失敗：" + error.message, "error");
                             const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
                             await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
                             showToast("預覽圖上傳成功");
                           } catch (err: any) {
-                            alert("上傳錯誤：" + err.message);
+                            showToast("上傳錯誤：" + err.message, "error");
                           }
                         }} />
                       </label>
@@ -1257,7 +1261,7 @@ export default function EditDraft() {
                           if (!file) return;
 
                           // Simple verification
-                          if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB");
+                          if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
 
                           try {
                             const ext = file.name.split(".").pop();
@@ -1266,7 +1270,7 @@ export default function EditDraft() {
 
                             if (error) {
                               console.error(error);
-                              return alert("上傳失敗：" + error.message);
+                              return showToast("上傳失敗：" + error.message, "error");
                             }
 
                             const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
@@ -1278,7 +1282,7 @@ export default function EditDraft() {
                             });
                             showToast("圖片上傳成功");
                           } catch (err: any) {
-                            alert("上傳錯誤：" + err.message);
+                            showToast("上傳錯誤：" + err.message, "error");
                           }
                         }} />
                       </label>
@@ -1981,7 +1985,7 @@ export default function EditDraft() {
                 <>
                   <AccordionSection title="滿版圖片" accent="bg-purple-400" subtitle="上傳圖片，圖片會佔滿整張卡片" open={open === "hero"} onToggle={() => setOpen(open === "hero" ? "body" : "hero")} right={<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">特殊卡片</span>}>
                     <div className="space-y-3">
-                      <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) return alert("上傳失敗：" + error.message); const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); setSection({ ...specialSection, image: { kind: "upload", assetId: path, url: publicUrl } }); } catch (err: any) { alert("上傳錯誤：" + err.message); } }} /></label>
+                      <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) return showToast("上傳失敗：" + error.message, "error"); const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); setSection({ ...specialSection, image: { kind: "upload", assetId: path, url: publicUrl } }); } catch (err: any) { showToast("上傳錯誤：" + err.message, "error"); } }} /></label>
                       <div className="mt-4"><div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div><RatioPicker value={specialSection.ratio || "2:3"} onChange={(val) => setSection({ ...specialSection, ratio: val as any })} options={[{value:"2:3",label:"2:3"},{value:"9:16",label:"9:16"},{value:"1:1",label:"1:1"},{value:"4:3",label:"4:3"},{value:"16:9",label:"16:9"}]} /></div>
                     </div>
                   </AccordionSection>
@@ -2027,12 +2031,12 @@ export default function EditDraft() {
                           <input type="file" accept="video/mp4" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            if (file.size > 200 * 1024 * 1024) return alert(`影片檔案過大，請小於 200 MB\n目前大小：${(file.size / 1024 / 1024).toFixed(1)} MB`);
+                            if (file.size > 200 * 1024 * 1024) return showToast(`影片檔案過大，請小於 200 MB（目前 ${(file.size / 1024 / 1024).toFixed(1)} MB）`, "error");
                             try {
                               const ext = file.name.split(".").pop();
                               const path = `${uid("video_")}.${ext}`;
                               const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                              if (error) return alert("上傳失敗：" + error.message);
+                              if (error) return showToast("上傳失敗：" + error.message, "error");
                               const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
                               let previewUrl = heroVideo.video?.previewUrl || "";
                               let previewAssetId = heroVideo.video?.kind === "upload" ? heroVideo.video.previewAssetId : "";
@@ -2051,7 +2055,7 @@ export default function EditDraft() {
                               await updateHeroVideoSource(publicUrl, previewUrl, path, previewAssetId);
                               showToast("影片上傳成功");
                             } catch (err: any) {
-                              alert("上傳錯誤：" + err.message);
+                              showToast("上傳錯誤：" + err.message, "error");
                             }
                           }} />
                         </label>
@@ -2063,17 +2067,17 @@ export default function EditDraft() {
                           <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB");
+                            if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error");
                             try {
                               const ext = file.name.split(".").pop();
                               const path = `${uid("img_")}.${ext}`;
                               const { error } = await supabase.storage.from("flex-assets").upload(path, file);
-                              if (error) return alert("上傳失敗：" + error.message);
+                              if (error) return showToast("上傳失敗：" + error.message, "error");
                               const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
                               await updateHeroVideoSource(heroVideo.video?.url || "", publicUrl, heroVideo.video?.kind === "upload" ? heroVideo.video.assetId : "", path);
                               showToast("預覽圖上傳成功");
                             } catch (err: any) {
-                              alert("上傳錯誤：" + err.message);
+                              showToast("上傳錯誤：" + err.message, "error");
                             }
                           }} />
                         </label>
@@ -2092,7 +2096,7 @@ export default function EditDraft() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return alert("檔案過大，請小於 1MB"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return alert("上傳失敗：" + error.message); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { alert("上傳錯誤：" + err.message); } }} /></label>
+                        <label className="flex items-center justify-center w-full px-4 py-3 bg-white border border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:bg-[#FCF7F8] hover:border-[#A35D5D] transition-all text-sm font-medium text-[#6B6B6B] group">上傳圖片<input type="file" accept="image/*" className="hidden" onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 1 * 1024 * 1024) return showToast("檔案過大，請小於 1MB", "error"); try { const ext = file.name.split(".").pop(); const path = `${uid("img_")}.${ext}`; const { error } = await supabase.storage.from("flex-assets").upload(path, file); if (error) { console.error(error); return showToast("上傳失敗：" + error.message, "error"); } const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path); await updateHeroImageSource({ kind: "upload", assetId: path, url: publicUrl }); } catch (err: any) { showToast("上傳錯誤：" + err.message, "error"); } }} /></label>
                         <div className="mt-3">
                           <div className="text-sm font-semibold text-[#555555] mb-2">圖片比例</div>
                           <RatioPicker

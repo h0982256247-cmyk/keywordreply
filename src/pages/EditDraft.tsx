@@ -1973,25 +1973,31 @@ export default function EditDraft() {
         {/* Column 1: Editor */}
         <div className="space-y-4 relative flex flex-col min-h-[500px]">
           {doc.type === "text" ? (
-            <div className="bg-white border border-[#E7C9CD] shadow-sm rounded-xl p-6 flex-1 flex flex-col">
-              <h2 className="text-lg font-semibold text-[#2B2B2B] mb-1">純文字內容</h2>
-              <p className="text-sm text-[#6B6B6B] mb-4">輸入你想發送的文字，支援換行與表情符號。</p>
-              <div className="relative">
-                <textarea
-                  className="w-full h-64 p-4 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl text-[#2B2B2B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all resize-none"
-                  placeholder="輸入文字內容..."
-                  value={(doc as any).text || ""}
-                  onChange={(e) => {
-                    const text = e.target.value;
-                    if (text.length <= 500) scheduleSave({ ...doc, text } as any);
-                  }}
-                />
-                <div className="absolute bottom-3 right-3 flex items-center gap-3">
-                  <div className={`text-xs font-medium ${(doc as any).text?.length >= 500 ? 'text-red-500' : 'text-[#AAAAAA]'}`}>
-                    {((doc as any).text || "").length} / 500
+            <div className="space-y-4">
+              <div className="bg-white border border-[#E7C9CD] shadow-sm rounded-xl p-6 flex flex-col">
+                <h2 className="text-lg font-semibold text-[#2B2B2B] mb-1">純文字內容</h2>
+                <p className="text-sm text-[#6B6B6B] mb-4">輸入你想發送的文字，支援換行與表情符號。</p>
+                <div className="relative">
+                  <textarea
+                    className="w-full h-64 p-4 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl text-[#2B2B2B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all resize-none"
+                    placeholder="輸入文字內容..."
+                    value={(doc as any).text || ""}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      if (text.length <= 500) scheduleSave({ ...doc, text } as any);
+                    }}
+                  />
+                  <div className="absolute bottom-3 right-3 flex items-center gap-3">
+                    <div className={`text-xs font-medium ${(doc as any).text?.length >= 500 ? 'text-red-500' : 'text-[#AAAAAA]'}`}>
+                      {((doc as any).text || "").length} / 500
+                    </div>
                   </div>
                 </div>
               </div>
+              <QuickReplyEditor
+                doc={doc as EditableMessageDoc}
+                onChange={(nextQuickReply) => scheduleSave({ ...doc, quickReply: nextQuickReply } as DocModel)}
+              />
             </div>
           ) : (
             <div className="space-y-4">

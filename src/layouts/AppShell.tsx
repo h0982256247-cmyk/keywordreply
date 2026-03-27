@@ -107,7 +107,7 @@ export default function AppShell() {
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-[#1A1A1A] tracking-tight">GentlerDigit</span>
+              <span className="text-sm font-semibold text-[#1A1A1A] tracking-tight">Line Boost</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}

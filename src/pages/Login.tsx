@@ -83,7 +83,7 @@ export default function Login() {
               <path d="M21.99 12.06c0-5.7-4.93-10.31-10-10.31S2 6.36 2 12.06c0 5.1 4 9.35 8.89 10.16.34.07.8.22.92.51.1.25.07.62 0 1.05l-.18 1.09c-.05.32-.24 1.25 1.09.66s7.24-4.26 7.24-4.26a9.55 9.55 0 004.03-9.21z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-[#2B2B2B]">歡迎使用 Line Boost</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-[#2B2B2B]">歡迎使用 LINE Boost</h2>
           <p className="mt-2 text-sm text-[#6B6B6B]">請輸入您的帳號密碼以登入系統。</p>
         </div>
 

@@ -447,6 +447,12 @@ export default function RichMenuEditor() {
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [publishModal, setPublishModal] = useState<"choose" | "schedule" | null>(null);
+  const [schedYear, setSchedYear] = useState(() => new Date().getFullYear());
+  const [schedMonth, setSchedMonth] = useState(() => new Date().getMonth() + 1);
+  const [schedDay, setSchedDay] = useState(() => new Date().getDate());
+  const [schedHour, setSchedHour] = useState(() => new Date().getHours());
+  const [schedMin, setSchedMin] = useState(() => Math.ceil(new Date().getMinutes() / 5) * 5 % 60);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [folders, setFolders] = useState<RmFolder[]>([]);
@@ -532,8 +538,11 @@ export default function RichMenuEditor() {
     });
   };
 
-  const handlePublish = async () => {
+  const handlePublish = () => setPublishModal("choose");
+
+  const handlePublishNow = async () => {
     if (!id) return;
+    setPublishModal(null);
     setPublishing(true);
     try {
       const result = await publishRmDraft(id);
@@ -543,6 +552,13 @@ export default function RichMenuEditor() {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const handleScheduleConfirm = () => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const timeStr = `${schedYear}-${pad(schedMonth)}-${pad(schedDay)} ${pad(schedHour)}:${pad(schedMin)}`;
+    setPublishModal(null);
+    showToast(`已排程於 ${timeStr} 發布`);
   };
 
   const handleNameSave = async () => {
@@ -764,6 +780,108 @@ export default function RichMenuEditor() {
         onConfirm={confirmState?.onConfirm || (() => {})}
         onClose={() => setConfirmState(null)}
       />
+
+      {/* Publish Modal */}
+      {publishModal && (
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40" onClick={() => setPublishModal(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-[340px] overflow-hidden" onClick={e => e.stopPropagation()}>
+
+            {publishModal === "choose" && (
+              <>
+                <div className="px-6 pt-6 pb-4">
+                  <h2 className="text-base font-semibold text-[#1A1A1A] mb-1">發布選單</h2>
+                  <p className="text-sm text-[#8A8A8A]">請選擇發布方式</p>
+                </div>
+                <div className="px-4 pb-4 space-y-2">
+                  <button
+                    onClick={handlePublishNow}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-[#E0E0E0] hover:border-[#A35D5D] hover:bg-[#FDF8F8] transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-[#A35D5D]/10 flex items-center justify-center shrink-0">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#A35D5D" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-[#1A1A1A]">立即發布</div>
+                      <div className="text-xs text-[#8A8A8A]">發布後即時生效</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => setPublishModal("schedule")}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-[#E0E0E0] hover:border-[#A35D5D] hover:bg-[#FDF8F8] transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-[#A35D5D]/10 flex items-center justify-center shrink-0">
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#A35D5D" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" /></svg>
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-[#1A1A1A]">排程發布</div>
+                      <div className="text-xs text-[#8A8A8A]">選擇指定日期與時間發布</div>
+                    </div>
+                  </button>
+                </div>
+                <div className="px-4 pb-4">
+                  <button onClick={() => setPublishModal(null)} className="w-full py-2 text-sm text-[#8A8A8A] hover:text-[#1A1A1A] transition-colors">取消</button>
+                </div>
+              </>
+            )}
+
+            {publishModal === "schedule" && (
+              <>
+                <div className="px-6 pt-6 pb-4">
+                  <h2 className="text-base font-semibold text-[#1A1A1A] mb-1">選擇發布時間</h2>
+                  <p className="text-sm text-[#8A8A8A]">設定排程發布的日期與時間</p>
+                </div>
+                <div className="px-6 pb-4 space-y-4">
+                  <div>
+                    <div className="text-xs font-medium text-[#6B6B6B] mb-2">日期</div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">年</label>
+                        <select value={schedYear} onChange={e => setSchedYear(Number(e.target.value))} className="w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]">
+                          {[2025,2026,2027,2028].map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">月</label>
+                        <select value={schedMonth} onChange={e => setSchedMonth(Number(e.target.value))} className="w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]">
+                          {Array.from({length:12},(_,i)=>i+1).map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">日</label>
+                        <select value={schedDay} onChange={e => setSchedDay(Number(e.target.value))} className="w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]">
+                          {Array.from({length:31},(_,i)=>i+1).map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-[#6B6B6B] mb-2">時間</div>
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">時</label>
+                        <select value={schedHour} onChange={e => setSchedHour(Number(e.target.value))} className="w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]">
+                          {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{String(h).padStart(2,"0")}</option>)}
+                        </select>
+                      </div>
+                      <div className="pb-2 text-[#AAAAAA] text-sm">:</div>
+                      <div className="flex-1">
+                        <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">分</label>
+                        <select value={schedMin} onChange={e => setSchedMin(Number(e.target.value))} className="w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]">
+                          {[0,5,10,15,20,25,30,35,40,45,50,55].map(m => <option key={m} value={m}>{String(m).padStart(2,"0")}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-4 pb-4 flex gap-2">
+                  <button onClick={() => setPublishModal("choose")} className="flex-1 py-2.5 text-sm font-medium text-[#6B6B6B] bg-[#F5F5F5] hover:bg-[#EBEBEB] rounded-xl transition-colors">取消</button>
+                  <button onClick={handleScheduleConfirm} className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors">確認排程</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

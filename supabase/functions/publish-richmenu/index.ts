@@ -149,6 +149,11 @@ serve(async (req) => {
         if (action.type === "richmenuswitch" && !action.data) {
           action.data = `switch-to-${action.richMenuAliasId || "menu"}`;
         }
+        // postback with fillInText: open keyboard and pre-fill the chat input
+        if (action.type === "postback" && action.data) {
+          action.inputOption = "openKeyboard";
+          action.fillInText = action.data;
+        }
         return { bounds: a.bounds, action };
       });
 

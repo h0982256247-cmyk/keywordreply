@@ -363,12 +363,14 @@ function AreaSettings({
 
       {area.action.type === "postback" && (
         <div>
-          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">Data</label>
-          <input
-            type="text" value={area.action.data || ""}
+          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">預填文字</label>
+          <p className="text-xs text-[#AAAAAA] mb-1.5">消費者點擊後，此文字會自動帶入輸入框，讓消費者確認後再送出。</p>
+          <textarea
+            value={area.action.data || ""}
             onChange={e => update({ data: e.target.value })}
-            placeholder="postback data"
-            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+            placeholder="輸入預填文字…"
+            rows={4}
+            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D] resize-none"
           />
         </div>
       )}

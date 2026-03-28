@@ -880,8 +880,8 @@ export default function RichMenuEditor() {
                   </div>
                 </div>
                 <div className="px-4 pb-4 flex gap-2">
-                  <button onClick={() => setPublishModal("choose")} className="flex-1 py-2.5 text-sm font-medium text-[#6B6B6B] bg-[#F5F5F5] hover:bg-[#EBEBEB] rounded-xl transition-colors">取消</button>
                   <button onClick={handleScheduleConfirm} className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors">確認排程</button>
+                  <button onClick={() => setPublishModal("choose")} className="flex-1 py-2.5 text-sm font-medium text-[#6B6B6B] bg-[#F5F5F5] hover:bg-[#EBEBEB] rounded-xl transition-colors">取消</button>
                 </div>
               </>
             )}

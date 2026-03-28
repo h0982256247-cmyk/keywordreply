@@ -100,8 +100,8 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
           </div>
         </div>
         <div className="px-4 py-4 flex gap-2">
-          <button onClick={handleCancel} disabled={saving} className="flex-1 py-2.5 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50">取消排程</button>
           <button onClick={handleUpdate} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors disabled:opacity-50">更新排程</button>
+          <button onClick={handleCancel} disabled={saving} className="flex-1 py-2.5 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50">取消排程</button>
         </div>
       </div>
     </div>

@@ -14,7 +14,7 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
   onClose: () => void;
   onUpdated: () => void;
 }) {
-  const existing = draft.data?.scheduled_at ? new Date(draft.data.scheduled_at) : new Date();
+  const existing = draft.scheduled_at ? new Date(draft.scheduled_at) : new Date();
   const [year, setYear] = useState(existing.getFullYear());
   const [month, setMonth] = useState(existing.getMonth() + 1);
   const [day, setDay] = useState(existing.getDate());
@@ -27,7 +27,7 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
   const handleUpdate = async () => {
     setSaving(true);
     const scheduledAt = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(min)}:00`;
-    await saveRmDraft(draft.id, { data: { ...draft.data, scheduled_at: scheduledAt } });
+    await saveRmDraft(draft.id, { data: { ...draft.data, scheduled_at: scheduledAt }, scheduled_at: scheduledAt });
     setSaving(false);
     onUpdated();
     onClose();
@@ -36,7 +36,7 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
   const handleCancel = async () => {
     setSaving(true);
     const { scheduled_at, ...rest } = draft.data as any;
-    await saveRmDraft(draft.id, { data: rest });
+    await saveRmDraft(draft.id, { data: rest, scheduled_at: null });
     setSaving(false);
     onUpdated();
     onClose();
@@ -237,7 +237,7 @@ export default function RichMenus() {
   const dragIdRef = useRef<string | null>(null);
   const [schedulingDraft, setSchedulingDraft] = useState<RmDraft | null>(null);
 
-  const isScheduled = (d: RmDraft) => !!(d.data?.scheduled_at && new Date(d.data.scheduled_at) > new Date());
+  const isScheduled = (d: RmDraft) => !!(d.scheduled_at && new Date(d.scheduled_at) > new Date());
 
   useEffect(() => { load(); }, []);
 

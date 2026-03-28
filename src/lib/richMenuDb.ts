@@ -31,8 +31,9 @@ export interface RmDraft {
   user_id: string;
   name: string;
   folder_id: string | null;
-  data: { menus: RmMenu[] };
+  data: { menus: RmMenu[]; scheduled_at?: string };
   status: "draft" | "published";
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -108,7 +109,7 @@ export async function createRmDraft(name: string, folderId?: string | null): Pro
   return data.id as string;
 }
 
-export async function saveRmDraft(id: string, patch: Partial<Pick<RmDraft, "name" | "data" | "folder_id" | "status">>) {
+export async function saveRmDraft(id: string, patch: Partial<Pick<RmDraft, "name" | "data" | "folder_id" | "status" | "scheduled_at">>) {
   const user = await requireUser();
   const { error } = await supabase
     .from("rm_drafts")

@@ -554,11 +554,17 @@ export default function RichMenuEditor() {
     }
   };
 
-  const handleScheduleConfirm = () => {
+  const handleScheduleConfirm = async () => {
+    if (!id) return;
     const pad = (n: number) => String(n).padStart(2, "0");
-    const timeStr = `${schedYear}-${pad(schedMonth)}-${pad(schedDay)} ${pad(schedHour)}:${pad(schedMin)}`;
+    const scheduledAt = `${schedYear}-${pad(schedMonth)}-${pad(schedDay)}T${pad(schedHour)}:${pad(schedMin)}:00`;
     setPublishModal(null);
-    showToast(`已排程於 ${timeStr} 發布`);
+    try {
+      await saveRmDraft(id, { data: { menus, scheduled_at: scheduledAt }, scheduled_at: scheduledAt });
+      showToast(`已排程於 ${schedYear}/${pad(schedMonth)}/${pad(schedDay)} ${pad(schedHour)}:${pad(schedMin)} 發布`);
+    } catch (e: any) {
+      showToast(e.message || "排程失敗", "error");
+    }
   };
 
   const handleNameSave = async () => {

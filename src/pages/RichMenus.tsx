@@ -3,9 +3,110 @@ import { useNavigate } from "react-router-dom";
 import {
   listRmDrafts, deleteRmDraft, createRmDraft,
   listRmFolders, createRmFolder, renameRmFolder, deleteRmFolder, saveRmFolderOrder,
+  saveRmDraft,
   RmDraft, RmFolder,
 } from "@/lib/richMenuDb";
 import ConfirmModal from "@/components/ConfirmModal";
+
+// ── Schedule Modal ─────────────────────────────────────────────────────────────
+function ScheduleModal({ draft, onClose, onUpdated }: {
+  draft: RmDraft;
+  onClose: () => void;
+  onUpdated: () => void;
+}) {
+  const existing = draft.data?.scheduled_at ? new Date(draft.data.scheduled_at) : new Date();
+  const [year, setYear] = useState(existing.getFullYear());
+  const [month, setMonth] = useState(existing.getMonth() + 1);
+  const [day, setDay] = useState(existing.getDate());
+  const [hour, setHour] = useState(existing.getHours());
+  const [min, setMin] = useState(Math.ceil(existing.getMinutes() / 5) * 5 % 60);
+  const [saving, setSaving] = useState(false);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  const handleUpdate = async () => {
+    setSaving(true);
+    const scheduledAt = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(min)}:00`;
+    await saveRmDraft(draft.id, { data: { ...draft.data, scheduled_at: scheduledAt } });
+    setSaving(false);
+    onUpdated();
+    onClose();
+  };
+
+  const handleCancel = async () => {
+    setSaving(true);
+    const { scheduled_at, ...rest } = draft.data as any;
+    await saveRmDraft(draft.id, { data: rest });
+    setSaving(false);
+    onUpdated();
+    onClose();
+  };
+
+  const selectCls = "w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]";
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-[340px] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <div>
+            <h2 className="text-base font-semibold text-[#1A1A1A]">排程設定</h2>
+            <p className="text-xs text-[#8A8A8A] mt-0.5 truncate max-w-[220px]">{draft.name}</p>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:bg-[#F5F5F5]">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="px-5 pb-2 space-y-4">
+          <div>
+            <div className="text-xs font-medium text-[#6B6B6B] mb-2">日期</div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">年</label>
+                <select value={year} onChange={e => setYear(Number(e.target.value))} className={selectCls}>
+                  {[2025,2026,2027,2028].map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">月</label>
+                <select value={month} onChange={e => setMonth(Number(e.target.value))} className={selectCls}>
+                  {Array.from({length:12},(_,i)=>i+1).map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">日</label>
+                <select value={day} onChange={e => setDay(Number(e.target.value))} className={selectCls}>
+                  {Array.from({length:31},(_,i)=>i+1).map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-medium text-[#6B6B6B] mb-2">時間</div>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">時</label>
+                <select value={hour} onChange={e => setHour(Number(e.target.value))} className={selectCls}>
+                  {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{pad(h)}</option>)}
+                </select>
+              </div>
+              <div className="pb-2 text-[#AAAAAA] text-sm">:</div>
+              <div className="flex-1">
+                <label className="text-[10px] text-[#AAAAAA] mb-0.5 block">分</label>
+                <select value={min} onChange={e => setMin(Number(e.target.value))} className={selectCls}>
+                  {[0,5,10,15,20,25,30,35,40,45,50,55].map(m => <option key={m} value={m}>{pad(m)}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="px-4 py-4 flex gap-2">
+          <button onClick={handleCancel} disabled={saving} className="flex-1 py-2.5 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50">取消排程</button>
+          <button onClick={handleUpdate} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors disabled:opacity-50">更新排程</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Folder Create Modal ────────────────────────────────────────────────────────
 function FolderCreateModal({ open, onClose, onCreate }: { open: boolean; onClose: () => void; onCreate: (name: string) => void }) {
@@ -134,6 +235,9 @@ export default function RichMenus() {
   const [folderOrder, setFolderOrder] = useState<string[]>([]);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const dragIdRef = useRef<string | null>(null);
+  const [schedulingDraft, setSchedulingDraft] = useState<RmDraft | null>(null);
+
+  const isScheduled = (d: RmDraft) => !!(d.data?.scheduled_at && new Date(d.data.scheduled_at) > new Date());
 
   useEffect(() => { load(); }, []);
 
@@ -376,15 +480,30 @@ export default function RichMenus() {
                 </td>
                 <td className="px-5 py-3.5 text-[#6B6B6B]">{getFolderName(d)}</td>
                 <td className="px-5 py-3.5">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${d.status === "published" ? "bg-[#EAF4ED] text-[#4E735D]" : "bg-[#F6F0F1] text-[#6B6B6B]"}`}>
-                    {d.status === "published" ? "已發布" : "草稿"}
-                  </span>
+                  {isScheduled(d) ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF2FF] text-[#4F46E5]">已排程</span>
+                  ) : (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${d.status === "published" ? "bg-[#EAF4ED] text-[#4E735D]" : "bg-[#F6F0F1] text-[#6B6B6B]"}`}>
+                      {d.status === "published" ? "已發布" : "草稿"}
+                    </span>
+                  )}
                 </td>
                 <td className="px-5 py-3.5 text-[#AAAAAA] text-xs tabular-nums">
                   {new Date(d.updated_at).toLocaleString("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}
                 </td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center justify-end gap-1">
+                    {isScheduled(d) && (
+                      <button
+                        className="w-9 h-9 flex items-center justify-center text-[#4F46E5] hover:text-[#4F46E5] hover:bg-[#EEF2FF] rounded-lg transition-colors"
+                        onClick={() => setSchedulingDraft(d)}
+                        title="排程設定"
+                      >
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                      </button>
+                    )}
                     <button
                       className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#A35D5D] hover:bg-[#FBEBEE] rounded-lg transition-colors"
                       onClick={() => nav(`/rich-menus/${d.id}/edit`)}
@@ -447,6 +566,14 @@ export default function RichMenus() {
         onConfirm={confirmState?.onConfirm || (() => {})}
         onClose={() => setConfirmState(null)}
       />
+
+      {schedulingDraft && (
+        <ScheduleModal
+          draft={schedulingDraft}
+          onClose={() => setSchedulingDraft(null)}
+          onUpdated={load}
+        />
+      )}
     </div>
   );
 }

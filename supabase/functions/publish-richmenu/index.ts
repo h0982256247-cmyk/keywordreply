@@ -228,27 +228,6 @@ serve(async (req) => {
       }
       await updateJob("alias_set", { richMenuId, aliasId });
 
-      // ── Step: delete old rich menus for this alias ─────────────────
-      const { data: oldVersions } = await adminClient
-        .from("rm_rich_menu_versions")
-        .select("id, rich_menu_id")
-        .eq("draft_id", draftId)
-        .eq("alias_id", aliasId)
-        .eq("is_active", true);
-
-      if (oldVersions?.length) {
-        for (const old of oldVersions) {
-          if (old.rich_menu_id !== richMenuId) {
-            await lineDeleteRichMenu(old.rich_menu_id, lineToken);
-            await adminClient
-              .from("rm_rich_menu_versions")
-              .update({ is_active: false })
-              .eq("id", old.id);
-          }
-        }
-        await updateJob("old_menus_deleted", { count: oldVersions.length, aliasId });
-      }
-
       // ── Step: set default (if flagged) ────────────────────────────────
       if (menu.isDefault) {
         await updateJob("set_default", { richMenuId });
@@ -262,6 +241,19 @@ serve(async (req) => {
           throw Object.assign(new Error(`Set default failed: ${body}`), { code: "LINE_API_ERROR" });
         }
         await updateJob("default_set", { richMenuId });
+      }
+
+      // ── Step: delete old rich menu (use LINE alias data as source of truth) ──
+      // existingAlias.richMenuId is the OLD richMenuId that the alias previously pointed to.
+      // This works even if the old menu was published before version tracking was added.
+      if (existingAlias && existingAlias.richMenuId !== richMenuId) {
+        const oldRichMenuId = existingAlias.richMenuId;
+        await lineDeleteRichMenu(oldRichMenuId, lineToken);
+        await adminClient
+          .from("rm_rich_menu_versions")
+          .update({ is_active: false })
+          .eq("rich_menu_id", oldRichMenuId);
+        await updateJob("old_menu_deleted", { oldRichMenuId, aliasId });
       }
 
       publishedMenus.push({ menuId, richMenuId, aliasId, name: menuName, isDefault: !!menu.isDefault });

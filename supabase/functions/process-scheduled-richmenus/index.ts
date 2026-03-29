@@ -104,26 +104,6 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
       if (!aliasRes.ok) throw new Error(`Alias create failed: ${JSON.stringify(aliasRes.json)}`);
     }
 
-    // Delete old rich menus for this alias
-    const { data: oldVersions } = await adminClient
-      .from("rm_rich_menu_versions")
-      .select("id, rich_menu_id")
-      .eq("draft_id", draft.id)
-      .eq("alias_id", aliasId)
-      .eq("is_active", true);
-
-    if (oldVersions?.length) {
-      for (const old of oldVersions) {
-        if (old.rich_menu_id !== richMenuId) {
-          await lineDeleteRichMenu(old.rich_menu_id, lineToken);
-          await adminClient
-            .from("rm_rich_menu_versions")
-            .update({ is_active: false })
-            .eq("id", old.id);
-        }
-      }
-    }
-
     // Set default
     if (menu.isDefault) {
       const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
@@ -131,6 +111,16 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
         headers: { Authorization: `Bearer ${lineToken}` },
       });
       if (!defaultRes.ok) throw new Error(`Set default failed: ${await defaultRes.text()}`);
+    }
+
+    // Delete old rich menu using LINE alias as source of truth
+    if (existingAlias && existingAlias.richMenuId !== richMenuId) {
+      const oldRichMenuId = existingAlias.richMenuId;
+      await lineDeleteRichMenu(oldRichMenuId, lineToken);
+      await adminClient
+        .from("rm_rich_menu_versions")
+        .update({ is_active: false })
+        .eq("rich_menu_id", oldRichMenuId);
     }
 
     publishedMenus.push({ menuId, richMenuId, aliasId, name: menuName, isDefault: !!menu.isDefault });

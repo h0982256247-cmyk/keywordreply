@@ -325,6 +325,11 @@ export default function RichMenus() {
     ...orderedFolders.map(f => ({ id: f.id, label: f.name, isFolder: true })),
   ];
 
+  // 目前發布中：所有 published 中 updated_at 最新的那一個
+  const currentPublishedId = drafts
+    .filter(d => d.status === "published")
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]?.id ?? null;
+
   const visibleDrafts = drafts.filter(d => {
     if (selectedFolder === "all") return true;
     if (selectedFolder === "uncategorized") return !d.folder_id;
@@ -332,6 +337,11 @@ export default function RichMenus() {
   }).filter(d => {
     if (!searchQuery) return true;
     return d.name.toLowerCase().includes(searchQuery.toLowerCase());
+  }).sort((a, b) => {
+    // 目前發布中永遠置頂
+    if (a.id === currentPublishedId) return -1;
+    if (b.id === currentPublishedId) return 1;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
   });
 
   const getFolderName = (d: RmDraft) => {
@@ -482,6 +492,14 @@ export default function RichMenus() {
                 <td className="px-5 py-3.5">
                   {isScheduled(d) ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EEF2FF] text-[#4F46E5]">已排程</span>
+                  ) : d.id === currentPublishedId ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#EAF4ED] text-[#4E735D]">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4E735D] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#4E735D]"></span>
+                      </span>
+                      目前發布中
+                    </span>
                   ) : (
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${d.status === "published" ? "bg-[#EAF4ED] text-[#4E735D]" : "bg-[#F6F0F1] text-[#6B6B6B]"}`}>
                       {d.status === "published" ? "已發布" : "草稿"}

@@ -332,6 +332,11 @@ serve(async (req) => {
       // ── Phase 5: 設定預設選單（主選單才執行）──────────────────────────
       if (isMain) {
         await log("p5_setting_default", { richMenuId });
+        // 先清除舊的頻道預設（含 OA Manager 設定的），再設定新的
+        await fetch(`${LINE_API}/user/all/richmenu`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${lineToken}` },
+        });
         const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${lineToken}` },

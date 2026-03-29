@@ -109,9 +109,9 @@ serve(async (req) => {
   if (userErr || !user) return err("UNAUTHORIZED", "Invalid user token");
 
   // ── Parse body ───────────────────────────────────────────────────────────
-  let body: { draftId: string; menuIndex?: number; cleanOldMenus?: boolean };
+  let body: { draftId: string; menuIndex?: number };
   try { body = await req.json(); } catch { return err("PAYLOAD_INVALID", "Invalid JSON body"); }
-  const { draftId, menuIndex, cleanOldMenus = false } = body;
+  const { draftId, menuIndex } = body;
   if (!draftId) return err("PAYLOAD_INVALID", "draftId is required");
 
   // ── Fetch draft ──────────────────────────────────────────────────────────
@@ -159,60 +159,41 @@ serve(async (req) => {
   }
 
   try {
-    // ── Phase 0: 初始化 ───────────────────────────────────────────────────
-    await log("init", { totalMenus: targets.length, cleanOldMenus });
-    const existingAliases = await lineGetAliases(lineToken);
+    await log("init", { totalMenus: targets.length });
 
-    // 記錄發布前已存在的 richMenuId，發布完成後再刪除
-    const oldMenusRes = await fetch(`${LINE_API}/richmenu/list`, {
+    // ── Step 1: 清掉舊預設 ───────────────────────────────────────────────
+    await log("step1_cancel_default");
+    await fetch(`${LINE_API}/user/all/richmenu`, {
+      method: "DELETE",
       headers: { Authorization: `Bearer ${lineToken}` },
     });
-    const oldMenusJson = oldMenusRes.ok
-      ? await oldMenusRes.json().catch(() => ({ richmenus: [] }))
-      : { richmenus: [] };
-    const oldRichMenuIds: string[] = (oldMenusJson.richmenus ?? []).map((m: any) => m.richMenuId);
 
-    await log("aliases_fetched", { count: existingAliases.length, oldRichMenuIds });
-
-    // ── Phase 1: Full Wipe（可選，只有 cleanOldMenus = true 才執行）────────
-    if (cleanOldMenus) {
-      await log("phase1_full_wipe_start");
-
-      // 1-1. 取消所有預設選單
-      await fetch(`${LINE_API}/user/all/richmenu`, {
+    // ── Step 2: 刪除所有舊 Alias ─────────────────────────────────────────
+    await log("step2_delete_aliases");
+    const existingAliases = await lineGetAliases(lineToken);
+    for (const alias of existingAliases) {
+      await fetch(`${LINE_API}/richmenu/alias/${alias.richMenuAliasId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${lineToken}` },
       });
-      await log("p1_default_cancelled");
-
-      // 1-2. 刪除所有 alias
-      for (const alias of existingAliases) {
-        await fetch(`${LINE_API}/richmenu/alias/${alias.richMenuAliasId}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${lineToken}` },
-        });
-        await log("p1_alias_deleted", { aliasId: alias.richMenuAliasId });
-      }
-
-      // 1-3. 取得所有 richMenuId 並全部刪除
-      const allMenusRes = await fetch(`${LINE_API}/richmenu/list`, {
-        headers: { Authorization: `Bearer ${lineToken}` },
-      });
-      const allMenusJson = allMenusRes.ok
-        ? await allMenusRes.json().catch(() => ({ richmenus: [] }))
-        : { richmenus: [] };
-      const allIds: string[] = (allMenusJson.richmenus ?? []).map((m: any) => m.richMenuId);
-      await log("p1_richmenus_to_delete", { count: allIds.length, ids: allIds });
-      for (const oldId of allIds) {
-        await lineDeleteRichMenu(oldId, lineToken);
-        await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
-        await log("p1_richmenu_deleted", { richMenuId: oldId });
-      }
-
-      await log("phase1_full_wipe_done");
     }
 
-    // ── Phase 2 + 3 + 4 + 5: 逐一處理每個選單 ───────────────────────────
+    // ── Step 3: 刪除所有舊 Rich Menu ─────────────────────────────────────
+    await log("step3_delete_old_richmenus");
+    const oldListRes = await fetch(`${LINE_API}/richmenu/list`, {
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    const oldListJson = oldListRes.ok
+      ? await oldListRes.json().catch(() => ({ richmenus: [] }))
+      : { richmenus: [] };
+    const oldIds: string[] = (oldListJson.richmenus ?? []).map((m: any) => m.richMenuId);
+    for (const oldId of oldIds) {
+      await lineDeleteRichMenu(oldId, lineToken);
+      await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
+    }
+    await log("step3_done", { deleted: oldIds.length });
+
+    // ── Steps 4–6: 逐一處理每個選單 ──────────────────────────────────────
     for (const menu of targets) {
       const menuId = menu.id;
       const menuName = menu.name || "rich-menu";
@@ -221,24 +202,11 @@ serve(async (req) => {
 
       await log("menu_start", { menuId, menuName, aliasId, isMain });
 
-      // ── Phase 2: 建立 Rich Menu ─────────────────────────────────────────
       if (!menu.imageUrl) {
         throw Object.assign(new Error(`Menu "${menuName}" has no image`), { code: "IMAGE_MISSING" });
       }
 
-      const areas = (menu.areas || []).map((a: any) => {
-        let action = { ...a.action };
-        if (action.type === "richmenuswitch" && !action.data) {
-          action.data = `switch-to-${action.richMenuAliasId || "menu"}`;
-        }
-        if (action.type === "postback" && action.data) {
-          action.inputOption = "openKeyboard";
-          action.fillInText = action.data;
-        }
-        return { bounds: a.bounds, action };
-      });
-
-      // Fetch image first to detect actual dimensions
+      // Fetch image (detect actual dimensions)
       let imageBuffer: ArrayBuffer;
       let imageContentType: string;
       try {
@@ -262,72 +230,53 @@ serve(async (req) => {
       const detectedSize = getImageDimensions(imageBuffer, imageContentType);
       const size = detectedSize || menu.size || { width: 2500, height: 1686 };
 
-      await log("p2_creating_richmenu", { menuId, menuName, size });
+      const areas = (menu.areas || []).map((a: any) => {
+        let action = { ...a.action };
+        if (action.type === "richmenuswitch" && !action.data) {
+          action.data = `switch-to-${action.richMenuAliasId || "menu"}`;
+        }
+        if (action.type === "postback" && action.data) {
+          action.inputOption = "openKeyboard";
+          action.fillInText = action.data;
+        }
+        return { bounds: a.bounds, action };
+      });
+
+      // ── Step 4: 建立 Rich Menu ──────────────────────────────────────────
+      await log("step4_create_richmenu", { menuName, size });
       const createRes = await linePost("/richmenu", lineToken, {
         size, selected: menu.selected ?? false,
         name: menuName, chatBarText: menu.chatBarText || "選單", areas,
       });
       if (!createRes.ok) {
-        await log("p2_create_failed", { menuId, response: createRes.json });
         throw Object.assign(new Error(`建立 rich menu 失敗：${JSON.stringify(createRes.json)}`), { code: "LINE_API_ERROR" });
       }
       const richMenuId: string = createRes.json.richMenuId;
-      await log("p2_richmenu_created", { menuId, richMenuId });
+      await log("step4_done", { richMenuId });
 
-      // ── Phase 3: 上傳圖片 ───────────────────────────────────────────────
-      await log("p3_uploading_image", { richMenuId, size: imageBuffer.byteLength });
+      // ── Step 5: 上傳圖片 ────────────────────────────────────────────────
+      await log("step5_upload_image", { richMenuId });
       const imageBlob = new Blob([imageBuffer], { type: imageContentType });
       const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
       if (!uploadRes.ok) {
-        await log("p3_upload_failed", { richMenuId, status: uploadRes.status, body: uploadRes.text });
         throw Object.assign(new Error(`圖片上傳失敗：${uploadRes.text}`), { code: "LINE_API_ERROR" });
       }
-      await log("p3_image_uploaded", { richMenuId });
+      await log("step5_done", { richMenuId });
 
-      // ── Phase 4: Alias 綁定（更新優先，fallback 建立）──────────────────
-      await log("p4_binding_alias", { richMenuId, aliasId });
+      // ── Step 6: 建立 Alias ──────────────────────────────────────────────
+      await log("step6_create_alias", { aliasId, richMenuId });
+      const createAliasRes = await linePost("/richmenu/alias", lineToken, { richMenuAliasId: aliasId, richMenuId });
+      if (!createAliasRes.ok) {
+        throw Object.assign(new Error(`Alias 建立失敗：${JSON.stringify(createAliasRes.json)}`), { code: "LINE_API_ERROR" });
+      }
+      await log("step6_done", { aliasId, richMenuId });
 
-      // 先把 DB 舊版本設為 inactive
+      // 寫入新版本到 DB
       await adminClient
         .from("rm_rich_menu_versions")
         .update({ is_active: false })
         .eq("alias_id", aliasId)
         .eq("user_id", user.id);
-
-      const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
-      if (existingAlias) {
-        // 嘗試更新既有 alias
-        const updateAliasRes = await fetch(`${LINE_API}/richmenu/alias/${aliasId}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${lineToken}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ richMenuId }),
-        });
-        if (updateAliasRes.ok) {
-          await log("p4_alias_updated", { aliasId, richMenuId });
-        } else {
-          // fallback: 刪除後重建
-          await fetch(`${LINE_API}/richmenu/alias/${aliasId}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${lineToken}` },
-          });
-          const createAliasRes = await linePost("/richmenu/alias", lineToken, { richMenuAliasId: aliasId, richMenuId });
-          if (!createAliasRes.ok) {
-            await log("p4_alias_create_failed", { aliasId, response: createAliasRes.json });
-            throw Object.assign(new Error(`Alias 建立失敗：${JSON.stringify(createAliasRes.json)}`), { code: "LINE_API_ERROR" });
-          }
-          await log("p4_alias_recreated", { aliasId, richMenuId });
-        }
-      } else {
-        // Alias 不存在，直接建立
-        const createAliasRes = await linePost("/richmenu/alias", lineToken, { richMenuAliasId: aliasId, richMenuId });
-        if (!createAliasRes.ok) {
-          await log("p4_alias_create_failed", { aliasId, response: createAliasRes.json });
-          throw Object.assign(new Error(`Alias 建立失敗：${JSON.stringify(createAliasRes.json)}`), { code: "LINE_API_ERROR" });
-        }
-        await log("p4_alias_created", { aliasId, richMenuId });
-      }
-
-      // 寫入新版本到 DB
       await adminClient.from("rm_rich_menu_versions").insert({
         user_id: user.id,
         draft_id: draftId,
@@ -339,25 +288,18 @@ serve(async (req) => {
         is_active: true,
       });
 
-      // ── Phase 5: 設定預設選單（主選單才執行）──────────────────────────
+      // ── Step 7: 設定新預設（主選單才執行）──────────────────────────────
       if (isMain) {
-        await log("p5_setting_default", { richMenuId });
-        // 先清除舊的頻道預設（含 OA Manager 設定的），再設定新的
-        await fetch(`${LINE_API}/user/all/richmenu`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${lineToken}` },
-        });
+        await log("step7_set_default", { richMenuId });
         const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${lineToken}` },
         });
         if (!defaultRes.ok) {
-          const errBody = await defaultRes.text();
-          await log("p5_default_failed", { richMenuId, body: errBody });
-          // 回報錯誤但不中止（不 rollback）
+          await log("step7_failed", { richMenuId, body: await defaultRes.text() });
         } else {
           mainMenuId = richMenuId;
-          await log("p5_default_set", { richMenuId });
+          await log("step7_done", { richMenuId });
         }
       }
 
@@ -365,17 +307,7 @@ serve(async (req) => {
       await log("menu_done", { menuId, richMenuId, aliasId, isMain });
     }
 
-    // ── Phase 6: 刪除舊的 richMenuId（非 cleanOldMenus 模式才需要，cleanOldMenus 已在 Phase 1 刪除）──
-    if (!cleanOldMenus && oldRichMenuIds.length > 0) {
-      await log("p6_deleting_old_richmenus", { count: oldRichMenuIds.length, ids: oldRichMenuIds });
-      for (const oldId of oldRichMenuIds) {
-        await lineDeleteRichMenu(oldId, lineToken);
-        await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
-        await log("p6_old_richmenu_deleted", { richMenuId: oldId });
-      }
-    }
-
-    // ── Phase 7: 完成 ────────────────────────────────────────────────────
+    // ── 完成 ─────────────────────────────────────────────────────────────
     await adminClient.from("rm_publish_jobs").update({
       status: "success",
       current_step: "done",
@@ -384,7 +316,7 @@ serve(async (req) => {
 
     await adminClient.from("rm_drafts").update({ status: "published" }).eq("id", draftId);
 
-    await log("phase7_complete", { totalPublished: results.length, mainMenuId });
+    await log("complete", { totalPublished: results.length, mainMenuId });
 
     return ok({ jobId: job.id, results, mainMenuId, publishedMenus: results });
 

@@ -35,6 +35,11 @@ function getValidationErrors(menus: RmMenu[]): { menuName: string; issues: strin
   }).filter(v => v.issues.length > 0);
 }
 
+// ── Normalize isDefault: index 0 is always main ────────────────────────────────
+function normalizeIsDefault(menus: RmMenu[]): RmMenu[] {
+  return menus.map((m, i) => ({ ...m, isDefault: i === 0 }));
+}
+
 // ── Action type labels ─────────────────────────────────────────────────────────
 const ACTION_TYPES = [
   { value: "uri", label: "開啟網址" },
@@ -483,6 +488,8 @@ export default function RichMenuEditor() {
   const [folders, setFolders] = useState<RmFolder[]>([]);
   const [folderId, setFolderId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
+  const [dragMenuIdx, setDragMenuIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -491,7 +498,7 @@ export default function RichMenuEditor() {
       setDraft(d);
       setDraftName(d.name);
       setFolderId(d.folder_id);
-      setMenus(d.data?.menus ?? [makeDefaultMenu(0)]);
+      setMenus(normalizeIsDefault(d.data?.menus ?? [makeDefaultMenu(0)]));
     }).catch(e => setErr(e.message));
     listRmFolders().then(setFolders).catch(() => {});
   }, [id]);
@@ -542,7 +549,7 @@ export default function RichMenuEditor() {
 
   const addMenu = () => {
     const newMenu = makeDefaultMenu(menus.length);
-    const updated = [...menus, newMenu];
+    const updated = normalizeIsDefault([...menus, newMenu]);
     setMenus(updated);
     setSelectedMenuIdx(updated.length - 1);
     setSelectedAreaId(null);
@@ -555,7 +562,7 @@ export default function RichMenuEditor() {
       title: `刪除「${menus[idx].name}」`,
       description: "此操作無法復原。",
       onConfirm: () => {
-        const updated = menus.filter((_, i) => i !== idx);
+        const updated = normalizeIsDefault(menus.filter((_: RmMenu, i: number) => i !== idx));
         const newIdx = Math.min(selectedMenuIdx, updated.length - 1);
         setMenus(updated);
         setSelectedMenuIdx(newIdx);
@@ -563,6 +570,22 @@ export default function RichMenuEditor() {
         triggerSave(updated);
       },
     });
+  };
+
+  const reorderMenus = (fromIdx: number, toIdx: number) => {
+    if (fromIdx === toIdx) return;
+    const updated = [...menus];
+    const [moved] = updated.splice(fromIdx, 1);
+    updated.splice(toIdx, 0, moved);
+    const normalized = normalizeIsDefault(updated);
+    const newSelectedIdx =
+      selectedMenuIdx === fromIdx ? toIdx :
+      selectedMenuIdx > fromIdx && selectedMenuIdx <= toIdx ? selectedMenuIdx - 1 :
+      selectedMenuIdx < fromIdx && selectedMenuIdx >= toIdx ? selectedMenuIdx + 1 :
+      selectedMenuIdx;
+    setMenus(normalized);
+    setSelectedMenuIdx(newSelectedIdx);
+    triggerSave(normalized);
   };
 
   const handlePublish = () => {
@@ -690,12 +713,20 @@ export default function RichMenuEditor() {
               {menus.map((m, i) => (
                 <div
                   key={m.id}
+                  draggable
+                  onDragStart={() => setDragMenuIdx(i)}
+                  onDragOver={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); setDragOverIdx(i); }}
+                  onDrop={(e: React.DragEvent<HTMLDivElement>) => { e.preventDefault(); if (dragMenuIdx !== null) reorderMenus(dragMenuIdx, i); setDragMenuIdx(null); setDragOverIdx(null); }}
+                  onDragEnd={() => { setDragMenuIdx(null); setDragOverIdx(null); }}
                   onClick={() => { setSelectedMenuIdx(i); setSelectedAreaId(null); }}
-                  className={`group flex items-center justify-between rounded-lg px-2.5 py-2 cursor-pointer transition-colors text-sm ${selectedMenuIdx === i ? "bg-[#FBEBEE] text-[#A35D5D]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                  className={`group flex items-center justify-between rounded-lg px-2.5 py-2 cursor-grab active:cursor-grabbing transition-colors text-sm ${selectedMenuIdx === i ? "bg-[#FBEBEE] text-[#A35D5D]" : "text-[#555555] hover:bg-[#F5F5F5]"} ${dragOverIdx === i && dragMenuIdx !== i ? "ring-2 ring-[#A35D5D] ring-inset" : ""}`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 text-[10px] font-bold ${selectedMenuIdx === i ? "bg-[#A35D5D] text-white" : "bg-[#E8E8E8] text-[#888888]"}`}>{i + 1}</div>
-                    <span className="truncate font-medium">{m.name}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate font-medium leading-tight">{m.name}</span>
+                      {i === 0 && <span className="text-[9px] text-[#A35D5D] font-semibold leading-tight">主選單</span>}
+                    </div>
                   </div>
                   <button
                     onClick={e => { e.stopPropagation(); deleteMenu(i); }}

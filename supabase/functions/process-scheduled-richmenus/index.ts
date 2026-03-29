@@ -70,6 +70,16 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
   const existingAliases = await lineGetAliases(lineToken);
   const publishedMenus: any[] = [];
 
+  // Capture current channel-level default richMenuId BEFORE we change anything.
+  let oldChannelDefaultId: string | null = null;
+  const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
+    headers: { Authorization: `Bearer ${lineToken}` },
+  });
+  if (channelDefaultRes.ok) {
+    const j = await channelDefaultRes.json().catch(() => ({}));
+    oldChannelDefaultId = j.richMenuId ?? null;
+  }
+
   for (const menu of menus) {
     const menuId = menu.id;
     const menuName = menu.name || "rich-menu";
@@ -148,9 +158,15 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
       if (!defaultRes.ok) throw new Error(`Set default failed: ${await defaultRes.text()}`);
     }
 
-    // Delete old rich menu using LINE alias as source of truth
+    // Delete old rich menu — alias data + channel-level default captured before publish
+    const oldIdsToDelete = new Set<string>();
     if (existingAlias && existingAlias.richMenuId !== richMenuId) {
-      const oldRichMenuId = existingAlias.richMenuId;
+      oldIdsToDelete.add(existingAlias.richMenuId);
+    }
+    if (menu.isDefault && oldChannelDefaultId && oldChannelDefaultId !== richMenuId) {
+      oldIdsToDelete.add(oldChannelDefaultId);
+    }
+    for (const oldRichMenuId of oldIdsToDelete) {
       await lineDeleteRichMenu(oldRichMenuId, lineToken);
       await adminClient
         .from("rm_rich_menu_versions")

@@ -160,6 +160,17 @@ serve(async (req) => {
   try {
     const existingAliases = await lineGetAliases(lineToken);
 
+    // Capture current channel-level default richMenuId BEFORE we change anything.
+    // This handles menus published outside our alias system (e.g. via LINE OA Manager).
+    let oldChannelDefaultId: string | null = null;
+    const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    if (channelDefaultRes.ok) {
+      const j = await channelDefaultRes.json().catch(() => ({}));
+      oldChannelDefaultId = j.richMenuId ?? null;
+    }
+
     for (const menu of targets) {
       const menuId = menu.id;
       const menuName = menu.name || "rich-menu";
@@ -282,11 +293,17 @@ serve(async (req) => {
         await updateJob("default_set", { richMenuId });
       }
 
-      // ── Step: delete old rich menu (use LINE alias data as source of truth) ──
-      // existingAlias.richMenuId is the OLD richMenuId that the alias previously pointed to.
-      // This works even if the old menu was published before version tracking was added.
+      // ── Step: delete old rich menu ─────────────────────────────────────
+      // Collect candidate old IDs: from alias data + from channel-level default captured at start.
+      // Deleting the old richMenuId causes LINE to fall back users to the new channel default.
+      const oldIdsToDelete = new Set<string>();
       if (existingAlias && existingAlias.richMenuId !== richMenuId) {
-        const oldRichMenuId = existingAlias.richMenuId;
+        oldIdsToDelete.add(existingAlias.richMenuId);
+      }
+      if (menu.isDefault && oldChannelDefaultId && oldChannelDefaultId !== richMenuId) {
+        oldIdsToDelete.add(oldChannelDefaultId);
+      }
+      for (const oldRichMenuId of oldIdsToDelete) {
         await lineDeleteRichMenu(oldRichMenuId, lineToken);
         await adminClient
           .from("rm_rich_menu_versions")

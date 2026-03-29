@@ -70,15 +70,12 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
   const existingAliases = await lineGetAliases(lineToken);
   const publishedMenus: any[] = [];
 
-  // Capture current channel-level default richMenuId BEFORE we change anything.
-  let oldChannelDefaultId: string | null = null;
-  const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
-    headers: { Authorization: `Bearer ${lineToken}` },
-  });
-  if (channelDefaultRes.ok) {
-    const j = await channelDefaultRes.json().catch(() => ({}));
-    oldChannelDefaultId = j.richMenuId ?? null;
-  }
+  // ── Phase 1: Pre-fetch & validate all images ────────────────────────────
+  type PreparedMenu = {
+    menu: any; menuId: string; menuName: string; aliasId: string;
+    imageBuffer: ArrayBuffer; imageContentType: string; rmPayload: any;
+  };
+  const prepared: PreparedMenu[] = [];
 
   for (const menu of menus) {
     const menuId = menu.id;
@@ -87,7 +84,6 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
 
     if (!menu.imageUrl) throw new Error(`Menu "${menuName}" has no image`);
 
-    // Fetch image early to detect actual dimensions
     const imgRes = await fetch(menu.imageUrl);
     if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
     const imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
@@ -112,26 +108,49 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
       }
       return { bounds: a.bounds, action };
     });
-
     const rmPayload = {
-      size,
-      selected: menu.selected ?? false,
-      name: menuName,
-      chatBarText: menu.chatBarText || "選單",
-      areas,
+      size, selected: menu.selected ?? false,
+      name: menuName, chatBarText: menu.chatBarText || "選單", areas,
     };
+    prepared.push({ menu, menuId, menuName, aliasId, imageBuffer, imageContentType, rmPayload });
+  }
 
-    // Create rich menu
+  // ── Phase 2: Collect old richMenuIds & delete everything old ────────────
+  let oldChannelDefaultId: string | null = null;
+  const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
+    headers: { Authorization: `Bearer ${lineToken}` },
+  });
+  if (channelDefaultRes.ok) {
+    const j = await channelDefaultRes.json().catch(() => ({}));
+    oldChannelDefaultId = j.richMenuId ?? null;
+  }
+
+  const oldIdsToDelete = new Set<string>();
+  for (const { aliasId } of prepared) {
+    const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
+    if (existingAlias) oldIdsToDelete.add(existingAlias.richMenuId);
+  }
+  if (oldChannelDefaultId) oldIdsToDelete.add(oldChannelDefaultId);
+
+  await fetch(`${LINE_API}/user/all/richmenu`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${lineToken}` },
+  });
+  for (const oldId of oldIdsToDelete) {
+    await lineDeleteRichMenu(oldId, lineToken);
+    await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
+  }
+
+  // ── Phase 3: Create all new menus ───────────────────────────────────────
+  for (const { menu, menuId, menuName, aliasId, imageBuffer, imageContentType, rmPayload } of prepared) {
     const createRes = await linePost("/richmenu", lineToken, rmPayload);
     if (!createRes.ok) throw new Error(`LINE API error creating rich menu: ${JSON.stringify(createRes.json)}`);
     const richMenuId: string = createRes.json.richMenuId;
 
-    // Upload image
     const imageBlob = new Blob([imageBuffer], { type: imageContentType });
     const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
     if (!uploadRes.ok) throw new Error(`Image upload failed: ${uploadRes.text}`);
 
-    // Create/update alias
     const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
     if (existingAlias) {
       const aliasRes = await fetch(`${LINE_API}/richmenu/alias/${aliasId}`, {
@@ -145,33 +164,12 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
       if (!aliasRes.ok) throw new Error(`Alias create failed: ${JSON.stringify(aliasRes.json)}`);
     }
 
-    // Set default — DELETE first to clear all user-level assignments, then re-assign everyone
     if (menu.isDefault) {
-      await fetch(`${LINE_API}/user/all/richmenu`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${lineToken}` },
-      });
       const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${lineToken}` },
       });
       if (!defaultRes.ok) throw new Error(`Set default failed: ${await defaultRes.text()}`);
-    }
-
-    // Delete old rich menu — alias data + channel-level default captured before publish
-    const oldIdsToDelete = new Set<string>();
-    if (existingAlias && existingAlias.richMenuId !== richMenuId) {
-      oldIdsToDelete.add(existingAlias.richMenuId);
-    }
-    if (menu.isDefault && oldChannelDefaultId && oldChannelDefaultId !== richMenuId) {
-      oldIdsToDelete.add(oldChannelDefaultId);
-    }
-    for (const oldRichMenuId of oldIdsToDelete) {
-      await lineDeleteRichMenu(oldRichMenuId, lineToken);
-      await adminClient
-        .from("rm_rich_menu_versions")
-        .update({ is_active: false })
-        .eq("rich_menu_id", oldRichMenuId);
     }
 
     publishedMenus.push({ menuId, richMenuId, aliasId, name: menuName, isDefault: !!menu.isDefault });

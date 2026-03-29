@@ -160,27 +160,28 @@ serve(async (req) => {
   try {
     const existingAliases = await lineGetAliases(lineToken);
 
-    // Capture current channel-level default richMenuId BEFORE we change anything.
-    // This handles menus published outside our alias system (e.g. via LINE OA Manager).
-    let oldChannelDefaultId: string | null = null;
-    const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
-      headers: { Authorization: `Bearer ${lineToken}` },
-    });
-    if (channelDefaultRes.ok) {
-      const j = await channelDefaultRes.json().catch(() => ({}));
-      oldChannelDefaultId = j.richMenuId ?? null;
-    }
+    // ── Phase 1: Pre-fetch & validate all images ──────────────────────────
+    // Do this BEFORE making any changes to LINE, so we don't delete old menus
+    // and then fail on a bad image.
+    await updateJob("prefetch_images");
+    type PreparedMenu = {
+      menu: any; menuId: string; menuName: string; aliasId: string;
+      imageBuffer: ArrayBuffer; imageContentType: string;
+      size: { width: number; height: number };
+      areas: any[]; rmPayload: any;
+    };
+    const prepared: PreparedMenu[] = [];
 
     for (const menu of targets) {
       const menuId = menu.id;
       const menuName = menu.name || "rich-menu";
       const aliasId: string = (menu.aliasId || "").replace(/[^a-z0-9_-]/g, "-").toLowerCase() || `menu-${menuId.slice(0, 8)}`;
 
-      // ── Fetch image early to detect actual dimensions ──────────────────
       if (!menu.imageUrl) {
         await updateJob("image_missing", { menuId, error: "IMAGE_MISSING" });
         throw Object.assign(new Error(`Menu "${menuName}" has no image`), { code: "IMAGE_MISSING" });
       }
+
       let imageBuffer: ArrayBuffer;
       let imageContentType: string;
       try {
@@ -192,7 +193,6 @@ serve(async (req) => {
         throw Object.assign(new Error(`Image fetch failed: ${fetchErr.message}`), { code: "IMAGE_INVALID" });
       }
 
-      // LINE 圖文選單圖片上限 1MB
       const MAX_SIZE = 1024 * 1024;
       if (imageBuffer.byteLength > MAX_SIZE) {
         const sizeMB = (imageBuffer.byteLength / MAX_SIZE).toFixed(1);
@@ -202,34 +202,62 @@ serve(async (req) => {
         );
       }
 
-      // ── Build LINE payload ─────────────────────────────────────────────
       const detectedSize = getImageDimensions(imageBuffer, imageContentType);
       const size = detectedSize || menu.size || { width: 2500, height: 1686 };
       const areas = (menu.areas || []).map((a: any) => {
         let action = { ...a.action };
-        // LINE requires `data` field for richmenuswitch actions
         if (action.type === "richmenuswitch" && !action.data) {
           action.data = `switch-to-${action.richMenuAliasId || "menu"}`;
         }
-        // postback with fillInText: open keyboard and pre-fill the chat input
         if (action.type === "postback" && action.data) {
           action.inputOption = "openKeyboard";
           action.fillInText = action.data;
         }
         return { bounds: a.bounds, action };
       });
-
       const rmPayload = {
-        size,
-        selected: menu.selected ?? false,
-        name: menuName,
-        chatBarText: menu.chatBarText || "選單",
-        areas,
+        size, selected: menu.selected ?? false,
+        name: menuName, chatBarText: menu.chatBarText || "選單", areas,
       };
 
-      await updateJob("create_richmenu", { menuId, name: menuName });
+      prepared.push({ menu, menuId, menuName, aliasId, imageBuffer, imageContentType, size, areas, rmPayload });
+    }
 
-      // ── Step: create rich menu ─────────────────────────────────────────
+    // ── Phase 2: Collect old richMenuIds & delete everything old ──────────
+    await updateJob("deleting_old_menus");
+
+    // Get current channel-level default (handles menus without an alias)
+    let oldChannelDefaultId: string | null = null;
+    const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    if (channelDefaultRes.ok) {
+      const j = await channelDefaultRes.json().catch(() => ({}));
+      oldChannelDefaultId = j.richMenuId ?? null;
+    }
+
+    // Build set of all old richMenuIds to delete
+    const oldIdsToDelete = new Set<string>();
+    for (const { aliasId } of prepared) {
+      const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
+      if (existingAlias) oldIdsToDelete.add(existingAlias.richMenuId);
+    }
+    if (oldChannelDefaultId) oldIdsToDelete.add(oldChannelDefaultId);
+
+    // Clear all user-level assignments then delete old rich menus
+    await fetch(`${LINE_API}/user/all/richmenu`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    for (const oldId of oldIdsToDelete) {
+      await lineDeleteRichMenu(oldId, lineToken);
+      await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
+      await updateJob("old_menu_deleted", { oldId });
+    }
+
+    // ── Phase 3: Create all new menus ─────────────────────────────────────
+    for (const { menu, menuId, menuName, aliasId, imageBuffer, imageContentType, rmPayload } of prepared) {
+      await updateJob("create_richmenu", { menuId, name: menuName });
       const createRes = await linePost("/richmenu", lineToken, rmPayload);
       if (!createRes.ok) {
         await updateJob("create_richmenu_failed", { menuId, response: createRes.json });
@@ -238,7 +266,6 @@ serve(async (req) => {
       const richMenuId: string = createRes.json.richMenuId;
       await updateJob("richmenu_created", { menuId, richMenuId });
 
-      // ── Step: upload image ─────────────────────────────────────────────
       await updateJob("upload_image", { menuId, richMenuId });
       const imageBlob = new Blob([imageBuffer], { type: imageContentType });
       const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
@@ -248,11 +275,9 @@ serve(async (req) => {
       }
       await updateJob("image_uploaded", { richMenuId });
 
-      // ── Step: create/update alias ──────────────────────────────────────
       await updateJob("set_alias", { richMenuId, aliasId });
       const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
       if (existingAlias) {
-        // Update existing alias
         const aliasRes = await fetch(`${LINE_API}/richmenu/alias/${aliasId}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${lineToken}`, "Content-Type": "application/json" },
@@ -272,15 +297,8 @@ serve(async (req) => {
       }
       await updateJob("alias_set", { richMenuId, aliasId });
 
-      // ── Step: set default (if flagged) ────────────────────────────────
-      // DELETE first: clears ALL user-level assignments (including followers who switched menus)
-      // so the subsequent POST immediately applies to every existing follower.
       if (menu.isDefault) {
         await updateJob("set_default", { richMenuId });
-        await fetch(`${LINE_API}/user/all/richmenu`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${lineToken}` },
-        });
         const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${lineToken}` },
@@ -291,25 +309,6 @@ serve(async (req) => {
           throw Object.assign(new Error(`Set default failed: ${body}`), { code: "LINE_API_ERROR" });
         }
         await updateJob("default_set", { richMenuId });
-      }
-
-      // ── Step: delete old rich menu ─────────────────────────────────────
-      // Collect candidate old IDs: from alias data + from channel-level default captured at start.
-      // Deleting the old richMenuId causes LINE to fall back users to the new channel default.
-      const oldIdsToDelete = new Set<string>();
-      if (existingAlias && existingAlias.richMenuId !== richMenuId) {
-        oldIdsToDelete.add(existingAlias.richMenuId);
-      }
-      if (menu.isDefault && oldChannelDefaultId && oldChannelDefaultId !== richMenuId) {
-        oldIdsToDelete.add(oldChannelDefaultId);
-      }
-      for (const oldRichMenuId of oldIdsToDelete) {
-        await lineDeleteRichMenu(oldRichMenuId, lineToken);
-        await adminClient
-          .from("rm_rich_menu_versions")
-          .update({ is_active: false })
-          .eq("rich_menu_id", oldRichMenuId);
-        await updateJob("old_menu_deleted", { oldRichMenuId, aliasId });
       }
 
       publishedMenus.push({ menuId, richMenuId, aliasId, name: menuName, isDefault: !!menu.isDefault });

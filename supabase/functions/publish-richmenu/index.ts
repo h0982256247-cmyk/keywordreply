@@ -162,7 +162,17 @@ serve(async (req) => {
     // ── Phase 0: 初始化 ───────────────────────────────────────────────────
     await log("init", { totalMenus: targets.length, cleanOldMenus });
     const existingAliases = await lineGetAliases(lineToken);
-    await log("aliases_fetched", { count: existingAliases.length });
+
+    // 記錄發布前已存在的 richMenuId，發布完成後再刪除
+    const oldMenusRes = await fetch(`${LINE_API}/richmenu/list`, {
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    const oldMenusJson = oldMenusRes.ok
+      ? await oldMenusRes.json().catch(() => ({ richmenus: [] }))
+      : { richmenus: [] };
+    const oldRichMenuIds: string[] = (oldMenusJson.richmenus ?? []).map((m: any) => m.richMenuId);
+
+    await log("aliases_fetched", { count: existingAliases.length, oldRichMenuIds });
 
     // ── Phase 1: Full Wipe（可選，只有 cleanOldMenus = true 才執行）────────
     if (cleanOldMenus) {
@@ -355,7 +365,17 @@ serve(async (req) => {
       await log("menu_done", { menuId, richMenuId, aliasId, isMain });
     }
 
-    // ── Phase 6: 完成 ────────────────────────────────────────────────────
+    // ── Phase 6: 刪除舊的 richMenuId（非 cleanOldMenus 模式才需要，cleanOldMenus 已在 Phase 1 刪除）──
+    if (!cleanOldMenus && oldRichMenuIds.length > 0) {
+      await log("p6_deleting_old_richmenus", { count: oldRichMenuIds.length, ids: oldRichMenuIds });
+      for (const oldId of oldRichMenuIds) {
+        await lineDeleteRichMenu(oldId, lineToken);
+        await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
+        await log("p6_old_richmenu_deleted", { richMenuId: oldId });
+      }
+    }
+
+    // ── Phase 7: 完成 ────────────────────────────────────────────────────
     await adminClient.from("rm_publish_jobs").update({
       status: "success",
       current_step: "done",
@@ -364,7 +384,7 @@ serve(async (req) => {
 
     await adminClient.from("rm_drafts").update({ status: "published" }).eq("id", draftId);
 
-    await log("phase6_complete", { totalPublished: results.length, mainMenuId });
+    await log("phase7_complete", { totalPublished: results.length, mainMenuId });
 
     return ok({ jobId: job.id, results, mainMenuId, publishedMenus: results });
 

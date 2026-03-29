@@ -59,8 +59,16 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
   const menus: any[] = draft.data?.menus ?? [];
   if (!menus.length) throw new Error("No menus to publish");
 
-  // ── Phase 0: 初始化，取得現有 alias 清單 ────────────────────────────────
+  // ── Phase 0: 初始化，取得現有 alias 清單 & 舊 richMenuId 清單 ───────────
   const existingAliases = await lineGetAliases(lineToken);
+
+  const oldMenusRes = await fetch(`${LINE_API}/richmenu/list`, {
+    headers: { Authorization: `Bearer ${lineToken}` },
+  });
+  const oldMenusJson = oldMenusRes.ok
+    ? await oldMenusRes.json().catch(() => ({ richmenus: [] }))
+    : { richmenus: [] };
+  const oldRichMenuIds: string[] = (oldMenusJson.richmenus ?? []).map((m: any) => m.richMenuId);
 
   const results: { aliasId: string; richMenuId: string; name: string; isMain: boolean }[] = [];
 
@@ -171,6 +179,15 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
     }
 
     results.push({ aliasId, richMenuId, name: menuName, isMain });
+  }
+
+  // ── Phase 6: 刪除舊的 richMenuId，讓舊用戶個別綁定失效，落回新預設 ───
+  for (const oldId of oldRichMenuIds) {
+    await fetch(`${LINE_API}/richmenu/${oldId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
   }
 
   return results;

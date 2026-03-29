@@ -87,6 +87,12 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
     const imageBlob = await imgRes.blob();
     const imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
 
+    const MAX_SIZE = 1024 * 1024;
+    if (imageBlob.size > MAX_SIZE) {
+      const sizeMB = (imageBlob.size / MAX_SIZE).toFixed(1);
+      throw new Error(`「${menuName}」的圖片大小為 ${sizeMB}MB，超過 LINE 上限（1MB）。請先壓縮圖片後再發布。`);
+    }
+
     const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
     if (!uploadRes.ok) throw new Error(`Image upload failed: ${uploadRes.text}`);
 

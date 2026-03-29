@@ -197,6 +197,16 @@ serve(async (req) => {
         throw Object.assign(new Error(`Image fetch failed: ${fetchErr.message}`), { code: "IMAGE_INVALID" });
       }
 
+      // LINE 圖文選單圖片上限 1MB
+      const MAX_SIZE = 1024 * 1024;
+      if (imageBlob.size > MAX_SIZE) {
+        const sizeMB = (imageBlob.size / MAX_SIZE).toFixed(1);
+        throw Object.assign(
+          new Error(`「${menuName}」的圖片大小為 ${sizeMB}MB，超過 LINE 上限（1MB）。請先壓縮圖片後再發布。`),
+          { code: "IMAGE_INVALID" }
+        );
+      }
+
       const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
       if (!uploadRes.ok) {
         await updateJob("upload_image_failed", { richMenuId, status: uploadRes.status, body: uploadRes.text });

@@ -389,6 +389,10 @@ function ImageUploader({ menu, onUploaded }: { menu: RmMenu; onUploaded: (url: s
 
   const handleFile = async (file: File) => {
     if (!file.type.startsWith("image/")) { setErr("請選擇圖片檔案"); return; }
+    if (file.size > 1024 * 1024) {
+      setErr(`圖片大小 ${(file.size / 1024 / 1024).toFixed(1)}MB 超過 LINE 上限（1MB），請先壓縮圖片`);
+      return;
+    }
     setUploading(true);
     setErr(null);
     try {

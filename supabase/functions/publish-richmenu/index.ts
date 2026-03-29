@@ -223,33 +223,31 @@ serve(async (req) => {
       prepared.push({ menu, menuId, menuName, aliasId, imageBuffer, imageContentType, size, areas, rmPayload });
     }
 
-    // ── Phase 2: Collect old richMenuIds & delete everything old ──────────
+    // ── Phase 2: Full cleanup (cancel default → delete aliases → delete richMenuIds) ──
     await updateJob("deleting_old_menus");
 
-    // Get current channel-level default (handles menus without an alias)
-    let oldChannelDefaultId: string | null = null;
-    const channelDefaultRes = await fetch(`${LINE_API}/user/all/richmenu`, {
-      headers: { Authorization: `Bearer ${lineToken}` },
-    });
-    if (channelDefaultRes.ok) {
-      const j = await channelDefaultRes.json().catch(() => ({}));
-      oldChannelDefaultId = j.richMenuId ?? null;
-    }
-
-    // Build set of all old richMenuIds to delete
-    const oldIdsToDelete = new Set<string>();
-    for (const { aliasId } of prepared) {
-      const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
-      if (existingAlias) oldIdsToDelete.add(existingAlias.richMenuId);
-    }
-    if (oldChannelDefaultId) oldIdsToDelete.add(oldChannelDefaultId);
-
-    // Clear all user-level assignments then delete old rich menus
+    // Step 2-1: Cancel default (clears all user-level assignments)
     await fetch(`${LINE_API}/user/all/richmenu`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${lineToken}` },
     });
-    for (const oldId of oldIdsToDelete) {
+
+    // Step 2-2: Delete all aliases
+    for (const alias of existingAliases) {
+      await fetch(`${LINE_API}/richmenu/alias/${alias.richMenuAliasId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${lineToken}` },
+      });
+      await updateJob("alias_deleted", { aliasId: alias.richMenuAliasId });
+    }
+
+    // Step 2-3: Get ALL richMenuIds on channel and delete every one
+    const allMenusRes = await fetch(`${LINE_API}/richmenu/list`, {
+      headers: { Authorization: `Bearer ${lineToken}` },
+    });
+    const allMenusJson = allMenusRes.ok ? await allMenusRes.json().catch(() => ({ richmenus: [] })) : { richmenus: [] };
+    const allRichMenuIds: string[] = (allMenusJson.richmenus ?? []).map((m: any) => m.richMenuId);
+    for (const oldId of allRichMenuIds) {
       await lineDeleteRichMenu(oldId, lineToken);
       await adminClient.from("rm_rich_menu_versions").update({ is_active: false }).eq("rich_menu_id", oldId);
       await updateJob("old_menu_deleted", { oldId });
@@ -275,25 +273,12 @@ serve(async (req) => {
       }
       await updateJob("image_uploaded", { richMenuId });
 
+      // Alias was deleted in Phase 2 — always create fresh
       await updateJob("set_alias", { richMenuId, aliasId });
-      const existingAlias = existingAliases.find(a => a.richMenuAliasId === aliasId);
-      if (existingAlias) {
-        const aliasRes = await fetch(`${LINE_API}/richmenu/alias/${aliasId}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${lineToken}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ richMenuId }),
-        });
-        if (!aliasRes.ok) {
-          const body = await aliasRes.text();
-          await updateJob("alias_update_failed", { aliasId, body });
-          throw Object.assign(new Error(`Alias update failed: ${body}`), { code: "LINE_API_ERROR" });
-        }
-      } else {
-        const aliasRes = await linePost("/richmenu/alias", lineToken, { richMenuAliasId: aliasId, richMenuId });
-        if (!aliasRes.ok) {
-          await updateJob("alias_create_failed", { aliasId, response: aliasRes.json });
-          throw Object.assign(new Error(`Alias create failed: ${JSON.stringify(aliasRes.json)}`), { code: "LINE_API_ERROR" });
-        }
+      const aliasRes = await linePost("/richmenu/alias", lineToken, { richMenuAliasId: aliasId, richMenuId });
+      if (!aliasRes.ok) {
+        await updateJob("alias_create_failed", { aliasId, response: aliasRes.json });
+        throw Object.assign(new Error(`Alias create failed: ${JSON.stringify(aliasRes.json)}`), { code: "LINE_API_ERROR" });
       }
       await updateJob("alias_set", { richMenuId, aliasId });
 

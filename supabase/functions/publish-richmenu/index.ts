@@ -58,6 +58,14 @@ async function lineGetAliases(token: string) {
   return (j.aliases || []) as { richMenuAliasId: string; richMenuId: string }[];
 }
 
+async function lineDeleteRichMenu(richMenuId: string, token: string) {
+  const res = await fetch(`${LINE_API}/richmenu/${richMenuId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return { ok: res.ok, status: res.status };
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -219,6 +227,27 @@ serve(async (req) => {
         }
       }
       await updateJob("alias_set", { richMenuId, aliasId });
+
+      // ── Step: delete old rich menus for this alias ─────────────────
+      const { data: oldVersions } = await adminClient
+        .from("rm_rich_menu_versions")
+        .select("id, rich_menu_id")
+        .eq("draft_id", draftId)
+        .eq("alias_id", aliasId)
+        .eq("is_active", true);
+
+      if (oldVersions?.length) {
+        for (const old of oldVersions) {
+          if (old.rich_menu_id !== richMenuId) {
+            await lineDeleteRichMenu(old.rich_menu_id, lineToken);
+            await adminClient
+              .from("rm_rich_menu_versions")
+              .update({ is_active: false })
+              .eq("id", old.id);
+          }
+        }
+        await updateJob("old_menus_deleted", { count: oldVersions.length, aliasId });
+      }
 
       // ── Step: set default (if flagged) ────────────────────────────────
       if (menu.isDefault) {

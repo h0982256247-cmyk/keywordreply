@@ -14,6 +14,14 @@ async function linePost(path: string, token: string, body: unknown) {
   return { status: res.status, ok: res.ok, json };
 }
 
+async function lineDeleteRichMenu(richMenuId: string, token: string) {
+  const res = await fetch(`${LINE_API}/richmenu/${richMenuId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return { ok: res.ok, status: res.status };
+}
+
 async function lineUploadImage(richMenuId: string, token: string, imageBlob: Blob, contentType: string) {
   const res = await fetch(`${LINE_DATA_API}/richmenu/${richMenuId}/content`, {
     method: "POST",
@@ -94,6 +102,26 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
     } else {
       const aliasRes = await linePost("/richmenu/alias", lineToken, { richMenuAliasId: aliasId, richMenuId });
       if (!aliasRes.ok) throw new Error(`Alias create failed: ${JSON.stringify(aliasRes.json)}`);
+    }
+
+    // Delete old rich menus for this alias
+    const { data: oldVersions } = await adminClient
+      .from("rm_rich_menu_versions")
+      .select("id, rich_menu_id")
+      .eq("draft_id", draft.id)
+      .eq("alias_id", aliasId)
+      .eq("is_active", true);
+
+    if (oldVersions?.length) {
+      for (const old of oldVersions) {
+        if (old.rich_menu_id !== richMenuId) {
+          await lineDeleteRichMenu(old.rich_menu_id, lineToken);
+          await adminClient
+            .from("rm_rich_menu_versions")
+            .update({ is_active: false })
+            .eq("id", old.id);
+        }
+      }
     }
 
     // Set default

@@ -262,8 +262,14 @@ serve(async (req) => {
       await updateJob("alias_set", { richMenuId, aliasId });
 
       // ── Step: set default (if flagged) ────────────────────────────────
+      // DELETE first: clears ALL user-level assignments (including followers who switched menus)
+      // so the subsequent POST immediately applies to every existing follower.
       if (menu.isDefault) {
         await updateJob("set_default", { richMenuId });
+        await fetch(`${LINE_API}/user/all/richmenu`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${lineToken}` },
+        });
         const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${lineToken}` },

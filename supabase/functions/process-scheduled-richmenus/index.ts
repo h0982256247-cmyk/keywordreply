@@ -135,8 +135,12 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
       if (!aliasRes.ok) throw new Error(`Alias create failed: ${JSON.stringify(aliasRes.json)}`);
     }
 
-    // Set default
+    // Set default — DELETE first to clear all user-level assignments, then re-assign everyone
     if (menu.isDefault) {
+      await fetch(`${LINE_API}/user/all/richmenu`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${lineToken}` },
+      });
       const defaultRes = await fetch(`${LINE_API}/user/all/richmenu/${richMenuId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${lineToken}` },

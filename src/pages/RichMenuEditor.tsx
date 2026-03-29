@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import {
@@ -13,6 +13,27 @@ function uid() { return crypto.randomUUID(); }
 
 const CANVAS_W = 2500;
 const CANVAS_H = 1686;
+
+// ── Validation ─────────────────────────────────────────────────────────────────
+function getValidationErrors(menus: RmMenu[]): { menuName: string; issues: string[] }[] {
+  return menus.map(menu => {
+    const issues: string[] = [];
+    if (!menu.imageUrl) issues.push("未上傳選單圖片");
+    menu.areas.forEach((area, i) => {
+      const n = i + 1;
+      const { type, uri, text, richMenuAliasId, data } = area.action;
+      if (type === "uri" && !uri?.trim())
+        issues.push(`熱區 #${n}（開啟網址）：未填寫網址`);
+      else if (type === "message" && !text?.trim())
+        issues.push(`熱區 #${n}（發送訊息）：未填寫訊息內容`);
+      else if (type === "richmenuswitch" && !richMenuAliasId?.trim())
+        issues.push(`熱區 #${n}（切換選單）：未選擇目標選單`);
+      else if (type === "postback" && !data?.trim())
+        issues.push(`熱區 #${n}（預填欄位）：未填寫欄位內容`);
+    });
+    return { menuName: menu.name, issues };
+  }).filter(v => v.issues.length > 0);
+}
 
 // ── Action type labels ─────────────────────────────────────────────────────────
 const ACTION_TYPES = [
@@ -451,7 +472,7 @@ export default function RichMenuEditor() {
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [publishModal, setPublishModal] = useState<"choose" | "schedule" | null>(null);
+  const [publishModal, setPublishModal] = useState<"validation" | "choose" | "schedule" | null>(null);
   const [schedYear, setSchedYear] = useState(() => new Date().getFullYear());
   const [schedMonth, setSchedMonth] = useState(() => new Date().getMonth() + 1);
   const [schedDay, setSchedDay] = useState(() => new Date().getDate());
@@ -492,6 +513,8 @@ export default function RichMenuEditor() {
       setSaving(false);
     }, 800);
   }, [id, draftName]);
+
+  const validationErrors = useMemo(() => getValidationErrors(menus), [menus]);
 
   const currentMenu = menus[selectedMenuIdx];
   const selectedArea = currentMenu?.areas.find(a => a.id === selectedAreaId) ?? null;
@@ -542,7 +565,13 @@ export default function RichMenuEditor() {
     });
   };
 
-  const handlePublish = () => setPublishModal("choose");
+  const handlePublish = () => {
+    if (validationErrors.length > 0) {
+      setPublishModal("validation");
+    } else {
+      setPublishModal("choose");
+    }
+  };
 
   const handlePublishNow = async () => {
     if (!id) return;
@@ -635,14 +664,21 @@ export default function RichMenuEditor() {
 
         {saving && <span className="text-xs text-[#AAAAAA]">儲存中...</span>}
 
-        <button
-          onClick={handlePublish}
-          disabled={publishing}
-          className="px-4 py-1.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
-        >
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-          {publishing ? "發布中..." : "發布到 LINE"}
-        </button>
+        <div className="relative">
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="px-4 py-1.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            {publishing ? "發布中..." : "發布到 LINE"}
+          </button>
+          {validationErrors.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white pointer-events-none">
+              {validationErrors.reduce((s: number, v: { issues: string[] }) => s + v.issues.length, 0)}
+            </span>
+          )}
+        </div>
       </header>
 
       <div className="flex flex-1 min-h-0">
@@ -795,6 +831,38 @@ export default function RichMenuEditor() {
       {publishModal && (
         <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40" onClick={() => setPublishModal(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-[340px] overflow-hidden" onClick={e => e.stopPropagation()}>
+
+            {publishModal === "validation" && (
+              <>
+                <div className="px-6 pt-6 pb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                    </div>
+                    <h2 className="text-base font-semibold text-[#1A1A1A]">發布前請先修正以下問題</h2>
+                  </div>
+                  <p className="text-xs text-[#8A8A8A] ml-8">修正後再點擊「發布到 LINE」即可繼續</p>
+                </div>
+                <div className="px-6 pb-2 max-h-72 overflow-y-auto space-y-3">
+                  {validationErrors.map((v: { menuName: string; issues: string[] }, i: number) => (
+                    <div key={i}>
+                      <div className="text-xs font-semibold text-[#555555] mb-1">📋 {v.menuName}</div>
+                      <ul className="space-y-1">
+                        {v.issues.map((issue: string, j: number) => (
+                          <li key={j} className="flex items-start gap-1.5 text-xs text-[#CC4A00]">
+                            <span className="mt-0.5 shrink-0">•</span>
+                            <span>{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-4 py-4">
+                  <button onClick={() => setPublishModal(null)} className="w-full py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors">我知道了，去修正</button>
+                </div>
+              </>
+            )}
 
             {publishModal === "choose" && (
               <>

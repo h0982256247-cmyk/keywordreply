@@ -14,6 +14,28 @@ async function linePost(path: string, token: string, body: unknown) {
   return { status: res.status, ok: res.ok, json };
 }
 
+function getImageDimensions(buffer: ArrayBuffer, contentType: string): { width: number; height: number } | null {
+  const view = new DataView(buffer);
+  if (contentType.includes("png")) {
+    if (view.byteLength < 24) return null;
+    return { width: view.getUint32(16, false), height: view.getUint32(20, false) };
+  }
+  if (contentType.includes("jpeg") || contentType.includes("jpg")) {
+    let i = 2;
+    while (i < view.byteLength - 9) {
+      if (view.getUint8(i) !== 0xFF) break;
+      const marker = view.getUint8(i + 1);
+      if ((marker >= 0xC0 && marker <= 0xC3) || (marker >= 0xC5 && marker <= 0xC7) ||
+          (marker >= 0xC9 && marker <= 0xCB) || (marker >= 0xCD && marker <= 0xCF)) {
+        return { width: view.getUint16(i + 7, false), height: view.getUint16(i + 5, false) };
+      }
+      if (i + 3 >= view.byteLength) break;
+      i += 2 + view.getUint16(i + 2, false);
+    }
+  }
+  return null;
+}
+
 async function lineDeleteRichMenu(richMenuId: string, token: string) {
   const res = await fetch(`${LINE_API}/richmenu/${richMenuId}`, {
     method: "DELETE",
@@ -55,7 +77,20 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
 
     if (!menu.imageUrl) throw new Error(`Menu "${menuName}" has no image`);
 
-    const size = menu.size || { width: 2500, height: 1686 };
+    // Fetch image early to detect actual dimensions
+    const imgRes = await fetch(menu.imageUrl);
+    if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
+    const imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
+    const imageBuffer = await imgRes.arrayBuffer();
+
+    const MAX_SIZE = 1024 * 1024;
+    if (imageBuffer.byteLength > MAX_SIZE) {
+      const sizeMB = (imageBuffer.byteLength / MAX_SIZE).toFixed(1);
+      throw new Error(`「${menuName}」的圖片大小為 ${sizeMB}MB，超過 LINE 上限（1MB）。請先壓縮圖片後再發布。`);
+    }
+
+    const detectedSize = getImageDimensions(imageBuffer, imageContentType);
+    const size = detectedSize || menu.size || { width: 2500, height: 1686 };
     const areas = (menu.areas || []).map((a: any) => {
       let action = { ...a.action };
       if (action.type === "richmenuswitch" && !action.data) {
@@ -82,17 +117,7 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
     const richMenuId: string = createRes.json.richMenuId;
 
     // Upload image
-    const imgRes = await fetch(menu.imageUrl);
-    if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
-    const imageBlob = await imgRes.blob();
-    const imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
-
-    const MAX_SIZE = 1024 * 1024;
-    if (imageBlob.size > MAX_SIZE) {
-      const sizeMB = (imageBlob.size / MAX_SIZE).toFixed(1);
-      throw new Error(`「${menuName}」的圖片大小為 ${sizeMB}MB，超過 LINE 上限（1MB）。請先壓縮圖片後再發布。`);
-    }
-
+    const imageBlob = new Blob([imageBuffer], { type: imageContentType });
     const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
     if (!uploadRes.ok) throw new Error(`Image upload failed: ${uploadRes.text}`);
 

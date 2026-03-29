@@ -58,6 +58,28 @@ async function lineGetAliases(token: string) {
   return (j.aliases || []) as { richMenuAliasId: string; richMenuId: string }[];
 }
 
+function getImageDimensions(buffer: ArrayBuffer, contentType: string): { width: number; height: number } | null {
+  const view = new DataView(buffer);
+  if (contentType.includes("png")) {
+    if (view.byteLength < 24) return null;
+    return { width: view.getUint32(16, false), height: view.getUint32(20, false) };
+  }
+  if (contentType.includes("jpeg") || contentType.includes("jpg")) {
+    let i = 2;
+    while (i < view.byteLength - 9) {
+      if (view.getUint8(i) !== 0xFF) break;
+      const marker = view.getUint8(i + 1);
+      if ((marker >= 0xC0 && marker <= 0xC3) || (marker >= 0xC5 && marker <= 0xC7) ||
+          (marker >= 0xC9 && marker <= 0xCB) || (marker >= 0xCD && marker <= 0xCF)) {
+        return { width: view.getUint16(i + 7, false), height: view.getUint16(i + 5, false) };
+      }
+      if (i + 3 >= view.byteLength) break;
+      i += 2 + view.getUint16(i + 2, false);
+    }
+  }
+  return null;
+}
+
 async function lineDeleteRichMenu(richMenuId: string, token: string) {
   const res = await fetch(`${LINE_API}/richmenu/${richMenuId}`, {
     method: "DELETE",
@@ -143,14 +165,35 @@ serve(async (req) => {
       const menuName = menu.name || "rich-menu";
       const aliasId: string = (menu.aliasId || "").replace(/[^a-z0-9_-]/g, "-").toLowerCase() || `menu-${menuId.slice(0, 8)}`;
 
-      // ── Validate image ─────────────────────────────────────────────────
+      // ── Fetch image early to detect actual dimensions ──────────────────
       if (!menu.imageUrl) {
         await updateJob("image_missing", { menuId, error: "IMAGE_MISSING" });
         throw Object.assign(new Error(`Menu "${menuName}" has no image`), { code: "IMAGE_MISSING" });
       }
+      let imageBuffer: ArrayBuffer;
+      let imageContentType: string;
+      try {
+        const imgRes = await fetch(menu.imageUrl);
+        if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
+        imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
+        imageBuffer = await imgRes.arrayBuffer();
+      } catch (fetchErr: any) {
+        throw Object.assign(new Error(`Image fetch failed: ${fetchErr.message}`), { code: "IMAGE_INVALID" });
+      }
+
+      // LINE 圖文選單圖片上限 1MB
+      const MAX_SIZE = 1024 * 1024;
+      if (imageBuffer.byteLength > MAX_SIZE) {
+        const sizeMB = (imageBuffer.byteLength / MAX_SIZE).toFixed(1);
+        throw Object.assign(
+          new Error(`「${menuName}」的圖片大小為 ${sizeMB}MB，超過 LINE 上限（1MB）。請先壓縮圖片後再發布。`),
+          { code: "IMAGE_INVALID" }
+        );
+      }
 
       // ── Build LINE payload ─────────────────────────────────────────────
-      const size = menu.size || { width: 2500, height: 1686 };
+      const detectedSize = getImageDimensions(imageBuffer, imageContentType);
+      const size = detectedSize || menu.size || { width: 2500, height: 1686 };
       const areas = (menu.areas || []).map((a: any) => {
         let action = { ...a.action };
         // LINE requires `data` field for richmenuswitch actions
@@ -186,27 +229,7 @@ serve(async (req) => {
 
       // ── Step: upload image ─────────────────────────────────────────────
       await updateJob("upload_image", { menuId, richMenuId });
-      let imageBlob: Blob;
-      let imageContentType: string;
-      try {
-        const imgRes = await fetch(menu.imageUrl);
-        if (!imgRes.ok) throw new Error(`Failed to fetch image: ${imgRes.status}`);
-        imageBlob = await imgRes.blob();
-        imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
-      } catch (fetchErr: any) {
-        throw Object.assign(new Error(`Image fetch failed: ${fetchErr.message}`), { code: "IMAGE_INVALID" });
-      }
-
-      // LINE 圖文選單圖片上限 1MB
-      const MAX_SIZE = 1024 * 1024;
-      if (imageBlob.size > MAX_SIZE) {
-        const sizeMB = (imageBlob.size / MAX_SIZE).toFixed(1);
-        throw Object.assign(
-          new Error(`「${menuName}」的圖片大小為 ${sizeMB}MB，超過 LINE 上限（1MB）。請先壓縮圖片後再發布。`),
-          { code: "IMAGE_INVALID" }
-        );
-      }
-
+      const imageBlob = new Blob([imageBuffer], { type: imageContentType });
       const uploadRes = await lineUploadImage(richMenuId, lineToken, imageBlob, imageContentType);
       if (!uploadRes.ok) {
         await updateJob("upload_image_failed", { richMenuId, status: uploadRes.status, body: uploadRes.text });

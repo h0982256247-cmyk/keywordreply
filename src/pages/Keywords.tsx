@@ -94,16 +94,13 @@ export default function Keywords() {
       return;
     }
     if (form.keywords.includes(trimmed)) return;
-    setForm((prev) => ({ ...prev, keywords: [...prev.keywords, trimmed] }));
+    setForm({ ...form, keywords: [...form.keywords, trimmed] });
+    setTagInput('');
   }
 
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      commitTagInput(tagInput);
-      setTagInput('');
-      return;
-    }
+    if (e.key === 'Enter') { e.preventDefault(); commitTagInput(tagInput); }
+    if (e.key === ',') { e.preventDefault(); commitTagInput(tagInput); }
     if (e.key === 'Backspace' && tagInput === '' && form.keywords.length > 0) {
       setForm({ ...form, keywords: form.keywords.slice(0, -1) });
     }

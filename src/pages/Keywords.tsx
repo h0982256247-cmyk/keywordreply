@@ -101,6 +101,7 @@ export default function Keywords() {
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
+      if (e.nativeEvent.isComposing) return; // 中文輸入法選字中，不觸發
       commitTagInput(tagInput);
       setTagInput('');
       return;

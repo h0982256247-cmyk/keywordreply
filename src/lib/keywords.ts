@@ -6,6 +6,7 @@ export type KeywordRule = {
   user_id: string;
   name?: string | null;
   keyword: string;
+  keywords?: string[] | null;
   match_type: 'exact' | 'contains';
   priority: number;
   reply_mode: 'text' | 'draft';
@@ -30,14 +31,30 @@ export async function listKeywordRules(): Promise<KeywordRule[]> {
   return (data || []).map((row: any) => ({ ...row, doc_title: row.docs?.title || null }));
 }
 
-export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keyword: string; reply_mode: 'text' | 'draft' }) {
+export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keyword?: string; keywords?: string[]; reply_mode: 'text' | 'draft' }) {
   const user = await requireUser();
-  const draftIds = payload.reply_mode === 'draft' ? (payload.draft_ids ?? (payload.draft_id ? [payload.draft_id] : [])) : [];
+
+  // Resolve keywords array
+  const keywords: string[] =
+    payload.keywords && payload.keywords.length > 0
+      ? payload.keywords
+      : payload.keyword ? [payload.keyword] : [];
+  const primaryKeyword = keywords[0] ?? '';
+
+  // Resolve draft_ids array
+  const draftIds: string[] =
+    payload.reply_mode === 'draft'
+      ? (payload.draft_ids && payload.draft_ids.length > 0
+          ? payload.draft_ids
+          : payload.draft_id ? [payload.draft_id] : [])
+      : [];
   const primaryDraftId = draftIds[0] ?? null;
+
   const body = {
     user_id: user.id,
-    name: (payload.name || payload.keyword).trim(),
-    keyword: payload.keyword.trim(),
+    name: ((payload.name || primaryKeyword) as string).trim(),
+    keyword: primaryKeyword,
+    keywords,
     match_type: payload.match_type || 'exact',
     priority: payload.priority || 100,
     reply_mode: payload.reply_mode,
@@ -63,7 +80,6 @@ export async function deleteKeywordRule(id: string) {
   const { error } = await supabase.from('keyword_rules').delete().eq('id', id).eq('user_id', user.id);
   if (error) throw error;
 }
-
 
 export async function reorderKeywordRules(ids: string[]) {
   const user = await requireUser();

@@ -5,11 +5,12 @@ import { listDocs } from '@/lib/db';
 import { deleteKeywordRule, listKeywordRules, reorderKeywordRules, upsertKeywordRule, type KeywordRule } from '@/lib/keywords';
 
 const MAX_DRAFTS = 3;
+const MAX_KEYWORD_LEN = 30;
 
 type FormState = {
   id?: string;
   name: string;
-  keyword: string;
+  keywords: string[];
   match_type: 'exact' | 'contains';
   priority: number;
   reply_mode: 'text' | 'draft';
@@ -20,7 +21,7 @@ type FormState = {
 
 const emptyForm: FormState = {
   name: '',
-  keyword: '',
+  keywords: [],
   match_type: 'exact',
   priority: 1,
   reply_mode: 'draft',
@@ -35,6 +36,7 @@ export default function Keywords() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [addingDraftId, setAddingDraftId] = useState('');
+  const [tagInput, setTagInput] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export default function Keywords() {
   function openCreate() {
     setForm(emptyForm);
     setAddingDraftId('');
+    setTagInput('');
     setMsg(null);
     setOpen(true);
   }
@@ -63,10 +66,13 @@ export default function Keywords() {
     const existingIds = (row.draft_ids && row.draft_ids.length > 0)
       ? row.draft_ids
       : row.draft_id ? [row.draft_id] : [];
+    const existingKeywords = (row.keywords && row.keywords.length > 0)
+      ? row.keywords
+      : row.keyword ? [row.keyword] : [];
     setForm({
       id: row.id,
       name: row.name || row.keyword,
-      keyword: row.keyword,
+      keywords: existingKeywords,
       match_type: row.match_type,
       priority: row.priority,
       reply_mode: row.reply_mode,
@@ -75,8 +81,33 @@ export default function Keywords() {
       is_enabled: row.is_enabled,
     });
     setAddingDraftId('');
+    setTagInput('');
     setMsg(null);
     setOpen(true);
+  }
+
+  function commitTagInput(raw: string) {
+    const trimmed = raw.trim().replace(/,+$/, '').trim();
+    if (!trimmed) return;
+    if (trimmed.length > MAX_KEYWORD_LEN) {
+      setMsg(`每筆關鍵字上限為 ${MAX_KEYWORD_LEN} 個字`);
+      return;
+    }
+    if (form.keywords.includes(trimmed)) return;
+    setForm({ ...form, keywords: [...form.keywords, trimmed] });
+    setTagInput('');
+  }
+
+  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') { e.preventDefault(); commitTagInput(tagInput); }
+    if (e.key === ',') { e.preventDefault(); commitTagInput(tagInput); }
+    if (e.key === 'Backspace' && tagInput === '' && form.keywords.length > 0) {
+      setForm({ ...form, keywords: form.keywords.slice(0, -1) });
+    }
+  }
+
+  function removeKeyword(kw: string) {
+    setForm({ ...form, keywords: form.keywords.filter((k) => k !== kw) });
   }
 
   function handleAddDraft() {
@@ -91,6 +122,14 @@ export default function Keywords() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Commit any pending tag input before submitting
+    const pendingKeywords = tagInput.trim()
+      ? [...form.keywords, ...tagInput.split(',').map((s) => s.trim()).filter(Boolean)]
+      : form.keywords;
+    if (pendingKeywords.length === 0) {
+      setMsg('請至少輸入一個關鍵字');
+      return;
+    }
     if (form.reply_mode === 'draft' && form.draft_ids.length === 0) {
       setMsg('請至少選擇一個草稿');
       return;
@@ -98,9 +137,16 @@ export default function Keywords() {
     setBusy(true);
     setMsg(null);
     try {
-      await upsertKeywordRule({ ...form, name: form.name || form.keyword } as any);
+      const primaryKeyword = pendingKeywords[0];
+      await upsertKeywordRule({
+        ...form,
+        keyword: primaryKeyword,
+        keywords: pendingKeywords,
+        name: form.name || primaryKeyword,
+      } as any);
       setOpen(false);
       setForm(emptyForm);
+      setTagInput('');
       await load();
     } catch (e: any) {
       setMsg(e.message || '儲存失敗');
@@ -206,7 +252,13 @@ export default function Keywords() {
                   <td className="px-5 py-4 text-[#6B6B6B] tabular-nums">{index + 1}</td>
                   <td className="px-5 py-4 font-medium text-[#A35D5D]">{row.name || row.keyword}</td>
                   <td className="px-5 py-4 text-[#555555]">{row.match_type === 'exact' ? '完全' : '包含'}</td>
-                  <td className="px-5 py-4 text-[#2B2B2B]">{row.keyword}</td>
+                  <td className="px-5 py-4">
+                    <div className="flex flex-wrap gap-1">
+                      {(row.keywords && row.keywords.length > 0 ? row.keywords : [row.keyword]).map((kw) => (
+                        <span key={kw} className="inline-flex items-center rounded-md bg-[#F5F5F5] border border-[#E8E8E8] px-2 py-0.5 text-xs text-[#2B2B2B]">{kw}</span>
+                      ))}
+                    </div>
+                  </td>
                   <td className="px-5 py-4">
                     <button
                       onClick={() => toggleEnabled(row)}
@@ -266,7 +318,38 @@ export default function Keywords() {
 
             <div className="p-6 grid gap-4 md:grid-cols-2">
               <Field label="規則名稱" value={form.name} onChange={(v: string) => setForm({ ...form, name: v })} placeholder="例如：優惠自動回覆" />
-              <Field label="關鍵字" value={form.keyword} onChange={(v: string) => setForm({ ...form, keyword: v })} placeholder="例如：優惠" />
+
+              {/* Tag input for keywords */}
+              <div className="block space-y-2">
+                <div className="text-sm font-medium text-[#2B2B2B]">
+                  關鍵字
+                  <span className="ml-1.5 text-xs font-normal text-[#AAAAAA]">（Enter 或逗號新增，每筆最多 {MAX_KEYWORD_LEN} 字）</span>
+                </div>
+                <div
+                  className="min-h-[44px] w-full rounded-xl border border-[#E7C9CD] px-3 py-2 flex flex-wrap gap-1.5 items-center focus-within:border-[#A35D5D] focus-within:ring-2 focus-within:ring-[#A35D5D]/15 transition cursor-text"
+                  onClick={(e) => (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus()}
+                >
+                  {form.keywords.map((kw) => (
+                    <span key={kw} className="inline-flex items-center gap-1 rounded-md bg-[#4A4A4A] text-white text-xs font-medium px-2 py-0.5">
+                      {kw}
+                      <button type="button" onClick={() => removeKeyword(kw)} className="opacity-70 hover:opacity-100 transition-opacity">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    onBlur={() => commitTagInput(tagInput)}
+                    placeholder={form.keywords.length === 0 ? '輸入關鍵字後按 Enter…' : ''}
+                    className="flex-1 min-w-[120px] bg-transparent text-sm text-[#2B2B2B] placeholder-[#AAAAAA] outline-none"
+                  />
+                </div>
+                <p className="text-xs text-[#AAAAAA]">每筆關鍵字的字數上限為 {MAX_KEYWORD_LEN} 個字。</p>
+              </div>
 
               <label className="block space-y-2">
                 <div className="text-sm font-medium text-[#2B2B2B]">匹配方式</div>

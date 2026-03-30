@@ -170,20 +170,26 @@ serve(async (req) => {
       const replyToken = event.replyToken;
       if (!text || !replyToken) continue;
 
-      let { data: rule } = await admin
+      // Fetch all enabled exact rules and match against keywords array or keyword field
+      const exactRules = await admin
         .from("keyword_rules")
         .select("*")
         .eq("user_id", channel.user_id)
         .eq("is_enabled", true)
         .eq("match_type", "exact")
-        .eq("keyword", text)
-        .order("priority", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .order("priority", { ascending: true });
+
+      let rule = (exactRules.data || []).find((r: any) => {
+        const kws: string[] = r.keywords && r.keywords.length > 0 ? r.keywords : r.keyword ? [r.keyword] : [];
+        return kws.includes(text);
+      }) ?? null;
 
       if (!rule) {
         const contains = await admin.from("keyword_rules").select("*").eq("user_id", channel.user_id).eq("is_enabled", true).eq("match_type", "contains").order("priority", { ascending: true });
-        rule = (contains.data || []).find((r: any) => text.includes(r.keyword));
+        rule = (contains.data || []).find((r: any) => {
+          const kws: string[] = r.keywords && r.keywords.length > 0 ? r.keywords : r.keyword ? [r.keyword] : [];
+          return kws.some((k: string) => text.includes(k));
+        });
       }
 
       if (!rule) {

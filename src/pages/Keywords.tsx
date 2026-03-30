@@ -99,8 +99,12 @@ export default function Keywords() {
   }
 
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') { e.preventDefault(); commitTagInput(tagInput); }
-    if (e.key === ',') { e.preventDefault(); commitTagInput(tagInput); }
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitTagInput(tagInput);
+      setTagInput('');
+      return;
+    }
     if (e.key === 'Backspace' && tagInput === '' && form.keywords.length > 0) {
       setForm({ ...form, keywords: form.keywords.slice(0, -1) });
     }

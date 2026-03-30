@@ -4,6 +4,8 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { listDocs } from '@/lib/db';
 import { deleteKeywordRule, listKeywordRules, reorderKeywordRules, upsertKeywordRule, type KeywordRule } from '@/lib/keywords';
 
+const MAX_DRAFTS = 3;
+
 type FormState = {
   id?: string;
   name: string;
@@ -12,7 +14,7 @@ type FormState = {
   priority: number;
   reply_mode: 'text' | 'draft';
   reply_text: string;
-  draft_id: string;
+  draft_ids: string[];
   is_enabled: boolean;
 };
 
@@ -23,7 +25,7 @@ const emptyForm: FormState = {
   priority: 1,
   reply_mode: 'draft',
   reply_text: '',
-  draft_id: '',
+  draft_ids: [],
   is_enabled: true,
 };
 
@@ -32,6 +34,7 @@ export default function Keywords() {
   const [rows, setRows] = useState<KeywordRule[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [addingDraftId, setAddingDraftId] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -51,11 +54,15 @@ export default function Keywords() {
 
   function openCreate() {
     setForm(emptyForm);
+    setAddingDraftId('');
     setMsg(null);
     setOpen(true);
   }
 
   function openEdit(row: KeywordRule) {
+    const existingIds = (row.draft_ids && row.draft_ids.length > 0)
+      ? row.draft_ids
+      : row.draft_id ? [row.draft_id] : [];
     setForm({
       id: row.id,
       name: row.name || row.keyword,
@@ -64,15 +71,30 @@ export default function Keywords() {
       priority: row.priority,
       reply_mode: row.reply_mode,
       reply_text: row.reply_text || '',
-      draft_id: row.draft_id || '',
+      draft_ids: existingIds,
       is_enabled: row.is_enabled,
     });
+    setAddingDraftId('');
     setMsg(null);
     setOpen(true);
   }
 
+  function handleAddDraft() {
+    if (!addingDraftId || form.draft_ids.includes(addingDraftId) || form.draft_ids.length >= MAX_DRAFTS) return;
+    setForm({ ...form, draft_ids: [...form.draft_ids, addingDraftId] });
+    setAddingDraftId('');
+  }
+
+  function handleRemoveDraft(id: string) {
+    setForm({ ...form, draft_ids: form.draft_ids.filter((d) => d !== id) });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (form.reply_mode === 'draft' && form.draft_ids.length === 0) {
+      setMsg('請至少選擇一個草稿');
+      return;
+    }
     setBusy(true);
     setMsg(null);
     try {
@@ -120,7 +142,7 @@ export default function Keywords() {
     moveRow(fromIndex, toIndex);
   }
 
-  const currentDraft = drafts.find((draft) => draft.id === form.draft_id);
+  const availableToAdd = drafts.filter((d) => !form.draft_ids.includes(d.id));
 
   return (
     <div className="space-y-6">
@@ -258,29 +280,77 @@ export default function Keywords() {
                 />
               </label>
 
-              <label className="block space-y-2 md:col-span-2">
-                <div className="text-sm font-medium text-[#2B2B2B]">選擇草稿</div>
-                <GlassSelect
-                  size="lg"
-                  className="w-full"
-                  rounded="rounded-xl"
-                  value={form.draft_id}
-                  onChange={(val) => setForm({ ...form, draft_id: val })}
-                  options={[{value:"",label:"請選擇草稿"},...drafts.map(d => ({value:d.id,label:d.title}))]}
-                />
-              </label>
-              {currentDraft && (
-                <div className="md:col-span-2 rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] p-4">
-                  <div className="text-xs text-[#6B6B6B]">已選擇內容</div>
-                  <div className="mt-1.5 font-semibold text-[#2B2B2B] text-sm">{currentDraft.title}</div>
-                  <div className="mt-1 text-xs text-[#6B6B6B]">類型：{currentDraft.content?.type === 'carousel' ? '多卡滑動訊息' : '單卡 / 影片卡片訊息'}</div>
-                  {!!currentDraft.content?.quickReply?.items?.length && (
-                    <div className="mt-2 inline-flex rounded-full bg-[#FBEBEE] px-3 py-1 text-xs font-medium text-[#A35D5D]">
-                      包含 {currentDraft.content.quickReply.items.length} 個 Quick Reply
-                    </div>
-                  )}
+              <div className="md:col-span-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-[#2B2B2B]">
+                    選擇草稿
+                    <span className="ml-1.5 text-xs font-normal text-[#AAAAAA]">（最多 {MAX_DRAFTS} 個）</span>
+                  </div>
+                  <span className="text-xs text-[#AAAAAA] tabular-nums">{form.draft_ids.length} / {MAX_DRAFTS}</span>
                 </div>
-              )}
+
+                {/* Added drafts list */}
+                {form.draft_ids.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {form.draft_ids.map((id, idx) => {
+                      const d = drafts.find((x) => x.id === id);
+                      const title = d?.content?.title || d?.title || id;
+                      return (
+                        <li key={id} className="flex items-center gap-2 rounded-xl border border-[#E7C9CD] bg-[#FFF7F8] px-3 py-2">
+                          <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#A35D5D] text-white text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                          <span className="flex-1 text-sm text-[#2B2B2B] truncate">{title}</span>
+                          {d?.content?.quickReply?.items?.length > 0 && (
+                            <span className="flex-shrink-0 text-xs text-[#A35D5D] bg-[#FBEBEE] rounded-full px-2 py-0.5">
+                              QR×{d.content.quickReply.items.length}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDraft(id)}
+                            className="flex-shrink-0 text-[#AAAAAA] hover:text-[#A35D5D] transition-colors p-0.5"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+
+                {/* Add draft row */}
+                {form.draft_ids.length < MAX_DRAFTS && (
+                  <div className="flex gap-2">
+                    <GlassSelect
+                      size="lg"
+                      className="flex-1"
+                      rounded="rounded-xl"
+                      value={addingDraftId}
+                      onChange={setAddingDraftId}
+                      options={[
+                        { value: '', label: '選擇草稿…' },
+                        ...availableToAdd.map((d) => ({ value: d.id, label: d.content?.title || d.title || d.id })),
+                      ]}
+                    />
+                    <button
+                      type="button"
+                      disabled={!addingDraftId}
+                      onClick={handleAddDraft}
+                      className="flex-shrink-0 inline-flex items-center gap-1 rounded-xl border border-[#E7C9CD] bg-white hover:bg-[#FFF7F8] px-3 py-2.5 text-sm font-medium text-[#A35D5D] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14"/>
+                      </svg>
+                      新增
+                    </button>
+                  </div>
+                )}
+
+                {form.draft_ids.length === 0 && (
+                  <p className="text-xs text-[#AAAAAA]">請選擇草稿後點選「新增」</p>
+                )}
+              </div>
 
               <label className="inline-flex items-center gap-3 text-sm text-[#555555] md:col-span-2 cursor-pointer">
                 <input

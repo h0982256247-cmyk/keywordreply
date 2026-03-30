@@ -194,14 +194,24 @@ serve(async (req) => {
       let messages: any[] = [];
       if (rule.reply_mode === "text") {
         messages = [{ type: "text", text: rule.reply_text || "您好" }];
-      } else if (rule.draft_id) {
-        const { data: docRow } = await admin.from("docs").select("content, title").eq("id", rule.draft_id).eq("owner_id", channel.user_id).maybeSingle();
-        if (!docRow?.content) {
+      } else {
+        const draftIds: string[] = (rule.draft_ids && rule.draft_ids.length > 0)
+          ? rule.draft_ids
+          : rule.draft_id ? [rule.draft_id] : [];
+        if (draftIds.length === 0) {
+          await logWebhook(admin, { user_id: channel.user_id, channel_id: destination, event_type: event.type, keyword: text, rule_id: rule.id, success: false, request_body: event, error_message: "No draft configured" });
+          continue;
+        }
+        for (const draftId of draftIds) {
+          const { data: docRow } = await admin.from("docs").select("content, title").eq("id", draftId).eq("owner_id", channel.user_id).maybeSingle();
+          if (!docRow?.content) continue;
+          const quickReply = compileQuickReply(docRow.content?.quickReply);
+          messages.push({ type: "flex", altText: (docRow.title || "LINE 訊息").slice(0, 400), contents: compileFlex(docRow.content), ...(quickReply ? { quickReply } : {}) });
+        }
+        if (messages.length === 0) {
           await logWebhook(admin, { user_id: channel.user_id, channel_id: destination, event_type: event.type, keyword: text, rule_id: rule.id, success: false, request_body: event, error_message: "Draft not found" });
           continue;
         }
-        const quickReply = compileQuickReply(docRow.content?.quickReply);
-        messages = [{ type: "flex", altText: (docRow.title || "LINE 訊息").slice(0, 400), contents: compileFlex(docRow.content), ...(quickReply ? { quickReply } : {}) }];
       }
 
       if (!messages.length) continue;

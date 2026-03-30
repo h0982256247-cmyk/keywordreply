@@ -11,6 +11,7 @@ export type KeywordRule = {
   reply_mode: 'text' | 'draft';
   reply_text: string | null;
   draft_id: string | null;
+  draft_ids?: string[] | null;
   is_enabled: boolean;
   created_at: string;
   updated_at: string;
@@ -31,6 +32,8 @@ export async function listKeywordRules(): Promise<KeywordRule[]> {
 
 export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keyword: string; reply_mode: 'text' | 'draft' }) {
   const user = await requireUser();
+  const draftIds = payload.reply_mode === 'draft' ? (payload.draft_ids ?? (payload.draft_id ? [payload.draft_id] : [])) : [];
+  const primaryDraftId = draftIds[0] ?? null;
   const body = {
     user_id: user.id,
     name: (payload.name || payload.keyword).trim(),
@@ -39,7 +42,8 @@ export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keywor
     priority: payload.priority || 100,
     reply_mode: payload.reply_mode,
     reply_text: payload.reply_mode === 'text' ? (payload.reply_text || '') : null,
-    draft_id: payload.reply_mode === 'draft' ? payload.draft_id : null,
+    draft_id: primaryDraftId,
+    draft_ids: payload.reply_mode === 'draft' ? draftIds : null,
     is_enabled: payload.is_enabled ?? true,
   };
 

@@ -4,4 +4,5 @@
 -- ============================================================
 
 alter table public.broadcast_campaigns
-  add column if not exists scheduled_at timestamptz null;
+  add column if not exists scheduled_at timestamptz null,
+  add column if not exists scheduled_messages jsonb null;

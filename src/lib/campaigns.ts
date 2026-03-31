@@ -98,11 +98,11 @@ export async function narrowcastCampaign(
   });
 }
 
-export async function scheduleCampaign(id: string, scheduledAt: string) {
+export async function scheduleCampaign(id: string, scheduledAt: string, messages: any[]) {
   const user = await requireUser();
   const { error } = await supabase
     .from('broadcast_campaigns')
-    .update({ scheduled_at: scheduledAt, status: 'scheduled' })
+    .update({ scheduled_at: scheduledAt, status: 'scheduled', scheduled_messages: messages })
     .eq('id', id)
     .eq('user_id', user.id);
   if (error) throw error;

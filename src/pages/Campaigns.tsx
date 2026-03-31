@@ -3,7 +3,7 @@ import GlassSelect from "@/components/GlassSelect";
 import FlexPreview from "@/components/FlexPreview";
 import { listDocs } from '@/lib/db';
 import { BroadcastCampaign, LineAudience, cancelSchedule, deleteCampaign, listCampaigns, listLineAudiences, narrowcastCampaign, saveCampaign, scheduleCampaign, sendCampaign } from '@/lib/campaigns';
-import { buildQuickReply } from '@/lib/draftMessaging';
+import { buildMessagesFromDoc, buildQuickReply } from '@/lib/draftMessaging';
 
 const MAX_DRAFTS = 3;
 
@@ -159,7 +159,22 @@ export default function Campaigns() {
     setScheduling(true);
     setMsg(null);
     try {
-      await scheduleCampaign(scheduleModal.id, new Date(scheduleAt).toISOString());
+      // Build messages from drafts at schedule time so the Edge Function can broadcast directly
+      const displayIds = (scheduleModal.draft_ids && scheduleModal.draft_ids.length > 0)
+        ? scheduleModal.draft_ids
+        : [scheduleModal.draft_id];
+      const includeQr = sendOptions[scheduleModal.id] ?? true;
+      const allMessages: any[] = [];
+      for (const draftId of displayIds) {
+        const d = drafts.find((x) => x.id === draftId);
+        if (!d?.content) continue;
+        const msgs = buildMessagesFromDoc(d.content, { includeQuickReply: includeQr });
+        allMessages.push(...msgs);
+      }
+      if (!allMessages.length) throw new Error("找不到草稿內容，請確認草稿是否存在");
+      if (allMessages.length > 5) throw new Error("訊息數量超過 LINE 限制（最多 5 則）");
+
+      await scheduleCampaign(scheduleModal.id, new Date(scheduleAt).toISOString(), allMessages);
       setMsg({ text: `「${scheduleModal.name}」排程已設定`, ok: true });
       setScheduleModal(null);
       await load();

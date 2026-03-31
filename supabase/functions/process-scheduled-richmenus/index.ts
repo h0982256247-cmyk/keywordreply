@@ -182,8 +182,7 @@ serve(async (_req) => {
     .from("rm_drafts")
     .select("*")
     .not("scheduled_at", "is", null)
-    .lte("scheduled_at", now)
-    .neq("status", "published");
+    .lte("scheduled_at", now);
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
@@ -218,7 +217,7 @@ serve(async (_req) => {
       const { scheduled_at: _sa, ...restData } = (draft.data || {}) as any;
       await adminClient
         .from("rm_drafts")
-        .update({ status: "published", scheduled_at: null, data: restData })
+        .update({ status: "published", scheduled_at: null, data: restData, updated_at: new Date().toISOString() })
         .eq("id", draft.id);
 
       results.push({ id: draft.id, name: draft.name, success: true });

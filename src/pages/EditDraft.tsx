@@ -1262,13 +1262,7 @@ export default function EditDraft() {
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            const ratioDims: Record<string, string> = { "20:13": "600x390", "16:9": "640x360", "4:3": "640x480", "1:1": "600x600", "9:16": "360x640", "1.91:1": "640x335" };
-                            const currentRatio = heroImage?.ratio || "20:13";
-                            const dims = ratioDims[currentRatio] || "600x390";
-                            const hero = heroArr.map((c: any) => c.kind === "hero_image"
-                              ? { ...c, image: { kind: "external", url: `https://placehold.co/${dims}/E2E8F0/94A3B8/png?text=+`, lastCheck: { ok: true, level: "pass" } } }
-                              : c
-                            );
+                            const hero = heroArr.filter((c: any) => c.kind !== "hero_image");
                             setSection({ ...section, hero });
                           }}
                         >
@@ -2142,7 +2136,7 @@ export default function EditDraft() {
                           <div className="flex items-center gap-3 px-3 py-2 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
                             <img src={heroImage.image.url} alt="封面圖" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[#E7C9CD]" />
                             <span className="text-sm text-[#2B2B2B] truncate flex-1">封面圖片</span>
-                            <button type="button" onClick={() => { const ratio = heroImage?.ratio || "20:13"; const ratioDims: Record<string,string> = {"20:13":"600x390","16:9":"640x360","4:3":"640x480","1:1":"600x600","9:16":"360x640","1.91:1":"640x335"}; updateHeroImageSource({ kind: "external", url: `https://placehold.co/${ratioDims[ratio]||"600x390"}/E2E8F0/94A3B8/png?text=+` }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除圖片">
+                            <button type="button" onClick={() => { const heroArr2 = (section as any).hero || []; setSection({ ...section, hero: heroArr2.filter((c: any) => c.kind !== "hero_image") }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除圖片">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                             </button>
                           </div>

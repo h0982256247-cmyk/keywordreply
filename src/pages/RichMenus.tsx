@@ -29,7 +29,7 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
     setSaving(true);
     setErr(null);
     try {
-      const scheduledAt = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(min)}:00`;
+      const scheduledAt = new Date(year, month - 1, day, hour, min, 0).toISOString();
       await saveRmDraft(draft.id, { data: { ...draft.data, scheduled_at: scheduledAt }, scheduled_at: scheduledAt });
       onUpdated();
       onClose();

@@ -186,7 +186,11 @@ export default function EditDraft() {
   const updateHeroImageSource = async (img: ImageSource) => {
     if (isSpecialCard || isVideoHero) return; // Special cards and video heroes don't have hero_image
     const regularSection = section as any;
-    const hero = regularSection.hero.map((c: any) => (c.kind === "hero_image" ? { ...c, image: img } : c));
+    const heroArr: any[] = regularSection.hero || [];
+    const hasHeroImage = heroArr.some((c: any) => c.kind === "hero_image");
+    const hero = hasHeroImage
+      ? heroArr.map((c: any) => (c.kind === "hero_image" ? { ...c, image: img } : c))
+      : [...heroArr, { id: uid("hero_"), kind: "hero_image", enabled: true, image: img, ratio: "20:13", mode: "cover" }];
     setSection({ ...regularSection, hero });
   };
 

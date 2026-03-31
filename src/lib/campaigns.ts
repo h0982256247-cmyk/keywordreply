@@ -15,6 +15,16 @@ export type BroadcastCampaign = {
   created_at: string;
   updated_at: string;
   doc_title?: string | null;
+  audience_group_id?: string | null;
+  audience_group_name?: string | null;
+  narrowcast_request_id?: string | null;
+};
+
+export type LineAudience = {
+  id: number;
+  name: string;
+  type: string;
+  count: number;
 };
 
 export async function listCampaigns(): Promise<BroadcastCampaign[]> {
@@ -51,6 +61,40 @@ export async function saveCampaign(payload: {
   const { data, error } = await supabase.from('broadcast_campaigns').insert(body).select('id').single();
   if (error) throw error;
   return data.id as string;
+}
+
+export async function listLineAudiences(): Promise<LineAudience[]> {
+  const result = await invokeEdgeFunction<{ audiences: LineAudience[] }>('get-line-audiences');
+  return result?.audiences ?? [];
+}
+
+export async function narrowcastCampaign(
+  id: string,
+  audienceGroupId: number,
+  audienceGroupName: string,
+  options?: { includeQuickReply?: boolean }
+) {
+  const user = await requireUser();
+  const { data, error } = await supabase.from('broadcast_campaigns').select('*').eq('id', id).eq('user_id', user.id).single();
+  if (error) throw error;
+  const row: any = data;
+
+  const draftIds: string[] = (row.draft_ids && row.draft_ids.length > 0) ? row.draft_ids : [row.draft_id];
+  const includeQr = options?.includeQuickReply ?? row.include_quick_reply ?? true;
+
+  const allMessages: any[] = [];
+  for (const draftId of draftIds) {
+    const docRow = await getDoc(draftId);
+    const msgs = buildMessagesFromDoc(docRow.content, { includeQuickReply: includeQr });
+    allMessages.push(...msgs);
+  }
+
+  await invokeEdgeFunction('narrowcast', {
+    campaignId: id,
+    audienceGroupId,
+    audienceGroupName,
+    messages: allMessages,
+  });
 }
 
 export async function deleteCampaign(id: string) {

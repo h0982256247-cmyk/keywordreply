@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import GlassSelect from "@/components/GlassSelect";
 import FlexPreview from "@/components/FlexPreview";
 import { listDocs } from '@/lib/db';
-import { BroadcastCampaign, deleteCampaign, listCampaigns, saveCampaign, sendCampaign } from '@/lib/campaigns';
+import { BroadcastCampaign, LineAudience, deleteCampaign, listCampaigns, listLineAudiences, narrowcastCampaign, saveCampaign, sendCampaign } from '@/lib/campaigns';
 import { buildQuickReply } from '@/lib/draftMessaging';
 
 const MAX_DRAFTS = 3;
@@ -36,6 +36,12 @@ export default function Campaigns() {
   const [includeQuickReply, setIncludeQuickReply] = useState(true);
   const [sendOptions, setSendOptions] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab]     = useState<'all' | 'pending' | 'sent' | 'failed'>('all');
+  // 受眾推播 modal
+  const [audienceModal, setAudienceModal]         = useState<BroadcastCampaign | null>(null);
+  const [audiences, setAudiences]                 = useState<LineAudience[]>([]);
+  const [loadingAudiences, setLoadingAudiences]   = useState(false);
+  const [selectedAudienceId, setSelectedAudienceId] = useState('');
+  const [narrowcasting, setNarrowcasting]         = useState(false);
 
   const load = async () => {
     const [docRows, campaignRows] = await Promise.all([listDocs(), listCampaigns()]);
@@ -95,6 +101,40 @@ export default function Campaigns() {
       setMsg({ text: err.message || '建立失敗', ok: false });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function openAudienceModal(row: BroadcastCampaign) {
+    setAudienceModal(row);
+    setSelectedAudienceId('');
+    setAudiences([]);
+    setLoadingAudiences(true);
+    try {
+      const list = await listLineAudiences();
+      setAudiences(list);
+    } catch {
+      setAudiences([]);
+    } finally {
+      setLoadingAudiences(false);
+    }
+  }
+
+  async function handleNarrowcast() {
+    if (!audienceModal || !selectedAudienceId) return;
+    setNarrowcasting(true);
+    setMsg(null);
+    try {
+      const audience = audiences.find((a) => String(a.id) === selectedAudienceId)!;
+      await narrowcastCampaign(audienceModal.id, audience.id, audience.name, {
+        includeQuickReply: sendOptions[audienceModal.id] ?? true,
+      });
+      setMsg({ text: `「${audienceModal.name}」受眾推播成功！`, ok: true });
+      setAudienceModal(null);
+      await load();
+    } catch (err: any) {
+      setMsg({ text: `受眾推播失敗：${err.message || '未知錯誤'}`, ok: false });
+    } finally {
+      setNarrowcasting(false);
     }
   }
 
@@ -392,6 +432,12 @@ export default function Campaigns() {
                         </span>
                       ))}
                     </div>
+                    {row.audience_group_name && (
+                      <p className="text-xs text-[#6B6B6B] flex items-center gap-1 mt-0.5">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                        受眾：{row.audience_group_name}
+                      </p>
+                    )}
                     {row.sent_at && (
                       <p className="text-xs text-[#AAAAAA]">
                         最後發送：{new Date(row.sent_at).toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' })}
@@ -412,7 +458,15 @@ export default function Campaigns() {
                     </label>
                     <div className="flex gap-2">
                       <button
-                        disabled={sending === row.id}
+                        disabled={sending === row.id || narrowcasting}
+                        onClick={() => openAudienceModal(row)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#A35D5D] text-[#A35D5D] hover:bg-[#FFF7F8] px-4 py-2 text-xs font-semibold disabled:opacity-50 transition-colors"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+                        受眾推播
+                      </button>
+                      <button
+                        disabled={sending === row.id || narrowcasting}
                         onClick={() => handleSend(row)}
                         className="inline-flex items-center gap-1.5 rounded-lg bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-4 py-2 text-xs font-semibold disabled:opacity-50 transition-colors"
                       >
@@ -425,7 +479,7 @@ export default function Campaigns() {
                         }
                       </button>
                       <button
-                        disabled={sending === row.id}
+                        disabled={sending === row.id || narrowcasting}
                         onClick={async () => { await deleteCampaign(row.id); await load(); }}
                         className="rounded-lg border border-[#E8E8E8] px-4 py-2 text-xs font-medium text-[#555555] hover:bg-[#F5F5F5] hover:border-[#DDDDDD] disabled:opacity-50 transition-colors"
                       >
@@ -440,6 +494,80 @@ export default function Campaigns() {
         );
         })()}
       </section>
+      {/* ── 受眾推播 Modal ───────────────────────────────────────────── */}
+      {audienceModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !narrowcasting && setAudienceModal(null)} />
+          <div className="relative w-[94%] max-w-md rounded-2xl bg-white shadow-2xl border border-[#E7C9CD] overflow-hidden">
+
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-[#F0E3E5]">
+              <div className="text-base font-semibold text-[#2B2B2B]">受眾推播</div>
+              <div className="mt-1 text-sm text-[#6B6B6B]">
+                選擇 LINE OA 受眾，僅推播給指定受眾。
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Campaign name */}
+              <div className="rounded-xl bg-[#F5F5F5] px-4 py-3">
+                <p className="text-xs text-[#6B6B6B]">推播名稱</p>
+                <p className="text-sm font-medium text-[#2B2B2B] mt-0.5">{audienceModal.name}</p>
+              </div>
+
+              {/* Audience dropdown */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-[#2B2B2B]">
+                  選擇受眾 <span className="text-red-400">*</span>
+                </label>
+                {loadingAudiences ? (
+                  <div className="flex items-center gap-2 text-sm text-[#6B6B6B] py-2">
+                    <Spinner />撈取受眾清單中…
+                  </div>
+                ) : audiences.length === 0 ? (
+                  <p className="text-sm text-[#AAAAAA] py-1">此帳號目前沒有可用的受眾清單</p>
+                ) : (
+                  <select
+                    value={selectedAudienceId}
+                    onChange={(e) => setSelectedAudienceId(e.target.value)}
+                    className="w-full rounded-xl border border-[#E7C9CD] px-4 py-2.5 text-sm text-[#2B2B2B] focus:border-[#A35D5D] focus:ring-2 focus:ring-[#A35D5D]/15 outline-none transition bg-white"
+                  >
+                    <option value="">請選擇受眾…</option>
+                    {audiences.map((a) => (
+                      <option key={a.id} value={String(a.id)}>
+                        {a.name}（{a.count.toLocaleString()} 人）
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <p className="text-xs text-[#AAAAAA]">LINE 要求受眾人數至少 50 人才能發送。</p>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-[#F0E3E5] bg-[#FFF7F8]/50 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={narrowcasting}
+                onClick={() => setAudienceModal(null)}
+                className="px-4 py-2 text-sm text-[#555555] hover:bg-[#F5F5F5] rounded-lg transition-colors disabled:opacity-50"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                disabled={!selectedAudienceId || narrowcasting || loadingAudiences}
+                onClick={handleNarrowcast}
+                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {narrowcasting ? <><Spinner />發送中…</> : '立即發布'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

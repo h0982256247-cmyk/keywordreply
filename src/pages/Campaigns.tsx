@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import GlassSelect from "@/components/GlassSelect";
 import FlexPreview from "@/components/FlexPreview";
 import { listDocs } from '@/lib/db';
-import { BroadcastCampaign, LineAudience, deleteCampaign, listCampaigns, listLineAudiences, narrowcastCampaign, saveCampaign, sendCampaign } from '@/lib/campaigns';
+import { BroadcastCampaign, LineAudience, cancelSchedule, deleteCampaign, listCampaigns, listLineAudiences, narrowcastCampaign, saveCampaign, scheduleCampaign, sendCampaign } from '@/lib/campaigns';
 import { buildQuickReply } from '@/lib/draftMessaging';
 
 const MAX_DRAFTS = 3;
@@ -10,9 +10,10 @@ const MAX_DRAFTS = 3;
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    sent:    { label: '已發送', cls: 'bg-[#EAF4ED] text-[#4E735D] border border-[#B8D9C4]' },
-    failed:  { label: '失敗',   cls: 'bg-red-50 text-red-600 border border-red-200' },
-    pending: { label: '待發送', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
+    sent:      { label: '已發送', cls: 'bg-[#EAF4ED] text-[#4E735D] border border-[#B8D9C4]' },
+    failed:    { label: '失敗',   cls: 'bg-red-50 text-red-600 border border-red-200' },
+    scheduled: { label: '排程中', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
+    draft:     { label: '草稿',   cls: 'bg-[#F0F0F0] text-[#6B6B6B] border border-[#E8E8E8]' },
   };
   const s = map[status] ?? { label: status, cls: 'bg-[#F0F0F0] text-[#6B6B6B] border border-[#E8E8E8]' };
   return (
@@ -35,13 +36,17 @@ export default function Campaigns() {
   const [sending, setSending]         = useState<string | null>(null);
   const [includeQuickReply, setIncludeQuickReply] = useState(true);
   const [sendOptions, setSendOptions] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab]     = useState<'all' | 'pending' | 'sent' | 'failed'>('all');
+  const [activeTab, setActiveTab]     = useState<'all' | 'scheduled' | 'sent' | 'failed'>('all');
   // 受眾推播 modal
   const [audienceModal, setAudienceModal]         = useState<BroadcastCampaign | null>(null);
   const [audiences, setAudiences]                 = useState<LineAudience[]>([]);
   const [loadingAudiences, setLoadingAudiences]   = useState(false);
   const [selectedAudienceId, setSelectedAudienceId] = useState('');
   const [narrowcasting, setNarrowcasting]         = useState(false);
+  // 排程推播 modal
+  const [scheduleModal, setScheduleModal]         = useState<BroadcastCampaign | null>(null);
+  const [scheduleAt, setScheduleAt]               = useState('');
+  const [scheduling, setScheduling]               = useState(false);
 
   const load = async () => {
     const [docRows, campaignRows] = await Promise.all([listDocs(), listCampaigns()]);
@@ -135,6 +140,49 @@ export default function Campaigns() {
       setMsg({ text: `受眾推播失敗：${err.message || '未知錯誤'}`, ok: false });
     } finally {
       setNarrowcasting(false);
+    }
+  }
+
+  function openScheduleModal(row: BroadcastCampaign) {
+    setScheduleModal(row);
+    if (row.scheduled_at) {
+      const local = new Date(new Date(row.scheduled_at).getTime() - new Date().getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 16);
+      setScheduleAt(local);
+    } else {
+      setScheduleAt('');
+    }
+  }
+
+  async function handleSchedule() {
+    if (!scheduleModal || !scheduleAt) return;
+    setScheduling(true);
+    setMsg(null);
+    try {
+      await scheduleCampaign(scheduleModal.id, new Date(scheduleAt).toISOString());
+      setMsg({ text: `「${scheduleModal.name}」排程已設定`, ok: true });
+      setScheduleModal(null);
+      await load();
+    } catch (err: any) {
+      setMsg({ text: `排程設定失敗：${err.message || '未知錯誤'}`, ok: false });
+    } finally {
+      setScheduling(false);
+    }
+  }
+
+  async function handleCancelSchedule() {
+    if (!scheduleModal) return;
+    setScheduling(true);
+    setMsg(null);
+    try {
+      await cancelSchedule(scheduleModal.id);
+      setMsg({ text: `「${scheduleModal.name}」排程已取消`, ok: true });
+      setScheduleModal(null);
+      await load();
+    } catch (err: any) {
+      setMsg({ text: `取消排程失敗：${err.message || '未知錯誤'}`, ok: false });
+    } finally {
+      setScheduling(false);
     }
   }
 
@@ -371,7 +419,7 @@ export default function Campaigns() {
         {(() => {
           const tabs: { key: typeof activeTab; label: string }[] = [
             { key: 'all',     label: '全部' },
-            { key: 'pending', label: '排程中' },
+            { key: 'scheduled', label: '排程中' },
             { key: 'sent',    label: '已發送' },
             { key: 'failed',  label: '發送失敗' },
           ];
@@ -432,6 +480,12 @@ export default function Campaigns() {
                         </span>
                       ))}
                     </div>
+                    {row.scheduled_at && row.status === 'scheduled' && (
+                      <p className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        排程時間：{new Date(row.scheduled_at).toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' })}
+                      </p>
+                    )}
                     {row.audience_group_name && (
                       <p className="text-xs text-[#6B6B6B] flex items-center gap-1 mt-0.5">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
@@ -458,7 +512,16 @@ export default function Campaigns() {
                     </label>
                     <div className="flex gap-2">
                       <button
-                        disabled={sending === row.id || narrowcasting}
+                        disabled={sending === row.id || narrowcasting || scheduling}
+                        onClick={() => openScheduleModal(row)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7C9CD] text-[#6B6B6B] hover:bg-[#FFF7F8] hover:border-[#A35D5D] hover:text-[#A35D5D] px-3 py-2 text-xs font-semibold disabled:opacity-50 transition-colors"
+                        title="排程推播"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {row.status === 'scheduled' ? '更新排程' : '排程'}
+                      </button>
+                      <button
+                        disabled={sending === row.id || narrowcasting || scheduling}
                         onClick={() => openAudienceModal(row)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[#A35D5D] text-[#A35D5D] hover:bg-[#FFF7F8] px-4 py-2 text-xs font-semibold disabled:opacity-50 transition-colors"
                       >
@@ -466,7 +529,7 @@ export default function Campaigns() {
                         受眾推播
                       </button>
                       <button
-                        disabled={sending === row.id || narrowcasting}
+                        disabled={sending === row.id || narrowcasting || scheduling}
                         onClick={() => handleSend(row)}
                         className="inline-flex items-center gap-1.5 rounded-lg bg-[#A35D5D] hover:bg-[#8F4A4A] text-white px-4 py-2 text-xs font-semibold disabled:opacity-50 transition-colors"
                       >
@@ -479,11 +542,12 @@ export default function Campaigns() {
                         }
                       </button>
                       <button
-                        disabled={sending === row.id || narrowcasting}
+                        disabled={sending === row.id || narrowcasting || scheduling}
                         onClick={async () => { await deleteCampaign(row.id); await load(); }}
-                        className="rounded-lg border border-[#E8E8E8] px-4 py-2 text-xs font-medium text-[#555555] hover:bg-[#F5F5F5] hover:border-[#DDDDDD] disabled:opacity-50 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E8E8E8] text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 hover:border-red-200 disabled:opacity-50 transition-colors"
+                        title="刪除"
                       >
-                        刪除
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                       </button>
                     </div>
                   </div>
@@ -563,6 +627,82 @@ export default function Campaigns() {
               >
                 {narrowcasting ? <><Spinner />發送中…</> : '立即發布'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 排程推播 Modal ───────────────────────────────────────────── */}
+      {scheduleModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !scheduling && setScheduleModal(null)} />
+          <div className="relative w-[94%] max-w-sm rounded-2xl bg-white shadow-2xl border border-[#E7C9CD] overflow-hidden">
+
+            <div className="px-6 py-5 border-b border-[#F0E3E5]">
+              <div className="text-base font-semibold text-[#2B2B2B]">排程推播</div>
+              <div className="mt-1 text-sm text-[#6B6B6B]">設定推播時間，系統將於指定時間自動發送。</div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="rounded-xl bg-[#F5F5F5] px-4 py-3">
+                <p className="text-xs text-[#6B6B6B]">推播名稱</p>
+                <p className="text-sm font-medium text-[#2B2B2B] mt-0.5">{scheduleModal.name}</p>
+              </div>
+
+              {scheduleModal.scheduled_at && (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                  <p className="text-xs text-amber-700">目前排程時間</p>
+                  <p className="text-sm font-medium text-amber-800 mt-0.5">
+                    {new Date(scheduleModal.scheduled_at).toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' })}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-[#2B2B2B]">
+                  {scheduleModal.scheduled_at ? '更新排程時間' : '排程時間'} <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  value={scheduleAt}
+                  min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                  onChange={(e) => setScheduleAt(e.target.value)}
+                  className="w-full rounded-xl border border-[#E7C9CD] px-4 py-2.5 text-sm text-[#2B2B2B] focus:border-[#A35D5D] focus:ring-2 focus:ring-[#A35D5D]/15 outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-[#F0E3E5] bg-[#FFF7F8]/50 flex items-center justify-between gap-2">
+              <div>
+                {scheduleModal.scheduled_at && (
+                  <button
+                    type="button"
+                    disabled={scheduling}
+                    onClick={handleCancelSchedule}
+                    className="px-4 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    取消排程
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={scheduling}
+                  onClick={() => setScheduleModal(null)}
+                  className="px-4 py-2 text-sm text-[#555555] hover:bg-[#F5F5F5] rounded-lg transition-colors disabled:opacity-50"
+                >
+                  關閉
+                </button>
+                <button
+                  type="button"
+                  disabled={!scheduleAt || scheduling}
+                  onClick={handleSchedule}
+                  className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {scheduling ? <><Spinner />設定中…</> : (scheduleModal.scheduled_at ? '更新排程' : '確認排程')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

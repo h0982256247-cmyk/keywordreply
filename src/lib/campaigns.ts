@@ -9,7 +9,7 @@ export type BroadcastCampaign = {
   name: string;
   draft_id: string;
   draft_ids?: string[] | null;
-  status: 'draft' | 'sent' | 'failed';
+  status: 'draft' | 'sent' | 'failed' | 'scheduled';
   include_quick_reply: boolean;
   sent_at: string | null;
   created_at: string;
@@ -18,6 +18,7 @@ export type BroadcastCampaign = {
   audience_group_id?: string | null;
   audience_group_name?: string | null;
   narrowcast_request_id?: string | null;
+  scheduled_at?: string | null;
 };
 
 export type LineAudience = {
@@ -95,6 +96,26 @@ export async function narrowcastCampaign(
     audienceGroupName,
     messages: allMessages,
   });
+}
+
+export async function scheduleCampaign(id: string, scheduledAt: string) {
+  const user = await requireUser();
+  const { error } = await supabase
+    .from('broadcast_campaigns')
+    .update({ scheduled_at: scheduledAt, status: 'scheduled' })
+    .eq('id', id)
+    .eq('user_id', user.id);
+  if (error) throw error;
+}
+
+export async function cancelSchedule(id: string) {
+  const user = await requireUser();
+  const { error } = await supabase
+    .from('broadcast_campaigns')
+    .update({ scheduled_at: null, status: 'draft' })
+    .eq('id', id)
+    .eq('user_id', user.id);
+  if (error) throw error;
 }
 
 export async function deleteCampaign(id: string) {

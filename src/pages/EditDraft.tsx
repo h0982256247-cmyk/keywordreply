@@ -1331,6 +1331,64 @@ export default function EditDraft() {
                           options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"},{value:"1.91:1",label:"1.91:1"}]}
                         />
                       </div>
+                      {(() => {
+                        const heroArr = (section as any).hero || [];
+                        const heroImage = heroArr.find((c: any) => c.kind === "hero_image");
+                        if (!heroImage?.image?.url || heroImage.image.url.includes("placehold.co")) return null;
+                        return (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-semibold text-[#555555]">點擊動作</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const hero = heroArr.map((c: any) =>
+                                    c.kind === "hero_image"
+                                      ? { ...c, action: c.action ? undefined : { type: "uri", uri: "" } }
+                                      : c
+                                  );
+                                  setSection({ ...section, hero });
+                                }}
+                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${heroImage?.action ? "bg-[#A35D5D]" : "bg-[#E0E0E0]"}`}
+                              >
+                                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${heroImage?.action ? "translate-x-4" : "translate-x-0.5"}`} />
+                              </button>
+                            </div>
+                            {heroImage?.action && (
+                              <div className="space-y-2">
+                                <GlassSelect
+                                  size="sm"
+                                  value={heroImage.action.type}
+                                  onChange={(val) => {
+                                    const hero = heroArr.map((c: any) =>
+                                      c.kind === "hero_image"
+                                        ? { ...c, action: val === "uri" ? { type: "uri", uri: "" } : { type: "message", text: "" } }
+                                        : c
+                                    );
+                                    setSection({ ...section, hero });
+                                  }}
+                                  options={[{ value: "uri", label: "開啟網址" }, { value: "message", label: "傳送文字" }]}
+                                />
+                                <input
+                                  className="w-full px-3 py-2 bg-white border border-[#E7C9CD] rounded-lg text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition-all"
+                                  placeholder={heroImage.action.type === "uri" ? "https://example.com" : "回傳的文字內容"}
+                                  value={heroImage.action.type === "uri" ? ((heroImage.action as any).uri || "") : ((heroImage.action as any).text || "")}
+                                  onChange={(e) => {
+                                    const hero = heroArr.map((c: any) => {
+                                      if (c.kind !== "hero_image") return c;
+                                      const action = c.action.type === "uri"
+                                        ? { ...c.action, uri: e.target.value }
+                                        : { ...c.action, text: e.target.value };
+                                      return { ...c, action };
+                                    });
+                                    setSection({ ...section, hero });
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </AccordionSection>
 
@@ -2165,6 +2223,64 @@ export default function EditDraft() {
                             options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"},{value:"1.91:1",label:"1.91:1"}]}
                           />
                         </div>
+                        {(() => {
+                          const heroArr = (section as any).hero || [];
+                          const heroImage = heroArr.find((c: any) => c.kind === "hero_image");
+                          if (!heroImage?.image?.url || heroImage.image.url.includes("placehold.co")) return null;
+                          return (
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-semibold text-[#555555]">點擊動作</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const hero = heroArr.map((c: any) =>
+                                      c.kind === "hero_image"
+                                        ? { ...c, action: c.action ? undefined : { type: "uri", uri: "" } }
+                                        : c
+                                    );
+                                    setSection({ ...section, hero });
+                                  }}
+                                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${heroImage?.action ? "bg-[#A35D5D]" : "bg-[#E0E0E0]"}`}
+                                >
+                                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${heroImage?.action ? "translate-x-4" : "translate-x-0.5"}`} />
+                                </button>
+                              </div>
+                              {heroImage?.action && (
+                                <div className="space-y-2">
+                                  <GlassSelect
+                                    size="sm"
+                                    value={heroImage.action.type}
+                                    onChange={(val) => {
+                                      const hero = heroArr.map((c: any) =>
+                                        c.kind === "hero_image"
+                                          ? { ...c, action: val === "uri" ? { type: "uri", uri: "" } : { type: "message", text: "" } }
+                                          : c
+                                      );
+                                      setSection({ ...section, hero });
+                                    }}
+                                    options={[{ value: "uri", label: "開啟網址" }, { value: "message", label: "傳送文字" }]}
+                                  />
+                                  <input
+                                    className="w-full px-3 py-2 bg-white border border-[#E7C9CD] rounded-lg text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition-all"
+                                    placeholder={heroImage.action.type === "uri" ? "https://example.com" : "回傳的文字內容"}
+                                    value={heroImage.action.type === "uri" ? ((heroImage.action as any).uri || "") : ((heroImage.action as any).text || "")}
+                                    onChange={(e) => {
+                                      const hero = heroArr.map((c: any) => {
+                                        if (c.kind !== "hero_image") return c;
+                                        const action = c.action.type === "uri"
+                                          ? { ...c.action, uri: e.target.value }
+                                          : { ...c.action, text: e.target.value };
+                                        return { ...c, action };
+                                      });
+                                      setSection({ ...section, hero });
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </AccordionSection>

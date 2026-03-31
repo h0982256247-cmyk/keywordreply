@@ -95,6 +95,7 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
         aspectRatio: heroImg.ratio || "20:13",
         aspectMode: heroImg.mode || "cover",
       };
+      if (heroImg.action) hero.action = actionToFlex(heroImg.action, undefined, docId, token, liffId);
     }
   }
 

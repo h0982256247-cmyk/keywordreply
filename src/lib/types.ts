@@ -30,7 +30,7 @@ export type QuickReplyConfig = {
 
 export type ComponentBase = { id: string; kind: string; enabled: boolean };
 
-export type HeroImage = ComponentBase & { kind: "hero_image"; image: ImageSource; ratio: ImgRatio; mode: ImgMode };
+export type HeroImage = ComponentBase & { kind: "hero_image"; image: ImageSource; ratio: ImgRatio; mode: ImgMode; action?: Action };
 export type HeroVideo = ComponentBase & { kind: "hero_video"; video: VideoSource; ratio: ImgRatio | "1:1"; action?: Action };
 
 export type BlockStyle = { backgroundColor?: string };

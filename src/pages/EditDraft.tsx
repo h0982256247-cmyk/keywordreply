@@ -26,6 +26,55 @@ function moveItem<T>(arr: T[], from: number, to: number): T[] {
   return next;
 }
 
+function HeroImageActionEditor({ hero, onChange }: { hero: any[]; onChange: (hero: any[]) => void }) {
+  const heroImage = hero.find((c: any) => c.kind === "hero_image");
+  if (!heroImage?.image?.url || heroImage.image.url.includes("placehold.co")) return null;
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-semibold text-[#555555]">點擊動作</span>
+        <button
+          type="button"
+          onClick={() => onChange(hero.map((c: any) =>
+            c.kind === "hero_image"
+              ? { ...c, action: c.action ? undefined : { type: "uri", uri: "" } }
+              : c
+          ))}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${heroImage.action ? "bg-[#A35D5D]" : "bg-[#E0E0E0]"}`}
+        >
+          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${heroImage.action ? "translate-x-4" : "translate-x-0.5"}`} />
+        </button>
+      </div>
+      {heroImage.action && (
+        <div className="space-y-2">
+          <GlassSelect
+            size="sm"
+            value={heroImage.action.type}
+            onChange={(val) => onChange(hero.map((c: any) =>
+              c.kind === "hero_image"
+                ? { ...c, action: val === "uri" ? { type: "uri", uri: "" } : { type: "message", text: "" } }
+                : c
+            ))}
+            options={[{ value: "uri", label: "開啟網址" }, { value: "message", label: "傳送文字" }]}
+          />
+          <input
+            className="w-full px-3 py-2 bg-white border border-[#E7C9CD] rounded-lg text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition-all"
+            placeholder={heroImage.action.type === "uri" ? "https://example.com" : "回傳的文字內容"}
+            value={heroImage.action.type === "uri" ? (heroImage.action.uri || "") : (heroImage.action.text || "")}
+            onChange={(e) => onChange(hero.map((c: any) => {
+              if (c.kind !== "hero_image") return c;
+              const action = c.action.type === "uri"
+                ? { ...c.action, uri: e.target.value }
+                : { ...c.action, text: e.target.value };
+              return { ...c, action };
+            }))}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EditDraft() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -187,10 +236,12 @@ export default function EditDraft() {
     if (isSpecialCard || isVideoHero) return; // Special cards and video heroes don't have hero_image
     const regularSection = section as any;
     const heroArr: any[] = regularSection.hero || [];
-    const hasHeroImage = heroArr.some((c: any) => c.kind === "hero_image");
-    const hero = hasHeroImage
-      ? heroArr.map((c: any) => (c.kind === "hero_image" ? { ...c, image: img } : c))
-      : [...heroArr, { id: uid("hero_"), kind: "hero_image", enabled: true, image: img, ratio: "20:13", mode: "cover" }];
+    let found = false;
+    const mapped = heroArr.map((c: any) => {
+      if (c.kind === "hero_image") { found = true; return { ...c, image: img }; }
+      return c;
+    });
+    const hero = found ? mapped : [...heroArr, { id: uid("hero_"), kind: "hero_image", enabled: true, image: img, ratio: "20:13", mode: "cover" }];
     setSection({ ...regularSection, hero });
   };
 
@@ -1331,64 +1382,10 @@ export default function EditDraft() {
                           options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"},{value:"1.91:1",label:"1.91:1"}]}
                         />
                       </div>
-                      {(() => {
-                        const heroArr = (section as any).hero || [];
-                        const heroImage = heroArr.find((c: any) => c.kind === "hero_image");
-                        if (!heroImage?.image?.url || heroImage.image.url.includes("placehold.co")) return null;
-                        return (
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-semibold text-[#555555]">點擊動作</span>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const hero = heroArr.map((c: any) =>
-                                    c.kind === "hero_image"
-                                      ? { ...c, action: c.action ? undefined : { type: "uri", uri: "" } }
-                                      : c
-                                  );
-                                  setSection({ ...section, hero });
-                                }}
-                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${heroImage?.action ? "bg-[#A35D5D]" : "bg-[#E0E0E0]"}`}
-                              >
-                                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${heroImage?.action ? "translate-x-4" : "translate-x-0.5"}`} />
-                              </button>
-                            </div>
-                            {heroImage?.action && (
-                              <div className="space-y-2">
-                                <GlassSelect
-                                  size="sm"
-                                  value={heroImage.action.type}
-                                  onChange={(val) => {
-                                    const hero = heroArr.map((c: any) =>
-                                      c.kind === "hero_image"
-                                        ? { ...c, action: val === "uri" ? { type: "uri", uri: "" } : { type: "message", text: "" } }
-                                        : c
-                                    );
-                                    setSection({ ...section, hero });
-                                  }}
-                                  options={[{ value: "uri", label: "開啟網址" }, { value: "message", label: "傳送文字" }]}
-                                />
-                                <input
-                                  className="w-full px-3 py-2 bg-white border border-[#E7C9CD] rounded-lg text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition-all"
-                                  placeholder={heroImage.action.type === "uri" ? "https://example.com" : "回傳的文字內容"}
-                                  value={heroImage.action.type === "uri" ? ((heroImage.action as any).uri || "") : ((heroImage.action as any).text || "")}
-                                  onChange={(e) => {
-                                    const hero = heroArr.map((c: any) => {
-                                      if (c.kind !== "hero_image") return c;
-                                      const action = c.action.type === "uri"
-                                        ? { ...c.action, uri: e.target.value }
-                                        : { ...c.action, text: e.target.value };
-                                      return { ...c, action };
-                                    });
-                                    setSection({ ...section, hero });
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                      <HeroImageActionEditor
+                        hero={(section as any).hero || []}
+                        onChange={(hero) => setSection({ ...section, hero })}
+                      />
                     </div>
                   </AccordionSection>
 
@@ -2198,7 +2195,7 @@ export default function EditDraft() {
                           <div className="flex items-center gap-3 px-3 py-2 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl">
                             <img src={heroImage.image.url} alt="封面圖" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[#E7C9CD]" />
                             <span className="text-sm text-[#2B2B2B] truncate flex-1">封面圖片</span>
-                            <button type="button" onClick={() => { const heroArr2 = (section as any).hero || []; setSection({ ...section, hero: heroArr2.filter((c: any) => c.kind !== "hero_image") }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除圖片">
+                            <button type="button" onClick={() => { const heroArr = (section as any).hero || []; setSection({ ...section, hero: heroArr.filter((c: any) => c.kind !== "hero_image") }); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0" title="移除圖片">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                             </button>
                           </div>
@@ -2223,64 +2220,10 @@ export default function EditDraft() {
                             options={[{value:"20:13",label:"20:13"},{value:"16:9",label:"16:9"},{value:"4:3",label:"4:3"},{value:"1:1",label:"1:1"},{value:"9:16",label:"9:16"},{value:"1.91:1",label:"1.91:1"}]}
                           />
                         </div>
-                        {(() => {
-                          const heroArr = (section as any).hero || [];
-                          const heroImage = heroArr.find((c: any) => c.kind === "hero_image");
-                          if (!heroImage?.image?.url || heroImage.image.url.includes("placehold.co")) return null;
-                          return (
-                            <div className="mt-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-semibold text-[#555555]">點擊動作</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const hero = heroArr.map((c: any) =>
-                                      c.kind === "hero_image"
-                                        ? { ...c, action: c.action ? undefined : { type: "uri", uri: "" } }
-                                        : c
-                                    );
-                                    setSection({ ...section, hero });
-                                  }}
-                                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${heroImage?.action ? "bg-[#A35D5D]" : "bg-[#E0E0E0]"}`}
-                                >
-                                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${heroImage?.action ? "translate-x-4" : "translate-x-0.5"}`} />
-                                </button>
-                              </div>
-                              {heroImage?.action && (
-                                <div className="space-y-2">
-                                  <GlassSelect
-                                    size="sm"
-                                    value={heroImage.action.type}
-                                    onChange={(val) => {
-                                      const hero = heroArr.map((c: any) =>
-                                        c.kind === "hero_image"
-                                          ? { ...c, action: val === "uri" ? { type: "uri", uri: "" } : { type: "message", text: "" } }
-                                          : c
-                                      );
-                                      setSection({ ...section, hero });
-                                    }}
-                                    options={[{ value: "uri", label: "開啟網址" }, { value: "message", label: "傳送文字" }]}
-                                  />
-                                  <input
-                                    className="w-full px-3 py-2 bg-white border border-[#E7C9CD] rounded-lg text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#A35D5D]/15 focus:border-[#A35D5D] transition-all"
-                                    placeholder={heroImage.action.type === "uri" ? "https://example.com" : "回傳的文字內容"}
-                                    value={heroImage.action.type === "uri" ? ((heroImage.action as any).uri || "") : ((heroImage.action as any).text || "")}
-                                    onChange={(e) => {
-                                      const hero = heroArr.map((c: any) => {
-                                        if (c.kind !== "hero_image") return c;
-                                        const action = c.action.type === "uri"
-                                          ? { ...c.action, uri: e.target.value }
-                                          : { ...c.action, text: e.target.value };
-                                        return { ...c, action };
-                                      });
-                                      setSection({ ...section, hero });
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
+                        <HeroImageActionEditor
+                          hero={(section as any).hero || []}
+                          onChange={(hero) => setSection({ ...section, hero })}
+                        />
                       </div>
                     )}
                   </AccordionSection>

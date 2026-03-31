@@ -14,32 +14,45 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
   onClose: () => void;
   onUpdated: () => void;
 }) {
-  const existing = draft.scheduled_at ? new Date(draft.scheduled_at) : new Date();
+  const existing = draft.scheduled_at ? new Date(draft.scheduled_at) : new Date(Date.now() + 3600_000);
   const [year, setYear] = useState(existing.getFullYear());
   const [month, setMonth] = useState(existing.getMonth() + 1);
   const [day, setDay] = useState(existing.getDate());
   const [hour, setHour] = useState(existing.getHours());
   const [min, setMin] = useState(Math.ceil(existing.getMinutes() / 5) * 5 % 60);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
   const handleUpdate = async () => {
     setSaving(true);
-    const scheduledAt = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(min)}:00`;
-    await saveRmDraft(draft.id, { data: { ...draft.data, scheduled_at: scheduledAt }, scheduled_at: scheduledAt });
-    setSaving(false);
-    onUpdated();
-    onClose();
+    setErr(null);
+    try {
+      const scheduledAt = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(min)}:00`;
+      await saveRmDraft(draft.id, { data: { ...draft.data, scheduled_at: scheduledAt }, scheduled_at: scheduledAt });
+      onUpdated();
+      onClose();
+    } catch (e: any) {
+      setErr(e.message || "儲存失敗");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = async () => {
     setSaving(true);
-    const { scheduled_at, ...rest } = draft.data as any;
-    await saveRmDraft(draft.id, { data: rest, scheduled_at: null });
-    setSaving(false);
-    onUpdated();
-    onClose();
+    setErr(null);
+    try {
+      const { scheduled_at, ...rest } = draft.data as any;
+      await saveRmDraft(draft.id, { data: rest, scheduled_at: null });
+      onUpdated();
+      onClose();
+    } catch (e: any) {
+      setErr(e.message || "取消失敗");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const selectCls = "w-full rounded-lg border border-[#E0E0E0] px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]";
@@ -99,9 +112,12 @@ function ScheduleModal({ draft, onClose, onUpdated }: {
             </div>
           </div>
         </div>
+        {err && <p className="px-4 pb-2 text-xs text-red-500">{err}</p>}
         <div className="px-4 py-4 flex gap-2">
           <button onClick={handleUpdate} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors disabled:opacity-50">更新排程</button>
-          <button onClick={handleCancel} disabled={saving} className="flex-1 py-2.5 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50">取消排程</button>
+          {draft.scheduled_at && (
+            <button onClick={handleCancel} disabled={saving} className="flex-1 py-2.5 text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors disabled:opacity-50">取消排程</button>
+          )}
         </div>
       </div>
     </div>
@@ -458,7 +474,7 @@ export default function RichMenus() {
               <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">選單數量</th>
               <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">資料夾</th>
               <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">狀態</th>
-              <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">最後更新</th>
+              <th className="text-left px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">時間</th>
               <th className="text-right px-5 py-3 font-medium text-[#4F4F4F] text-xs tracking-wide">操作</th>
             </tr>
           </thead>
@@ -507,21 +523,23 @@ export default function RichMenus() {
                   )}
                 </td>
                 <td className="px-5 py-3.5 text-[#AAAAAA] text-xs tabular-nums">
-                  {new Date(d.updated_at).toLocaleString("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}
+                  {d.scheduled_at
+                    ? <span className="text-[#4F46E5]">{new Date(d.scheduled_at).toLocaleString("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}</span>
+                    : new Date(d.updated_at).toLocaleString("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })
+                  }
                 </td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center justify-end gap-1">
-                    {isScheduled(d) && (
-                      <button
-                        className="w-9 h-9 flex items-center justify-center text-[#4F46E5] hover:text-[#4F46E5] hover:bg-[#EEF2FF] rounded-lg transition-colors"
-                        onClick={() => setSchedulingDraft(d)}
-                        title="排程設定"
-                      >
-                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                      </button>
-                    )}
+                    <button
+                      className={`flex items-center gap-1 px-2 h-8 text-xs font-medium rounded-lg transition-colors ${d.scheduled_at ? "text-[#4F46E5] hover:bg-[#EEF2FF]" : "text-[#8A8A8A] hover:text-[#4F46E5] hover:bg-[#EEF2FF]"}`}
+                      onClick={() => setSchedulingDraft(d)}
+                      title="排程設定"
+                    >
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      排程
+                    </button>
                     <button
                       className="w-9 h-9 flex items-center justify-center text-[#8A8A8A] hover:text-[#A35D5D] hover:bg-[#FBEBEE] rounded-lg transition-colors"
                       onClick={() => nav(`/rich-menus/${d.id}/edit`)}

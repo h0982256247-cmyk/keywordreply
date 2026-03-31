@@ -171,14 +171,8 @@ async function publishMenus(draft: any, lineToken: string, adminClient: any) {
   return results;
 }
 
-serve(async (req) => {
-  // Only allow POST from internal cron (verified by service role key)
-  const authHeader = req.headers.get("Authorization") ?? "";
+serve(async (_req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  if (authHeader !== `Bearer ${serviceKey}`) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-  }
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const adminClient = createClient(supabaseUrl, serviceKey);
 

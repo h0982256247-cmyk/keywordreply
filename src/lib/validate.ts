@@ -155,7 +155,7 @@ export function validateDoc(doc: DocModel): ValidationReport {
       }
     });
 
-    doc.cards.forEach((c, i) => checkSection(c.section, `cards[${i}].section`, true));
+    doc.cards.forEach((c, i) => checkSection(c.section, `cards[${i}].section`, false));
   }
 
   const status: ValidationReport["status"] =

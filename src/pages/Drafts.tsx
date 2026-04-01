@@ -140,15 +140,6 @@ const MSG_TYPES = [
     ),
   },
   {
-    id: "sticker", label: "貼圖", enabled: false,
-    desc: "發送 LINE 官方貼圖，增加訊息的趣味性。",
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="9" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" />
-      </svg>
-    ),
-  },
-  {
     id: "image", label: "圖片", enabled: false,
     desc: "發送單張圖片訊息，支援 JPEG、PNG 格式。",
     icon: (
@@ -158,57 +149,11 @@ const MSG_TYPES = [
     ),
   },
   {
-    id: "coupon", label: "優惠券", enabled: false,
-    desc: "發送優惠券訊息，適合促銷活動和會員回饋。",
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-      </svg>
-    ),
-  },
-  {
-    id: "imagemap", label: "圖文訊息", enabled: false,
-    desc: "在圖片上設定可點擊區域，引導用戶執行不同動作。",
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="12" y1="3" x2="12" y2="21" />
-      </svg>
-    ),
-  },
-  {
-    id: "advvideo", label: "進階影片", enabled: false,
-    desc: "發送附有動作按鈕的進階影片訊息。",
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m10 9 5 3-5 3V9z" />
-        <line x1="16" y1="2" x2="16" y2="4" /><line x1="8" y1="2" x2="8" y2="4" />
-      </svg>
-    ),
-  },
-  {
     id: "video", label: "影片", enabled: true, direct: true,
     desc: "使用影片 Bubble 建立含播放鍵的影片訊息。",
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" />
-      </svg>
-    ),
-  },
-  {
-    id: "audio", label: "語音訊息", enabled: false,
-    desc: "發送語音訊息，適合個人化的溝通方式。",
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" />
-      </svg>
-    ),
-  },
-  {
-    id: "survey", label: "問卷", enabled: false,
-    desc: "發送問卷調查，收集用戶意見與回饋。",
-    icon: (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /><line x1="9" y1="12" x2="15" y2="12" /><line x1="9" y1="16" x2="12" y2="16" />
       </svg>
     ),
   },

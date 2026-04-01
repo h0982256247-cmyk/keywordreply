@@ -423,24 +423,15 @@ export default function EditImagemap() {
   return (
     <div className="flex flex-col h-screen bg-[#FAF8F8]">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-[#F0E3E5] shrink-0">
+      <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-[#F0E3E5] shrink-0">
         <button
           onClick={() => nav("/drafts")}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-[#AAAAAA] hover:text-[#555555] hover:bg-[#F0F0F0] transition-colors flex-shrink-0"
+          className="p-1.5 rounded-lg text-[#AAAAAA] hover:bg-[#F5F5F5] hover:text-[#6B6B6B] transition-colors"
         >
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 5l-7 7 7 7" />
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <div className="w-8 h-8 rounded-lg bg-[#FBEBEE] flex items-center justify-center shrink-0 text-[#A35D5D]">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-        </div>
-        <span className="text-sm font-semibold text-[#1A1A1A] shrink-0">訊息管理</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
         <input
           type="text"
           value={doc.title}
@@ -448,7 +439,14 @@ export default function EditImagemap() {
           className="flex-1 text-sm font-semibold text-[#2B2B2B] bg-transparent border-none outline-none min-w-0"
           placeholder="草稿名稱"
         />
-        {saveMsg && <span className="text-xs text-[#AAAAAA] shrink-0">{saveMsg}</span>}
+        {saveMsg && <span className="text-xs text-[#6B6B6B]">{saveMsg}</span>}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-4 py-1.5 text-sm font-medium text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors disabled:opacity-50"
+        >
+          {saving ? "儲存中..." : "儲存"}
+        </button>
       </div>
 
       {/* Validation error banner */}

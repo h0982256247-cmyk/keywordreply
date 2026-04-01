@@ -205,8 +205,8 @@ export default function EditImagemap() {
 
   // Upload image to Supabase Storage
   async function handleImageUpload(file: File) {
-    if (file.size > 10 * 1024 * 1024) {
-      setSaveMsg("❌ 圖片過大，請小於 10MB");
+    if (file.size > 1 * 1024 * 1024) {
+      alert(`圖片檔案過大（${(file.size / 1024 / 1024).toFixed(1)} MB）\n請上傳 1MB 以下的圖片。`);
       return;
     }
     setUploading(true);
@@ -529,7 +529,7 @@ export default function EditImagemap() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="text-sm font-medium text-[#6B6B6B]">點擊上傳圖片</span>
-                    <span className="text-xs text-[#AAAAAA]">或拖拉圖片到此區域 · 支援 JPG、PNG · 最大 10MB</span>
+                    <span className="text-xs text-[#AAAAAA]">或拖拉圖片到此區域 · 支援 JPG、PNG · 最大 1MB</span>
                   </div>
                 )}
                 <input

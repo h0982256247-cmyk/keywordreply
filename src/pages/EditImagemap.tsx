@@ -115,6 +115,7 @@ export default function EditImagemap() {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Canvas / drag state
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,8 +145,36 @@ export default function EditImagemap() {
     }, 800);
   }, [id]);
 
+  const VALID_SCHEMES = ["https://", "http://", "tel:", "mailto:", "line://", "linemusic://"];
+
+  function validateDoc(d: ImagemapDoc) {
+    const errs: string[] = [];
+    d.areas.forEach((area, i) => {
+      if (area.action.type === "uri") {
+        const uri = area.action.linkUri.trim();
+        if (!uri) {
+          errs.push(`熱區 ${i + 1}：連結網址不能為空`);
+        } else if (!VALID_SCHEMES.some(s => uri.startsWith(s))) {
+          errs.push(`熱區 ${i + 1}：連結須以 https://、http://、tel:、mailto:、line:// 開頭`);
+        }
+      } else if (area.action.type === "message" && !area.action.text.trim()) {
+        errs.push(`熱區 ${i + 1}：訊息文字不能為空`);
+      }
+    });
+    // Overlap check
+    for (let i = 0; i < d.areas.length; i++) {
+      for (let j = i + 1; j < d.areas.length; j++) {
+        const a = d.areas[i].bounds, b = d.areas[j].bounds;
+        const noOverlap = a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
+        if (!noOverlap) errs.push(`熱區 ${i + 1} 與熱區 ${j + 1} 重疊`);
+      }
+    }
+    setValidationErrors(errs);
+  }
+
   function updateDoc(d: ImagemapDoc) {
     setDoc(d);
+    validateDoc(d);
     scheduleSave(d);
   }
 
@@ -334,6 +363,20 @@ export default function EditImagemap() {
         </button>
       </div>
 
+      {/* Validation error banner */}
+      {validationErrors.length > 0 && (
+        <div className="mx-4 mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex gap-3 items-start shrink-0">
+          <svg className="shrink-0 mt-0.5 text-red-500" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <ul className="flex flex-col gap-0.5">
+            {validationErrors.map((e: string, i: number) => (
+              <li key={i} className="text-xs text-red-600">{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         {/* Left: canvas editor */}
         <div className="flex-1 flex flex-col gap-4 p-5 overflow-y-auto">
@@ -342,7 +385,7 @@ export default function EditImagemap() {
           <div className="bg-white rounded-2xl border border-[#F0E3E5] p-4 flex flex-col gap-3">
             <p className="text-xs font-semibold text-[#555] uppercase tracking-wide">訊息設定</p>
             <div>
-              <label className="text-xs text-[#6B6B6B] mb-1 block">替代文字（LINE 通知顯示）</label>
+              <label className="text-xs text-[#6B6B6B] mb-1 block">LINE 通知顯示</label>
               <input
                 type="text"
                 placeholder="熱區圖片"

@@ -58,7 +58,7 @@ export default function AppShell() {
   const location = useLocation();
   const [checkingChannel, setCheckingChannel] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const isEditRoute = /^\/drafts\/[^/]+\/edit$/.test(location.pathname) || /^\/rich-menus\/[^/]+\/edit$/.test(location.pathname);
+  const isEditRoute = /^\/drafts\/[^/]+\/edit$/.test(location.pathname) || /^\/rich-menus\/[^/]+\/edit$/.test(location.pathname) || /^\/drafts\/[^/]+\/imagemap$/.test(location.pathname);
   const pageMeta = usePageMeta(location.pathname);
 
   useEffect(() => {

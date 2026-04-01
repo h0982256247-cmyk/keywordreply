@@ -123,6 +123,7 @@ function RichMenuCanvas({
     if (!drawing) return;
     setDrawing(false);
     if (!drawRect || drawRect.w < 20 || drawRect.h < 20) { setDrawRect(null); return; }
+    if (menu.areas.length >= 20) { alert("每個選單層最多只能設定 20 個熱區。"); setDrawRect(null); return; }
     const newArea: RmArea = {
       id: uid(),
       bounds: { x: drawRect.x, y: drawRect.y, width: drawRect.w, height: drawRect.h },

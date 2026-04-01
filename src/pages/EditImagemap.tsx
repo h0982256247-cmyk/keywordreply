@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getDoc, saveDoc } from "@/lib/db";
 import { ImagemapArea, ImagemapDoc } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
 
 const PALETTE_COLORS = [
   "#A35D5D", "#0A84FF", "#34C759", "#FF9F0A", "#FF453A", "#AF52DE",
@@ -112,6 +113,7 @@ export default function EditImagemap() {
   const [doc, setDoc] = useState<ImagemapDoc | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
 
   // Canvas / drag state
@@ -145,6 +147,36 @@ export default function EditImagemap() {
   function updateDoc(d: ImagemapDoc) {
     setDoc(d);
     scheduleSave(d);
+  }
+
+  // Upload image to Supabase Storage
+  async function handleImageUpload(file: File) {
+    if (file.size > 10 * 1024 * 1024) {
+      setSaveMsg("❌ 圖片過大，請小於 10MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `imagemap_${uid()}.${ext}`;
+      const { error } = await supabase.storage.from("flex-assets").upload(path, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
+      setImgLoaded(false);
+      const updated = { ...doc!, imageUrl: publicUrl, areas: [] };
+      updateDoc(updated);
+    } catch (e: any) {
+      setSaveMsg("❌ 上傳失敗：" + e.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  // Drag-and-drop on upload zone
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) handleImageUpload(file);
   }
 
   // Convert screen pixel coords → 1040-space coords
@@ -198,7 +230,7 @@ export default function EditImagemap() {
 
     setDrawing(null);
 
-    if (w < 10 || h < 10) return; // ignore tiny drags
+    if (w < 10 || h < 10) return;
 
     const newArea: ImagemapArea = {
       id: uid(),
@@ -305,22 +337,10 @@ export default function EditImagemap() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left: canvas editor */}
         <div className="flex-1 flex flex-col gap-4 p-5 overflow-y-auto">
-          {/* Image URL + alt text */}
+
+          {/* Alt text */}
           <div className="bg-white rounded-2xl border border-[#F0E3E5] p-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-[#555] uppercase tracking-wide">圖片設定</p>
-            <div>
-              <label className="text-xs text-[#6B6B6B] mb-1 block">圖片網址（HTTPS）</label>
-              <input
-                type="url"
-                placeholder="https://example.com/image.jpg"
-                value={doc.imageUrl}
-                onChange={e => {
-                  setImgLoaded(false);
-                  updateDoc({ ...doc, imageUrl: e.target.value });
-                }}
-                className="w-full text-sm border border-[#E7C9CD] rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
-              />
-            </div>
+            <p className="text-xs font-semibold text-[#555] uppercase tracking-wide">訊息設定</p>
             <div>
               <label className="text-xs text-[#6B6B6B] mb-1 block">替代文字（LINE 通知顯示）</label>
               <input
@@ -335,15 +355,62 @@ export default function EditImagemap() {
 
           {/* Image canvas */}
           <div className="bg-white rounded-2xl border border-[#F0E3E5] p-4">
-            <p className="text-xs font-semibold text-[#555] uppercase tracking-wide mb-3">
-              熱區編輯器
-              <span className="ml-2 text-[#AAAAAA] font-normal normal-case">在圖片上拖拉新增熱區</span>
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold text-[#555] uppercase tracking-wide">
+                熱區編輯器
+                {doc.imageUrl && (
+                  <span className="ml-2 text-[#AAAAAA] font-normal normal-case">在圖片上拖拉新增熱區</span>
+                )}
+              </p>
+              {doc.imageUrl && (
+                <label className="flex items-center gap-1.5 px-3 py-1 text-xs text-[#A35D5D] border border-[#E7C9CD] rounded-lg cursor-pointer hover:bg-[#FFF7F8] transition-colors">
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {uploading ? "上傳中..." : "更換圖片"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                  />
+                </label>
+              )}
+            </div>
 
             {!doc.imageUrl ? (
-              <div className="flex items-center justify-center h-48 border-2 border-dashed border-[#E7C9CD] rounded-xl text-sm text-[#AAAAAA]">
-                請先輸入圖片網址
-              </div>
+              /* Upload zone */
+              <label
+                className="flex flex-col items-center justify-center h-56 border-2 border-dashed border-[#E7C9CD] rounded-xl cursor-pointer hover:border-[#A35D5D] hover:bg-[#FFF7F8] transition-all"
+                onDragOver={e => e.preventDefault()}
+                onDrop={handleDrop}
+              >
+                {uploading ? (
+                  <div className="flex flex-col items-center gap-2 text-[#A35D5D]">
+                    <svg className="animate-spin" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    <span className="text-sm">上傳中...</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-[#AAAAAA]">
+                    <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm font-medium text-[#6B6B6B]">點擊上傳圖片</span>
+                    <span className="text-xs text-[#AAAAAA]">或拖拉圖片到此區域 · 支援 JPG、PNG · 最大 10MB</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                />
+              </label>
             ) : (
               <div
                 ref={containerRef}
@@ -354,7 +421,6 @@ export default function EditImagemap() {
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
               >
-                {/* Hidden img to detect natural dimensions */}
                 <img
                   ref={imgRef}
                   src={doc.imageUrl}

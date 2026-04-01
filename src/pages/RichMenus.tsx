@@ -341,9 +341,9 @@ export default function RichMenus() {
     ...orderedFolders.map(f => ({ id: f.id, label: f.name, isFolder: true })),
   ];
 
-  // 目前發布中：所有 published 中 updated_at 最新的那一個
+  // 目前發布中：所有 published 且無排程中 (scheduled_at 為 null) 中 updated_at 最新的那一個
   const currentPublishedId = drafts
-    .filter(d => d.status === "published")
+    .filter(d => d.status === "published" && !d.scheduled_at)
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]?.id ?? null;
 
   const visibleDrafts = drafts.filter(d => {

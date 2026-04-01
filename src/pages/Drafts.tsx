@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { listDocs, deleteDoc, createDoc, listTemplates, TemplateRow, deleteTemplate } from "@/lib/db";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { seedBubble, seedCarousel, seedVideoBubble } from "@/lib/templates";
+import { seedBubble, seedCarousel, seedVideoBubble, seedImagemap } from "@/lib/templates";
 import ConfirmModal from "@/components/ConfirmModal";
 
 // ─── Folder create modal ────────────────────────────────────────────────────
@@ -140,8 +140,8 @@ const MSG_TYPES = [
     ),
   },
   {
-    id: "image", label: "圖片", enabled: false,
-    desc: "發送單張圖片訊息，支援 JPEG、PNG 格式。",
+    id: "imagemap", label: "熱區圖片", enabled: true, direct: true,
+    desc: "在圖片上拖拉熱區並設定連結或文字，點擊後觸發對應動作。",
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
         <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
@@ -184,7 +184,7 @@ function NewMessageModal({
   onCreated,
 }: {
   onClose: () => void;
-  onCreated: (id: string) => void;
+  onCreated: (id: string, type: string) => void;
 }) {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedType, setSelectedType] = useState("singlepage");
@@ -197,6 +197,7 @@ function NewMessageModal({
     multipage: () => seedCarousel(3),
     video: seedVideoBubble,
     text: () => ({ type: "text", title: "新草稿（純文字）", text: "" }),
+    imagemap: seedImagemap,
   }), []);
 
   async function createFromDoc(doc: any) {
@@ -204,7 +205,7 @@ function NewMessageModal({
     setErr(null);
     try {
       const id = await createDoc(doc);
-      onCreated(id);
+      onCreated(id, selectedType);
     } catch (e: any) {
       setErr(e?.message || "建立失敗");
       setLoading(false);
@@ -736,9 +737,13 @@ export default function Drafts() {
       {showNewModal && (
         <NewMessageModal
           onClose={() => setShowNewModal(false)}
-          onCreated={id => {
+          onCreated={(id, type) => {
             setShowNewModal(false);
-            nav(`/drafts/${id}/edit`);
+            if (type === "imagemap") {
+              nav(`/drafts/${id}/imagemap`);
+            } else {
+              nav(`/drafts/${id}/edit`);
+            }
           }}
         />
       )}

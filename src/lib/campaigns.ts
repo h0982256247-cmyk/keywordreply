@@ -86,7 +86,7 @@ export async function narrowcastCampaign(
   const allMessages: any[] = [];
   for (const draftId of draftIds) {
     const docRow = await getDoc(draftId);
-    const msgs = buildMessagesFromDoc(docRow.content, { includeQuickReply: includeQr });
+    const msgs = buildMessagesFromDoc(docRow.content, { includeQuickReply: includeQr, docId: docRow.id });
     allMessages.push(...msgs);
   }
 
@@ -139,7 +139,7 @@ export async function sendCampaign(id: string, options?: { includeQuickReply?: b
   const allMessages: any[] = [];
   for (const draftId of draftIds) {
     const docRow = await getDoc(draftId);
-    const msgs = buildMessagesFromDoc(docRow.content, { includeQuickReply: includeQr });
+    const msgs = buildMessagesFromDoc(docRow.content, { includeQuickReply: includeQr, docId: docRow.id });
     allMessages.push(...msgs);
   }
 

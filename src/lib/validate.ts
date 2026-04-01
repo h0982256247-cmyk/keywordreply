@@ -157,6 +157,10 @@ export function validateDoc(doc: DocModel): ValidationReport {
 
     doc.cards.forEach((c, i) => checkSection(c.section, `cards[${i}].section`, false));
   }
+  else if (doc.type === "imagemap") {
+    if (!doc.imageUrl) errors.push(issue("error", "E_IMAGEMAP_NO_IMAGE", "請設定圖片網址", "imageUrl"));
+    if (doc.areas.length === 0) errors.push(issue("error", "E_IMAGEMAP_NO_AREAS", "請至少新增一個熱區", "areas"));
+  }
 
   const status: ValidationReport["status"] =
     errors.length ? "draft" : warnings.some(w => w.code === "W_IMAGE_PUBLISH_BLOCK") ? "previewable" : "publishable";

@@ -4,6 +4,7 @@ import Login from "@/pages/Login";
 import Drafts from "@/pages/Drafts";
 import NewDraft from "@/pages/NewDraft";
 import EditDraft from "@/pages/EditDraft";
+import EditImagemap from "@/pages/EditImagemap";
 import PreviewDraft from "@/pages/PreviewDraft";
 import Share from "@/pages/Share";
 import AppShell from "@/layouts/AppShell";
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="drafts" element={<Drafts />} />
         <Route path="drafts/new" element={<NewDraft />} />
         <Route path="drafts/:id/edit" element={<EditDraft />} />
+        <Route path="drafts/:id/imagemap" element={<EditImagemap />} />
         <Route path="drafts/:id/preview" element={<PreviewDraft />} />
         <Route path="rich-menus" element={<RichMenus />} />
         <Route path="rich-menus/:id/edit" element={<RichMenuEditor />} />

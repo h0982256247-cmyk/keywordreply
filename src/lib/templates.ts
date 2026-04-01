@@ -114,4 +114,15 @@ export function seedSpecialSection(): SpecialSection {
   };
 }
 
+export function seedImagemap(title = "新草稿（熱區圖片）"): DocModel {
+  return {
+    type: "imagemap",
+    title,
+    imageUrl: "",
+    altText: "熱區圖片",
+    baseSize: { width: 1040, height: 520 },
+    areas: [],
+  };
+}
+
 export const PALETTE = ["#0A84FF", "#34C759", "#FF9F0A", "#FF453A", "#AF52DE", "#111111", "#FFFFFF", "#8E8E93"];

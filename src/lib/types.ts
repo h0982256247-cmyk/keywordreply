@@ -70,7 +70,29 @@ export type BubbleDoc = { type: "bubble"; title: string; section: Section; bubbl
 export type CarouselDoc = { type: "carousel"; title: string; cards: { id: string; name?: string; section: CardSection }[]; bubbleSize?: BubbleSize; folderId?: string; quickReply?: QuickReplyConfig };
 export type FolderDoc = { type: "folder"; id: string; name: string; parentId?: string };
 export type TextDoc = { type: "text"; title: string; text: string; folderId?: string; quickReply?: QuickReplyConfig };
-export type DocModel = BubbleDoc | CarouselDoc | FolderDoc | TextDoc;
+
+export type ImagemapAreaAction =
+  | { type: "uri"; linkUri: string }
+  | { type: "message"; text: string };
+
+export type ImagemapArea = {
+  id: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  action: ImagemapAreaAction;
+  label?: string;
+};
+
+export type ImagemapDoc = {
+  type: "imagemap";
+  title: string;
+  imageUrl: string;
+  altText: string;
+  baseSize: { width: number; height: number };
+  areas: ImagemapArea[];
+  folderId?: string;
+};
+
+export type DocModel = BubbleDoc | CarouselDoc | FolderDoc | TextDoc | ImagemapDoc;
 
 export type ValidationIssue = { code: string; level: "error" | "warn"; message: string; path: string };
 export type ValidationReport = { status: "draft" | "previewable" | "publishable"; errors: ValidationIssue[]; warnings: ValidationIssue[] };

@@ -123,6 +123,12 @@ export default function EditImagemap() {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [drawing, setDrawing] = useState<{ startX: number; startY: number; curX: number; curY: number } | null>(null);
   const isDragging = useRef(false);
+  const [resizing, setResizing] = useState<{
+    areaId: string;
+    handle: string;
+    startX: number; startY: number;
+    startBounds: { x: number; y: number; width: number; height: number };
+  } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -176,6 +182,13 @@ export default function EditImagemap() {
     setDoc(d);
     validateDoc(d);
     scheduleSave(d);
+  }
+
+  function handleResizeStart(e: React.MouseEvent, areaId: string, handle: string) {
+    e.stopPropagation();
+    e.preventDefault();
+    const area = doc!.areas.find((a: ImagemapArea) => a.id === areaId)!;
+    setResizing({ areaId, handle, startX: e.clientX, startY: e.clientY, startBounds: { ...area.bounds } });
   }
 
   // Upload image to Supabase Storage
@@ -241,11 +254,40 @@ export default function EditImagemap() {
   }
 
   function handleMouseMove(e: React.MouseEvent) {
+    if (resizing && doc) {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const scaleX = doc.baseSize.width / rect.width;
+      const scaleY = doc.baseSize.height / rect.height;
+      const dx = (e.clientX - resizing.startX) * scaleX;
+      const dy = (e.clientY - resizing.startY) * scaleY;
+      const sb = resizing.startBounds;
+      const MIN = 20;
+      let nx = sb.x, ny = sb.y, nw = sb.width, nh = sb.height;
+      const h = resizing.handle;
+      if (h.includes('e')) nw = Math.max(MIN, sb.width + dx);
+      if (h.includes('s')) nh = Math.max(MIN, sb.height + dy);
+      if (h.includes('w')) { const nww = Math.max(MIN, sb.width - dx); nx = sb.x + sb.width - nww; nw = nww; }
+      if (h.startsWith('n')) { const nhh = Math.max(MIN, sb.height - dy); ny = sb.y + sb.height - nhh; nh = nhh; }
+      nx = Math.max(0, nx); ny = Math.max(0, ny);
+      if (nx + nw > doc.baseSize.width) nw = doc.baseSize.width - nx;
+      if (ny + nh > doc.baseSize.height) nh = doc.baseSize.height - ny;
+      const newBounds = { x: Math.round(nx), y: Math.round(ny), width: Math.round(nw), height: Math.round(nh) };
+      setDoc({ ...doc, areas: doc.areas.map((a: ImagemapArea) => a.id === resizing.areaId ? { ...a, bounds: newBounds } : a) });
+      return;
+    }
     if (!isDragging.current || !drawing) return;
     setDrawing(prev => prev ? { ...prev, curX: e.clientX, curY: e.clientY } : null);
   }
 
   function handleMouseUp(e: React.MouseEvent) {
+    if (resizing && doc) {
+      validateDoc(doc);
+      scheduleSave(doc);
+      setResizing(null);
+      return;
+    }
     if (!isDragging.current || !drawing || !doc) return;
     isDragging.current = false;
 
@@ -272,6 +314,12 @@ export default function EditImagemap() {
   }
 
   function handleMouseLeave() {
+    if (resizing && doc) {
+      validateDoc(doc);
+      scheduleSave(doc);
+      setResizing(null);
+      return;
+    }
     if (isDragging.current) {
       isDragging.current = false;
       setDrawing(null);
@@ -483,7 +531,7 @@ export default function EditImagemap() {
                     <div
                       key={area.id}
                       onClick={e => { e.stopPropagation(); setSelectedAreaId(area.id); }}
-                      className="absolute border-2 transition-all"
+                      className="absolute border-2 transition-colors"
                       style={{
                         ...pct,
                         borderColor: color,
@@ -497,6 +545,17 @@ export default function EditImagemap() {
                       >
                         {idx + 1}
                       </span>
+                      {isSelected && (['nw','n','ne','e','se','s','sw','w'] as const).map(handle => {
+                        const cursors: Record<string, string> = { nw:'nw-resize', n:'ns-resize', ne:'ne-resize', e:'ew-resize', se:'se-resize', s:'ns-resize', sw:'sw-resize', w:'ew-resize' };
+                        const hStyle: React.CSSProperties = {
+                          position: 'absolute', width: 8, height: 8,
+                          backgroundColor: 'white', border: `2px solid ${color}`, borderRadius: 2,
+                          cursor: cursors[handle], zIndex: 10,
+                          ...(handle.startsWith('n') ? { top: -5 } : handle.startsWith('s') ? { bottom: -5 } : { top: 'calc(50% - 4px)' }),
+                          ...(handle.endsWith('w') ? { left: -5 } : handle.endsWith('e') ? { right: -5 } : { left: 'calc(50% - 4px)' }),
+                        };
+                        return <div key={handle} style={hStyle} onMouseDown={(e2: React.MouseEvent) => handleResizeStart(e2, area.id, handle)} />;
+                      })}
                     </div>
                   );
                 })}

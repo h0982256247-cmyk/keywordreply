@@ -548,6 +548,7 @@ export default function RichMenuEditor() {
   };
 
   const addMenu = () => {
+    if (menus.length >= 9) { showToast("最多只能新增 9 個選單層", "error"); return; }
     const newMenu = makeDefaultMenu(menus.length);
     const updated = normalizeIsDefault([...menus, newMenu]);
     setMenus(updated);
@@ -738,13 +739,19 @@ export default function RichMenuEditor() {
                 </div>
               ))}
             </div>
-            <button
-              onClick={addMenu}
-              className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-[#888888] border border-dashed border-[#DDDDDD] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors"
-            >
-              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-              新增選單層
-            </button>
+            {menus.length < 9 ? (
+              <button
+                onClick={addMenu}
+                className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-[#888888] border border-dashed border-[#DDDDDD] hover:border-[#A35D5D] hover:text-[#A35D5D] transition-colors"
+              >
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                新增選單層
+              </button>
+            ) : (
+              <div className="mt-2 w-full flex items-center justify-center py-1.5 rounded-lg text-xs text-[#AAAAAA] border border-dashed border-[#EEEEEE]">
+                已達上限（最多 9 層）
+              </div>
+            )}
           </div>
 
           {/* Area list for selected menu */}

@@ -1810,54 +1810,37 @@ export default function EditDraft() {
   return (
     <div className="min-h-screen bg-[#FCF7F8] pb-20">
       {toastPortal}
-      <div className="mx-auto max-w-5xl px-4 pt-4">
-        <div className="bg-white border border-[#E7C9CD] shadow-sm rounded-xl p-4 flex items-center justify-between sticky top-4 z-30">
-          <div className="flex-1 mr-4">
-            <div className="flex items-center gap-3">
-              <input
-                autoFocus
-                type="text"
-                value={doc.type === "folder" ? doc.name : doc.title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                className="w-full max-w-[400px] text-xl font-bold text-[#2B2B2B] border-none bg-transparent p-0 focus:ring-0 placeholder:text-[#CCCCCC]"
-                placeholder="輸入草稿名稱..."
-              />
-              {doc.type !== "folder" && (
-                <GlassSelect size="xs" value={(doc as any).folderId || ""} onChange={(val) => scheduleSave({ ...doc, folderId: val || undefined })} options={[{value:"",label:"未分類 (無資料夾)"},...folders.map((f: any) => ({value: f.id, label: f.content.name}))]} />
-              )}
+      <div className="sticky top-0 z-30 bg-white border-b border-[#E7C9CD] px-4 py-2 flex items-center gap-3">
+        {/* Left: title + folder + save status */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <input
+            autoFocus
+            type="text"
+            value={doc.type === "folder" ? doc.name : doc.title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            className="text-sm font-semibold text-[#2B2B2B] border-none bg-transparent p-0 focus:ring-0 outline-none placeholder:text-[#CCCCCC] min-w-0 w-40"
+            placeholder="草稿名稱..."
+          />
+          {doc.type !== "folder" && (
+            <GlassSelect size="xs" value={(doc as any).folderId || ""} onChange={(val) => scheduleSave({ ...doc, folderId: val || undefined })} options={[{value:"",label:"未分類"},...folders.map((f: any) => ({value: f.id, label: f.content.name}))]} className="flex-shrink-0" />
+          )}
+          <span className="text-xs text-[#AAAAAA] flex-shrink-0">{saveState === "saving" ? "儲存中…" : saveState === "saved" ? "✓ 已儲存" : saveState === "error" ? "✗ 失敗" : ""}</span>
+        </div>
+        {/* Right: bubble size + buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {doc.type !== "text" && doc.type !== "folder" && (
+            <div className="flex items-center gap-1 text-xs text-[#6B6B6B]">
+              <span className="flex-shrink-0">卡片大小:</span>
+              <GlassSelect size="xs" value={doc.bubbleSize || "kilo"} onChange={(val) => handleBubbleSizeChange(val as BubbleSize)} options={[{value:"nano",label:"Nano"},{value:"micro",label:"Micro"},{value:"kilo",label:"Kilo"},{value:"mega",label:"Mega"},{value:"giga",label:"Giga"}]} className="flex-shrink-0" />
             </div>
-            <div className="text-sm opacity-70 mt-1">儲存：{saveState === "saving" ? "●" : saveState === "saved" ? "✓" : saveState === "error" ? "✗" : "—"}</div>
-          </div>
-          <div className="flex gap-2 items-center">
-            <div className="flex items-center gap-2">
-              {doc.type !== "text" && doc.type !== "folder" && (
-                <div className="flex items-center gap-3 w-fit px-4 py-3 bg-[#FCF7F8] border border-[#E7C9CD] rounded-xl mt-4">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-[#E7C9CD]">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#6B6B6B]">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                      <line x1="8" y1="21" x2="16" y2="21" />
-                      <line x1="12" y1="17" x2="12" y2="21" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-[#6B6B6B] mb-1">氣泡大小</div>
-                    <GlassSelect size="xs" value={doc.bubbleSize || "kilo"} onChange={(val) => handleBubbleSizeChange(val as BubbleSize)} options={[{value:"nano",label:"Nano (極小)"},{value:"micro",label:"Micro (小)"},{value:"kilo",label:"Kilo (標準預設)"},{value:"mega",label:"Mega (大)"},{value:"giga",label:"Giga (特大)"}]} />
-                  </div>
-                </div>
-              )}
-            </div>
-            <button className="px-3 py-1.5 text-sm bg-white border border-[#E7C9CD] text-[#6B6B6B] font-medium rounded-lg hover:bg-[#FCF7F8] transition-colors shadow-sm" onClick={async () => {
-              const name = prompt("範本名稱（儲存後可在「新增草稿」直接使用）");
-              if (!name) return;
-              try {
-                await createTemplateFromDoc(name.trim(), null, doc);
-                alert("已儲存為範本");
-              } catch (e: any) {
-                alert(e?.message || String(e));
-              }
-            }}>另存為範本</button>
-            <button className="px-3 py-1.5 text-sm bg-white border border-[#E7C9CD] text-[#6B6B6B] font-medium rounded-lg hover:bg-[#FCF7F8] transition-colors shadow-sm" onClick={() => nav("/drafts")}>回草稿</button>
-          </div>
+          )}
+          <button className="px-3 py-1.5 text-xs bg-white border border-[#E7C9CD] text-[#6B6B6B] font-medium rounded-lg hover:bg-[#FCF7F8] transition-colors" onClick={async () => {
+            const name = prompt("範本名稱（儲存後可在「新增草稿」直接使用）");
+            if (!name) return;
+            try { await createTemplateFromDoc(name.trim(), null, doc); alert("已儲存為範本"); }
+            catch (e: any) { alert(e?.message || String(e)); }
+          }}>另存為範本</button>
+          <button className="px-3 py-1.5 text-xs bg-white border border-[#E7C9CD] text-[#6B6B6B] font-medium rounded-lg hover:bg-[#FCF7F8] transition-colors" onClick={() => nav("/drafts")}>回草稿</button>
         </div>
       </div>
 

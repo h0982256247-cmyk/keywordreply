@@ -170,12 +170,6 @@ export default function EditDraft() {
     }, 800);
   };
 
-  const flushSave = async () => {
-    if (!doc || !id) return;
-    if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    setSaveState("saving");
-    try { await saveDoc(id, doc); setSaveState("saved"); } catch { setSaveState("error"); }
-  };
 
   if (!doc || !id) {
     return (
@@ -366,7 +360,6 @@ export default function EditDraft() {
               try { await createTemplateFromDoc(name.trim(), null, doc); alert("已儲存為範本"); }
               catch (e: any) { alert(e?.message || String(e)); }
             }}>儲存為範本</button>
-            <button className="px-3 py-1.5 text-xs bg-[#A35D5D] text-white font-medium rounded-lg hover:bg-[#8F4A4A] transition-colors" onClick={async () => { await flushSave(); nav(`/drafts/${id}/preview`); }}>儲存發布</button>
           </div>
         </div>
 

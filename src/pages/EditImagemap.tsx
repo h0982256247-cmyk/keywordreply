@@ -129,6 +129,11 @@ export default function EditImagemap() {
     startX: number; startY: number;
     startBounds: { x: number; y: number; width: number; height: number };
   } | null>(null);
+  const [moving, setMoving] = useState<{
+    areaId: string;
+    startX: number; startY: number;
+    startBounds: { x: number; y: number; width: number; height: number };
+  } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -189,6 +194,13 @@ export default function EditImagemap() {
     e.preventDefault();
     const area = doc!.areas.find((a: ImagemapArea) => a.id === areaId)!;
     setResizing({ areaId, handle, startX: e.clientX, startY: e.clientY, startBounds: { ...area.bounds } });
+  }
+
+  function handleMoveStart(e: React.MouseEvent, areaId: string) {
+    e.stopPropagation();
+    if (selectedAreaId !== areaId) { setSelectedAreaId(areaId); return; }
+    const area = doc!.areas.find((a: ImagemapArea) => a.id === areaId)!;
+    setMoving({ areaId, startX: e.clientX, startY: e.clientY, startBounds: { ...area.bounds } });
   }
 
   // Upload image to Supabase Storage
@@ -254,6 +266,20 @@ export default function EditImagemap() {
   }
 
   function handleMouseMove(e: React.MouseEvent) {
+    if (moving && doc) {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const scaleX = doc.baseSize.width / rect.width;
+      const scaleY = doc.baseSize.height / rect.height;
+      const dx = (e.clientX - moving.startX) * scaleX;
+      const dy = (e.clientY - moving.startY) * scaleY;
+      const sb = moving.startBounds;
+      const nx = Math.max(0, Math.min(sb.x + dx, doc.baseSize.width - sb.width));
+      const ny = Math.max(0, Math.min(sb.y + dy, doc.baseSize.height - sb.height));
+      setDoc({ ...doc, areas: doc.areas.map((a: ImagemapArea) => a.id === moving.areaId ? { ...a, bounds: { x: Math.round(nx), y: Math.round(ny), width: sb.width, height: sb.height } } : a) });
+      return;
+    }
     if (resizing && doc) {
       const container = containerRef.current;
       if (!container) return;
@@ -282,6 +308,12 @@ export default function EditImagemap() {
   }
 
   function handleMouseUp(e: React.MouseEvent) {
+    if (moving && doc) {
+      validateDoc(doc);
+      scheduleSave(doc);
+      setMoving(null);
+      return;
+    }
     if (resizing && doc) {
       validateDoc(doc);
       scheduleSave(doc);
@@ -314,6 +346,12 @@ export default function EditImagemap() {
   }
 
   function handleMouseLeave() {
+    if (moving && doc) {
+      validateDoc(doc);
+      scheduleSave(doc);
+      setMoving(null);
+      return;
+    }
     if (resizing && doc) {
       validateDoc(doc);
       scheduleSave(doc);
@@ -530,13 +568,14 @@ export default function EditImagemap() {
                   return (
                     <div
                       key={area.id}
-                      onClick={e => { e.stopPropagation(); setSelectedAreaId(area.id); }}
+                      onMouseDown={(e: React.MouseEvent) => handleMoveStart(e, area.id)}
                       className="absolute border-2 transition-colors"
                       style={{
                         ...pct,
                         borderColor: color,
                         backgroundColor: isSelected ? color + "33" : color + "1A",
                         boxShadow: isSelected ? `0 0 0 2px ${color}` : undefined,
+                        cursor: isSelected ? 'move' : 'pointer',
                       }}
                     >
                       <span

@@ -45,7 +45,12 @@ export function buildMessagesFromDoc(doc: DocModel, options?: { includeQuickRepl
       baseSize: doc.baseSize,
       actions: doc.areas.map(area => ({
         type: area.action.type === 'uri' ? 'uri' : 'message',
-        area: area.bounds,
+        area: {
+          x: Math.round(area.bounds.x),
+          y: Math.round(area.bounds.y),
+          width: Math.round(area.bounds.width),
+          height: Math.round(area.bounds.height),
+        },
         ...(area.action.type === 'uri'
           ? { linkUri: area.action.linkUri }
           : { text: area.action.text }),

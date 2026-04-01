@@ -75,7 +75,7 @@ serve(async (req) => {
             const errorMessage = lineResponse.status === 401 ? "LINE Token 無效或已過期"
                 : lineResponse.status === 403 ? "沒有權限執行此操作"
                 : lineResponse.status === 429 ? "發送頻率過高，請稍後再試"
-                : "LINE API 呼叫失敗";
+                : `LINE API 錯誤 ${lineResponse.status}: ${errorText}`;
             console.error("[broadcast] LINE API error:", lineResponse.status, errorText);
             return jsonResponse({ success: false, error: { code: errorCode, message: errorMessage, details: { status: lineResponse.status } } });
         }

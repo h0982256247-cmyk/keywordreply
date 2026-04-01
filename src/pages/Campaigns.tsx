@@ -168,7 +168,7 @@ export default function Campaigns() {
       for (const draftId of displayIds) {
         const d = drafts.find((x) => x.id === draftId);
         if (!d?.content) continue;
-        const msgs = buildMessagesFromDoc(d.content, { includeQuickReply: includeQr });
+        const msgs = buildMessagesFromDoc(d.content, { includeQuickReply: includeQr, docId: d.id });
         allMessages.push(...msgs);
       }
       if (!allMessages.length) throw new Error("找不到草稿內容，請確認草稿是否存在");

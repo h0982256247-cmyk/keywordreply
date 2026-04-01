@@ -18,6 +18,7 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
   const content = useMemo(() => {
     if (flex) return flex;
     if (doc) {
+      if (doc.type === "imagemap") return { type: "imagemap" };
       if (doc.type === "text") return { type: "text", text: (doc as any).text };
       return buildFlex(doc);
     }
@@ -75,6 +76,10 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
   };
 
   if (!content) return null;
+
+  if (content.type === "imagemap") {
+    return <ImagemapPreview doc={doc as any} />;
+  }
 
   if (content.type === "text") {
     return (
@@ -381,4 +386,55 @@ function getCornerRadius(token: string) {
     xxl: "24px",
   };
   return radiusMap[token] || token;
+}
+
+function ImagemapPreview({ doc }: { doc: { imageUrl: string; altText?: string; baseSize: { width: number; height: number }; areas: Array<{ id: string; bounds: { x: number; y: number; width: number; height: number }; action: { type: string; linkUri?: string; text?: string }; label?: string }> } }) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = React.useState(280);
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      setContainerWidth(entries[0].contentRect.width);
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  if (!doc.imageUrl) {
+    return (
+      <div className="w-full flex items-center justify-center bg-gray-100 rounded-[16px] text-gray-400 text-sm" style={{ aspectRatio: "1/1" }}>
+        尚未設定圖片
+      </div>
+    );
+  }
+
+  const baseW = doc.baseSize?.width || 1040;
+  const baseH = doc.baseSize?.height || 1040;
+  const scale = containerWidth / baseW;
+  const displayH = baseH * scale;
+
+  return (
+    <div ref={containerRef} className="w-full relative bg-gray-100 rounded-[16px] overflow-hidden">
+      <img
+        src={doc.imageUrl}
+        alt={doc.altText || "熱區圖片"}
+        style={{ width: "100%", height: displayH, objectFit: "cover", display: "block" }}
+        onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+      />
+      {doc.areas?.map((area) => {
+        const left = area.bounds.x * scale;
+        const top = area.bounds.y * scale;
+        const width = area.bounds.width * scale;
+        const height = area.bounds.height * scale;
+        return (
+          <div
+            key={area.id}
+            title={area.label || (area.action.type === "uri" ? area.action.linkUri : area.action.text) || ""}
+            style={{ position: "absolute", left, top, width, height, border: "2px solid rgba(59,130,246,0.7)", backgroundColor: "rgba(59,130,246,0.15)", boxSizing: "border-box", cursor: "pointer" }}
+          />
+        );
+      })}
+    </div>
+  );
 }

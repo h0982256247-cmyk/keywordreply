@@ -49,7 +49,6 @@ export function buildMessagesFromDoc(doc: DocModel, options?: { includeQuickRepl
         ...(area.action.type === 'uri'
           ? { linkUri: area.action.linkUri }
           : { text: area.action.text }),
-        label: area.label || '',
       })),
     }];
   }

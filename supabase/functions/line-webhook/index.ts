@@ -192,10 +192,7 @@ serve(async (req) => {
         });
       }
 
-      if (!rule) {
-        await logWebhook(admin, { user_id: channel.user_id, channel_id: destination, event_type: event.type, keyword: text, success: true, request_body: event, response_body: { skipped: true, reason: "no_rule" } });
-        continue;
-      }
+      if (!rule) continue;
 
       let messages: any[] = [];
       if (rule.reply_mode === "text") {

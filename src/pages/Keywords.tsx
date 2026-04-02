@@ -268,32 +268,13 @@ export default function Keywords() {
                     <button
                       onClick={() => toggleEnabled(row)}
                       title={row.is_enabled ? '點擊停用' : '點擊啟用'}
-                      className="inline-flex items-center gap-1.5 group"
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+                        row.is_enabled ? 'bg-[#4CAF50]' : 'bg-[#CCCCCC]'
+                      }`}
                     >
-                      {/* left arrow */}
-                      <svg
-                        width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                        className={`transition-colors ${row.is_enabled ? 'text-[#DDDDDD] group-hover:text-[#BBBBBB]' : 'text-[#A35D5D] group-hover:text-[#8F4A4A]'}`}
-                      >
-                        <polyline points="15 18 9 12 15 6"/>
-                      </svg>
-
-                      {/* label */}
-                      <span className={`text-xs font-medium min-w-[36px] text-center transition-colors ${
-                        row.is_enabled ? 'text-[#A35D5D]' : 'text-[#AAAAAA]'
-                      }`}>
-                        {row.is_enabled ? '使用中' : '關閉'}
-                      </span>
-
-                      {/* right arrow */}
-                      <svg
-                        width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                        className={`transition-colors ${row.is_enabled ? 'text-[#A35D5D] group-hover:text-[#8F4A4A]' : 'text-[#DDDDDD] group-hover:text-[#BBBBBB]'}`}
-                      >
-                        <polyline points="9 18 15 12 9 6"/>
-                      </svg>
+                      <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out mt-0.5 ${
+                        row.is_enabled ? 'translate-x-4' : 'translate-x-0.5'
+                      }`} />
                     </button>
                   </td>
                   <td className="px-5 py-4 text-right">

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { QRCodeSVG } from "qrcode.react";
 import ProgressBar from "@/components/ProgressBar";
 import FlexPreview from "@/components/FlexPreview";
-import { getDoc, getActiveShareForDoc, publishDoc } from "@/lib/db";
+import { getDoc, getActiveShareForDoc } from "@/lib/db";
 import { DocModel } from "@/lib/types";
-import { isPublishable, validateDoc } from "@/lib/validate";
+import { validateDoc } from "@/lib/validate";
 import { PageHeader } from "@/components/PageHeader";
 import { buildFlex } from "@/lib/buildFlex";
 import { broadcastFlexMessage } from "@/lib/broadcast";
@@ -15,9 +14,7 @@ export default function PreviewDraft() {
   const nav = useNavigate();
   const [doc, setDoc] = useState<DocModel | null>(null);
   const [active, setActive] = useState<{ token: string; version_no: number } | null>(null);
-  const [busy, setBusy] = useState(false);
   const [broadcastBusy, setBroadcastBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
   const [broadcastMsg, setBroadcastMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,11 +63,6 @@ export default function PreviewDraft() {
   );
 
   const rep = validateDoc(doc);
-  const gate = isPublishable(doc);
-  const appUrl = import.meta.env.VITE_APP_URL || "https://33cm.zeabur.app";
-  const shareUrl = active ? `${appUrl}/share?token=${active.token}` : null;
-  const liffId = import.meta.env.VITE_LIFF_ID as string | undefined;
-  const liffUrl = active && liffId ? `https://liff.line.me/${liffId}?token=${active.token}` : null;
 
   return (
     <div className="min-h-screen bg-[#FCF7F8]">

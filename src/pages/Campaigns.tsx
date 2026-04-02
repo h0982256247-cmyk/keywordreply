@@ -35,7 +35,6 @@ export default function Campaigns() {
   const [loading, setLoading]         = useState(false);
   const [sending, setSending]         = useState<string | null>(null);
   const [includeQuickReply, setIncludeQuickReply] = useState(true);
-  const [sendOptions, setSendOptions] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab]     = useState<'all' | 'scheduled' | 'sent' | 'failed'>('all');
   // 受眾推播 modal
   const [audienceModal, setAudienceModal]         = useState<BroadcastCampaign | null>(null);
@@ -53,13 +52,6 @@ export default function Campaigns() {
     const availableDrafts = docRows.filter((r: any) => r.content?.type !== 'folder');
     setDrafts(availableDrafts);
     setRows(campaignRows);
-    setSendOptions((prev) => {
-      const next = { ...prev };
-      for (const row of campaignRows) {
-        if (typeof next[row.id] !== 'boolean') next[row.id] = true;
-      }
-      return next;
-    });
   };
 
   useEffect(() => { load(); }, []);
@@ -131,7 +123,7 @@ export default function Campaigns() {
     try {
       const audience = audiences.find((a) => String(a.id) === selectedAudienceId)!;
       await narrowcastCampaign(audienceModal.id, audience.id, audience.name, {
-        includeQuickReply: sendOptions[audienceModal.id] ?? true,
+        includeQuickReply: audienceModal.include_quick_reply,
       });
       setMsg({ text: `「${audienceModal.name}」受眾推播成功！`, ok: true });
       setAudienceModal(null);
@@ -163,7 +155,7 @@ export default function Campaigns() {
       const displayIds = (scheduleModal.draft_ids && scheduleModal.draft_ids.length > 0)
         ? scheduleModal.draft_ids
         : [scheduleModal.draft_id];
-      const includeQr = sendOptions[scheduleModal.id] ?? true;
+      const includeQr = scheduleModal.include_quick_reply;
       const allMessages: any[] = [];
       for (const draftId of displayIds) {
         const d = drafts.find((x) => x.id === draftId);
@@ -205,7 +197,7 @@ export default function Campaigns() {
     setSending(row.id);
     setMsg(null);
     try {
-      await sendCampaign(row.id, { includeQuickReply: sendOptions[row.id] ?? true });
+      await sendCampaign(row.id, { includeQuickReply: row.include_quick_reply });
       setMsg({ text: `「${row.name}」推播成功！`, ok: true });
       await load();
     } catch (err: any) {
@@ -516,15 +508,11 @@ export default function Campaigns() {
 
                   {/* Right: actions */}
                   <div className="flex flex-col items-start sm:items-end gap-2.5 shrink-0">
-                    <label className="inline-flex items-center gap-2 text-xs text-[#555555] cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={sendOptions[row.id] ?? true}
-                        onChange={(e) => setSendOptions((prev) => ({ ...prev, [row.id]: e.target.checked }))}
-                        className="rounded border-[#E7C9CD] text-[#A35D5D] focus:ring-[#A35D5D]"
-                      />
-                      推播時保留 Quick Reply
-                    </label>
+                    {row.include_quick_reply && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-[#A35D5D] bg-[#FBEBEE] px-2.5 py-1 rounded-full font-medium select-none">
+                        含 Quick Reply 設定
+                      </span>
+                    )}
                     <div className="flex gap-2">
                       <button
                         disabled={sending === row.id || narrowcasting || scheduling}

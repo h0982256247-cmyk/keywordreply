@@ -1998,9 +1998,9 @@ export default function EditDraft() {
         )}
 
         {/* Editor + Preview */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0 items-start">
         {/* Column 1: Editor */}
-        <div className="space-y-4 relative flex flex-col min-h-[500px]">
+        <div className="space-y-4 relative flex flex-col min-h-[500px] self-start w-full">
           {doc.type === "text" ? (
             <div className="space-y-4">
               <div className="bg-white border border-[#E7C9CD] shadow-sm rounded-xl p-6 flex flex-col">

@@ -31,7 +31,7 @@ export async function listKeywordRules(): Promise<KeywordRule[]> {
   return (data || []).map((row: any) => ({ ...row, doc_title: row.docs?.title || null }));
 }
 
-export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keyword?: string; keywords?: string[]; reply_mode: 'text' | 'draft' }) {
+export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keyword?: string; keywords?: string[] | null; reply_mode: 'text' | 'draft' }) {
   const user = await requireUser();
 
   // Resolve keywords array

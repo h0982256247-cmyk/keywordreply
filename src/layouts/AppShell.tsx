@@ -25,6 +25,11 @@ const IconBot = () => (
     <line x1="8" y1="15" x2="8" y2="15" strokeWidth="2.5"/><line x1="12" y1="15" x2="12" y2="15" strokeWidth="2.5"/><line x1="16" y1="15" x2="16" y2="15" strokeWidth="2.5"/>
   </svg>
 );
+const IconChart = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+  </svg>
+);
 const IconSettings = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
@@ -42,6 +47,7 @@ const items = [
   { to: '/rich-menus', label: '圖文選單',  desc: '設計多層互動圖文選單', icon: <IconPanel /> },
   { to: '/campaigns', label: '推播設定',   desc: '排程與群發推播訊息',   icon: <IconSend /> },
   { to: '/keywords',  label: '自動回應訊息', desc: '設定關鍵字觸發規則', icon: <IconBot /> },
+  { to: '/analytics', label: '成效分析',     desc: '追蹤互動率與點擊成效', icon: <IconChart /> },
 ];
 
 // ── Page meta (for header) ─────────────────────────────────────────────────────
@@ -50,6 +56,7 @@ function usePageMeta(pathname: string) {
   if (pathname.startsWith('/rich-menus'))  return { label: '圖文選單',     desc: '設計多層互動圖文選單，支援熱區切換與動作設定', icon: <IconPanel /> };
   if (pathname.startsWith('/campaigns'))   return { label: '推播設定',     desc: '排程與群發推播訊息，精準觸及你的用戶',       icon: <IconSend /> };
   if (pathname.startsWith('/keywords'))    return { label: '自動回應訊息', desc: '設定關鍵字觸發規則，讓機器人自動回應',       icon: <IconBot /> };
+  if (pathname.startsWith('/analytics'))   return { label: '成效分析',     desc: '追蹤廣播、關鍵字與圖文選單的互動表現',     icon: <IconChart /> };
   return { label: 'LINE 設定', desc: '連結 LINE Channel，設定 Webhook 與 Token', icon: <IconSettings /> };
 }
 

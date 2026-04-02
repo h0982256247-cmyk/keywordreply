@@ -267,13 +267,33 @@ export default function Keywords() {
                   <td className="px-5 py-4">
                     <button
                       onClick={() => toggleEnabled(row)}
-                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        row.is_enabled
-                          ? 'bg-[#FBEBEE] text-[#A35D5D] hover:bg-[#F6D9DD]'
-                          : 'bg-[#F0F0F0] text-[#6B6B6B] hover:bg-[#E8E8E8]'
-                      }`}
+                      title={row.is_enabled ? '點擊停用' : '點擊啟用'}
+                      className="inline-flex items-center gap-1.5 group"
                     >
-                      {row.is_enabled ? '使用中' : '已停用'}
+                      {/* left arrow */}
+                      <svg
+                        width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        className={`transition-colors ${row.is_enabled ? 'text-[#DDDDDD] group-hover:text-[#BBBBBB]' : 'text-[#A35D5D] group-hover:text-[#8F4A4A]'}`}
+                      >
+                        <polyline points="15 18 9 12 15 6"/>
+                      </svg>
+
+                      {/* label */}
+                      <span className={`text-xs font-medium min-w-[36px] text-center transition-colors ${
+                        row.is_enabled ? 'text-[#A35D5D]' : 'text-[#AAAAAA]'
+                      }`}>
+                        {row.is_enabled ? '使用中' : '關閉'}
+                      </span>
+
+                      {/* right arrow */}
+                      <svg
+                        width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        className={`transition-colors ${row.is_enabled ? 'text-[#A35D5D] group-hover:text-[#8F4A4A]' : 'text-[#DDDDDD] group-hover:text-[#BBBBBB]'}`}
+                      >
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
                     </button>
                   </td>
                   <td className="px-5 py-4 text-right">

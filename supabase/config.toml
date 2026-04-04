@@ -1,0 +1,10 @@
+# Supabase Edge Functions Configuration
+
+[functions.broadcast]
+verify_jwt = false
+
+[functions.process-scheduled-richmenus]
+verify_jwt = false
+
+[functions.execute-scheduled-campaigns]
+verify_jwt = false

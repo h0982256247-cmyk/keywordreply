@@ -1,0 +1,29 @@
+-- ============================================================
+-- 排程自動發布設定（使用 cron-job.org，不需要 pg_cron）
+--
+-- 請到 https://cron-job.org 建立以下兩個 Cron Job：
+--
+-- ── Job 1：圖文選單排程 ─────────────────────────────────────
+--   Title:   process-scheduled-richmenus
+--   URL:     https://<PROJECT_REF>.supabase.co/functions/v1/process-scheduled-richmenus
+--   Method:  POST
+--   Headers: Authorization: Bearer <SERVICE_ROLE_KEY>
+--            Content-Type: application/json
+--   Body:    {}
+--   Schedule: Every 1 minute
+--
+-- ── Job 2：推播訊息排程 ─────────────────────────────────────
+--   Title:   execute-scheduled-campaigns
+--   URL:     https://<PROJECT_REF>.supabase.co/functions/v1/execute-scheduled-campaigns
+--   Method:  POST
+--   Headers: Authorization: Bearer <SERVICE_ROLE_KEY>
+--            Content-Type: application/json
+--   Body:    {}
+--   Schedule: Every 1 minute
+--
+-- ── 取得參數的位置 ──────────────────────────────────────────
+--   PROJECT_REF:      Supabase Dashboard > Settings > General
+--   SERVICE_ROLE_KEY: Supabase Dashboard > Settings > API > service_role (secret)
+--
+-- ⚠️  SERVICE_ROLE_KEY 請勿洩漏，僅用於 cron-job.org Header 設定
+-- ============================================================

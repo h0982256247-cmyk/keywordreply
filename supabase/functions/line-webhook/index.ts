@@ -192,27 +192,7 @@ serve(async (req) => {
         });
       }
 
-      // 沒有關鍵字規則時，直接把訊息文字回傳
-      if (!rule) {
-        const lineResponse = await fetch("https://api.line.me/v2/bot/message/reply", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${channel.access_token_encrypted}` },
-          body: JSON.stringify({ replyToken, messages: [{ type: "text", text }] }),
-        });
-        const responseText = await lineResponse.text();
-        await logWebhook(admin, {
-          user_id: channel.user_id,
-          channel_id: destination,
-          event_type: event.type,
-          keyword: text,
-          rule_id: null,
-          success: lineResponse.ok,
-          request_body: { replyToken, messages: [{ type: "text", text }] },
-          response_body: responseText ? { raw: responseText } : { ok: true },
-          error_message: lineResponse.ok ? null : `LINE reply failed: ${lineResponse.status}`,
-        });
-        continue;
-      }
+      if (!rule) continue;
 
       let messages: any[] = [];
       if (rule.reply_mode === "text") {

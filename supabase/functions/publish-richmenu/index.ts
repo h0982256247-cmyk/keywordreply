@@ -231,13 +231,32 @@ serve(async (req) => {
       const size = detectedSize || menu.size || { width: 2500, height: 1686 };
 
       const areas = (menu.areas || []).map((a: any) => {
-        let action = { ...a.action };
-        if (action.type === "richmenuswitch" && !action.data) {
-          action.data = `switch-to-${action.richMenuAliasId || "menu"}`;
-        }
-        if (action.type === "postback" && action.data) {
-          action.inputOption = "openKeyboard";
-          action.fillInText = action.data;
+        const src = a.action || {};
+        const label = src.label?.trim() || undefined;
+        let action: any;
+        if (src.type === "uri") {
+          action = { type: "uri", ...(label ? { label } : {}), uri: src.uri || "https://line.me" };
+        } else if (src.type === "message") {
+          action = { type: "message", ...(label ? { label } : {}), text: src.text || "" };
+        } else if (src.type === "richmenuswitch") {
+          action = {
+            type: "richmenuswitch",
+            ...(label ? { label } : {}),
+            richMenuAliasId: src.richMenuAliasId || "",
+            data: src.data || `switch-to-${src.richMenuAliasId || "menu"}`,
+          };
+        } else if (src.type === "postback") {
+          action = {
+            type: "postback",
+            ...(label ? { label } : {}),
+            data: src.data || "",
+            inputOption: "openKeyboard",
+            fillInText: src.data || "",
+          };
+        } else if (src.type === "datetimepicker") {
+          action = { type: "datetimepicker", ...(label ? { label } : {}), data: src.data || "", mode: src.mode || "datetime" };
+        } else {
+          action = { type: "uri", uri: "https://line.me" };
         }
         return { bounds: a.bounds, action };
       });

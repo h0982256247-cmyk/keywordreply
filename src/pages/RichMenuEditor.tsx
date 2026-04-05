@@ -451,6 +451,16 @@ function ImageUploader({ menu, onUploaded }: { menu: RmMenu; onUploaded: (url: s
       setErr(`圖片大小 ${(file.size / 1024 / 1024).toFixed(1)}MB 超過 LINE 上限（1MB），請先壓縮圖片`);
       return;
     }
+    // 檢查圖片尺寸必須為 2500 × 1686
+    const dims = await new Promise<{ w: number; h: number }>(resolve => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.src = URL.createObjectURL(file);
+    });
+    if (dims.w !== 2500 || dims.h !== 1686) {
+      setErr(`圖片尺寸必須為 2500 × 1686px（目前為 ${dims.w} × ${dims.h}px）`);
+      return;
+    }
     setUploading(true);
     setErr(null);
     try {

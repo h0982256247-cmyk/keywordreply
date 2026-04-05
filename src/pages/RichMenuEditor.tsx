@@ -394,15 +394,27 @@ function AreaSettings({
       )}
 
       {area.action.type === "message" && (
-        <div>
-          <label className="block text-xs font-medium text-[#6B6B6B] mb-1">訊息文字</label>
-          <input
-            type="text" value={area.action.text || ""}
-            onChange={e => update({ text: e.target.value })}
-            placeholder="用戶點擊後發送的文字"
-            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
-          />
-        </div>
+        <>
+          <div>
+            <label className="block text-xs font-medium text-[#6B6B6B] mb-1">訊息文字</label>
+            <input
+              type="text" value={area.action.text || ""}
+              onChange={e => update({ text: e.target.value })}
+              placeholder="用戶點擊後發送的文字"
+              className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#6B6B6B] mb-1">機器人回覆內容</label>
+            <textarea
+              value={area.action.replyText || ""}
+              onChange={e => update({ replyText: e.target.value })}
+              placeholder="用戶點擊後機器人自動回覆的文字（不填則不回覆）"
+              rows={3}
+              className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D] resize-none"
+            />
+          </div>
+        </>
       )}
 
       {area.action.type === "richmenuswitch" && (

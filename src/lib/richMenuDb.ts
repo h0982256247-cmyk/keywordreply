@@ -21,7 +21,6 @@ export interface RmArea {
     label?: string;
     uri?: string;
     text?: string;
-    replyText?: string;
     richMenuAliasId?: string;
     data?: string;
   };

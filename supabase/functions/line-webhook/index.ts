@@ -192,36 +192,12 @@ serve(async (req) => {
         });
       }
 
-      // 沒有關鍵字規則時，查詢已發布的圖文選單按鈕 replyText
+      // 沒有關鍵字規則時，直接把訊息文字回傳
       if (!rule) {
-        const { data: drafts } = await admin
-          .from("rm_drafts")
-          .select("data")
-          .eq("user_id", channel.user_id)
-          .eq("status", "published");
-
-        let richMenuReply: string | null = null;
-        for (const draft of drafts || []) {
-          for (const menu of draft.data?.menus || []) {
-            for (const area of menu.areas || []) {
-              if (area.action?.type === "message" &&
-                  area.action?.text?.trim() === text &&
-                  area.action?.replyText?.trim()) {
-                richMenuReply = area.action.replyText.trim();
-                break;
-              }
-            }
-            if (richMenuReply) break;
-          }
-          if (richMenuReply) break;
-        }
-
-        if (!richMenuReply) continue;
-
         const lineResponse = await fetch("https://api.line.me/v2/bot/message/reply", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${channel.access_token_encrypted}` },
-          body: JSON.stringify({ replyToken, messages: [{ type: "text", text: richMenuReply }] }),
+          body: JSON.stringify({ replyToken, messages: [{ type: "text", text }] }),
         });
         const responseText = await lineResponse.text();
         await logWebhook(admin, {
@@ -231,7 +207,7 @@ serve(async (req) => {
           keyword: text,
           rule_id: null,
           success: lineResponse.ok,
-          request_body: { replyToken, messages: [{ type: "text", text: richMenuReply }] },
+          request_body: { replyToken, messages: [{ type: "text", text }] },
           response_body: responseText ? { raw: responseText } : { ok: true },
           error_message: lineResponse.ok ? null : `LINE reply failed: ${lineResponse.status}`,
         });

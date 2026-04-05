@@ -15,22 +15,53 @@ const CANVAS_W = 2500;
 const CANVAS_H = 1686;
 
 // ── Validation ─────────────────────────────────────────────────────────────────
+// LINE Rich Menu 規格：
+//   圖片：必須上傳、寬 2500px、高 1686px（全版）或 843px（半版）、大小 ≤ 1MB
+//   熱區：1～20 個；每個熱區動作必須完整填寫
+//   底欄文字：最多 14 字元
+//   選單名稱：不能為空、最多 300 字元
+//   URI 格式：必須以 http://、https:// 或 line:// 開頭
+//   發送訊息內容：最多 300 字元
 function getValidationErrors(menus: RmMenu[]): { menuName: string; issues: string[] }[] {
   return menus.map(menu => {
     const issues: string[] = [];
-    if (!menu.imageUrl) issues.push("未上傳選單圖片");
+
+    // 圖片
+    if (!menu.imageUrl) issues.push("未上傳選單圖片（LINE 必要條件）");
+
+    // 選單名稱
+    if (!menu.name?.trim()) issues.push("選單名稱不能為空");
+    else if (menu.name.length > 300) issues.push(`選單名稱過長（${menu.name.length} 字，上限 300 字）`);
+
+    // 底欄文字
+    if ((menu.chatBarText ?? "").length > 14)
+      issues.push(`底欄文字過長（${menu.chatBarText.length} 字，LINE 上限 14 字）`);
+
+    // 熱區數量
+    if (menu.areas.length === 0) issues.push("至少需要設定 1 個熱區");
+    else if (menu.areas.length > 20) issues.push(`熱區數量超出上限（${menu.areas.length} 個，LINE 上限 20 個）`);
+
+    // 各熱區動作
     menu.areas.forEach((area, i) => {
       const n = i + 1;
       const { type, uri, text, richMenuAliasId, data } = area.action;
-      if (type === "uri" && !uri?.trim())
-        issues.push(`熱區 #${n}（開啟網址）：未填寫網址`);
-      else if (type === "message" && !text?.trim())
-        issues.push(`熱區 #${n}（發送訊息）：未填寫訊息內容`);
-      else if (type === "richmenuswitch" && !richMenuAliasId?.trim())
+      if (type === "uri") {
+        if (!uri?.trim())
+          issues.push(`熱區 #${n}（開啟網址）：未填寫網址`);
+        else if (!/^(https?:\/\/|line:\/\/)/.test(uri.trim()))
+          issues.push(`熱區 #${n}（開啟網址）：網址須以 http://、https:// 或 line:// 開頭`);
+      } else if (type === "message") {
+        if (!text?.trim())
+          issues.push(`熱區 #${n}（發送訊息）：未填寫訊息內容`);
+        else if (text.length > 300)
+          issues.push(`熱區 #${n}（發送訊息）：訊息過長（${text.length} 字，上限 300 字）`);
+      } else if (type === "richmenuswitch" && !richMenuAliasId?.trim()) {
         issues.push(`熱區 #${n}（切換選單）：未選擇目標選單`);
-      else if (type === "postback" && !data?.trim())
+      } else if (type === "postback" && !data?.trim()) {
         issues.push(`熱區 #${n}（預填欄位）：未填寫欄位內容`);
+      }
     });
+
     return { menuName: menu.name, issues };
   }).filter(v => v.issues.length > 0);
 }
@@ -873,23 +904,41 @@ export default function RichMenuEditor() {
 
             {publishModal === "validation" && (
               <>
-                <div className="px-6 pt-6 pb-3">
+                {/* Header */}
+                <div className="px-6 pt-5 pb-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                    <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#EA580C" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
                     </div>
-                    <h2 className="text-base font-semibold text-[#1A1A1A]">發布前請先修正以下問題</h2>
+                    <h2 className="text-base font-semibold text-[#1A1A1A]">不符合 LINE 規格，無法發布</h2>
                   </div>
-                  <p className="text-xs text-[#8A8A8A] ml-8">修正後再點擊「發布到 LINE」即可繼續</p>
+                  <p className="text-xs text-[#8A8A8A] ml-9">請修正下列問題後，再點擊「發布到 LINE」</p>
                 </div>
-                <div className="px-6 pb-2 max-h-72 overflow-y-auto space-y-3">
+
+                {/* LINE spec summary */}
+                <div className="mx-6 mb-3 rounded-xl bg-[#FFF8F0] border border-orange-100 px-4 py-3">
+                  <p className="text-[11px] font-semibold text-orange-700 mb-1.5">LINE 圖文選單規格要求</p>
+                  <ul className="space-y-0.5 text-[11px] text-orange-600">
+                    <li>• 每個選單層必須上傳背景圖片</li>
+                    <li>• 每個選單層至少設定 1 個熱區（上限 20 個）</li>
+                    <li>• 底欄文字最多 14 字元</li>
+                    <li>• 開啟網址須以 http://、https:// 或 line:// 開頭</li>
+                    <li>• 發送訊息內容最多 300 字元</li>
+                  </ul>
+                </div>
+
+                {/* Error list */}
+                <div className="px-6 pb-2 max-h-56 overflow-y-auto space-y-3">
                   {validationErrors.map((v: { menuName: string; issues: string[] }, i: number) => (
                     <div key={i}>
-                      <div className="text-xs font-semibold text-[#555555] mb-1">📋 {v.menuName}</div>
-                      <ul className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-[#555555] mb-1">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth={2.5}><rect x="3" y="3" width="18" height="18" rx="3"/><path strokeLinecap="round" d="M8 12h8M8 8h8M8 16h5"/></svg>
+                        {v.menuName}
+                      </div>
+                      <ul className="space-y-1 pl-1">
                         {v.issues.map((issue: string, j: number) => (
                           <li key={j} className="flex items-start gap-1.5 text-xs text-[#CC4A00]">
-                            <span className="mt-0.5 shrink-0">•</span>
+                            <span className="mt-0.5 shrink-0 text-orange-400">▸</span>
                             <span>{issue}</span>
                           </li>
                         ))}
@@ -897,8 +946,12 @@ export default function RichMenuEditor() {
                     </div>
                   ))}
                 </div>
-                <div className="px-4 py-4">
-                  <button onClick={() => setPublishModal(null)} className="w-full py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors">我知道了，去修正</button>
+
+                {/* Footer */}
+                <div className="px-4 pt-2 pb-4">
+                  <button onClick={() => setPublishModal(null)} className="w-full py-2.5 text-sm font-semibold text-white bg-[#A35D5D] hover:bg-[#8F4A4A] rounded-xl transition-colors">
+                    我知道了，去修正
+                  </button>
                 </div>
               </>
             )}

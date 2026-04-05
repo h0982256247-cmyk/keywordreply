@@ -264,7 +264,7 @@ serve(async (req) => {
       // ── Step 4: 建立 Rich Menu ──────────────────────────────────────────
       await log("step4_create_richmenu", { menuName, size });
       const createRes = await linePost("/richmenu", lineToken, {
-        size, selected: menu.selected ?? false,
+        size, selected: isMain ? true : (menu.selected ?? false),
         name: menuName, chatBarText: menu.chatBarText || "選單", areas,
       });
       if (!createRes.ok) {

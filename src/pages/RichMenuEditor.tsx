@@ -915,18 +915,6 @@ export default function RichMenuEditor() {
                   <p className="text-xs text-[#8A8A8A] ml-9">請修正下列問題後，再點擊「發布到 LINE」</p>
                 </div>
 
-                {/* LINE spec summary */}
-                <div className="mx-6 mb-3 rounded-xl bg-[#FFF8F0] border border-orange-100 px-4 py-3">
-                  <p className="text-[11px] font-semibold text-orange-700 mb-1.5">LINE 圖文選單規格要求</p>
-                  <ul className="space-y-0.5 text-[11px] text-orange-600">
-                    <li>• 每個選單層必須上傳背景圖片</li>
-                    <li>• 每個選單層至少設定 1 個熱區（上限 20 個）</li>
-                    <li>• 底欄文字最多 14 字元</li>
-                    <li>• 開啟網址須以 http://、https:// 或 line:// 開頭</li>
-                    <li>• 發送訊息內容最多 300 字元</li>
-                  </ul>
-                </div>
-
                 {/* Error list */}
                 <div className="px-6 pb-2 max-h-56 overflow-y-auto space-y-3">
                   {validationErrors.map((v: { menuName: string; issues: string[] }, i: number) => (

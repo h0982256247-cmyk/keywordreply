@@ -365,8 +365,9 @@ export default function Drafts() {
 
   async function handleDuplicate(r: any) {
     try {
-      const name = (r.content?.name || r.title || "未命名") + " (副本)";
-      await createDoc({ ...r.content, name, folder_id: r.folder_id ?? null } as any);
+      const baseName = r.content?.name || r.content?.title || r.title || "未命名";
+      const { name: _n, ...restContent } = r.content;
+      await createDoc({ ...restContent, title: baseName + " (副本)" } as any);
       await load();
     } catch (e: any) {
       setErr(e.message || "複製失敗");

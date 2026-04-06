@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getDoc, saveDoc } from "@/lib/db";
+import { getDoc, listDocs, saveDoc } from "@/lib/db";
 import { ImagemapArea, ImagemapDoc } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
@@ -116,6 +116,9 @@ export default function EditImagemap() {
   const [uploading, setUploading] = useState(false);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [folders, setFolders] = useState<{ id: string; name: string }[]>([]);
+  const [folderDropdownOpen, setFolderDropdownOpen] = useState(false);
+  const folderDropdownRef = useRef<HTMLDivElement>(null);
 
   // Canvas / drag state
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,7 +143,24 @@ export default function EditImagemap() {
     getDoc(id).then(row => {
       setDoc(row.content as ImagemapDoc);
     });
+    listDocs().then(rows => {
+      setFolders(
+        rows
+          .filter((r: any) => r.content.type === "folder")
+          .map((r: any) => ({ id: r.id, name: r.content.name }))
+      );
+    });
   }, [id]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (folderDropdownRef.current && !folderDropdownRef.current.contains(e.target as Node)) {
+        setFolderDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Save with debounce
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -439,6 +459,40 @@ export default function EditImagemap() {
           className="flex-1 text-sm font-semibold text-[#2B2B2B] bg-transparent border-none outline-none min-w-0"
           placeholder="草稿名稱"
         />
+        {/* Folder selector */}
+        <div ref={folderDropdownRef} className="relative shrink-0">
+          <button
+            onClick={() => setFolderDropdownOpen(o => !o)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#6B6B6B] border border-[#E8E8E8] rounded-lg hover:bg-[#F5F5F5] transition-colors"
+          >
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            {doc.folderId ? (folders.find(f => f.id === doc.folderId)?.name ?? "未分類") : "未分類"}
+            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} className={`transition-transform ${folderDropdownOpen ? "rotate-180" : ""}`}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          {folderDropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-[#E8E8E8] rounded-lg shadow-lg py-1 min-w-[120px]">
+              <button
+                onClick={() => { updateDoc({ ...doc, folderId: undefined }); setFolderDropdownOpen(false); }}
+                className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${!doc.folderId ? "text-[#A35D5D] bg-[#FBEBEE]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+              >
+                未分類
+              </button>
+              {folders.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => { updateDoc({ ...doc, folderId: f.id }); setFolderDropdownOpen(false); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${doc.folderId === f.id ? "text-[#A35D5D] bg-[#FBEBEE]" : "text-[#555555] hover:bg-[#F5F5F5]"}`}
+                >
+                  {f.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         {saveMsg && <span className="text-xs text-[#6B6B6B]">{saveMsg}</span>}
         <button
           onClick={handleSave}

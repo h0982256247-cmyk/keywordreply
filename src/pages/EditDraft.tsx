@@ -2528,12 +2528,20 @@ function QuickReplyEditor({ doc, onChange }: { doc: EditableMessageDoc; onChange
                     />
                   </label>
                   <label className="block space-y-2">
-                    <div className="text-xs font-medium text-[#6B6B6B]">按鈕標籤</div>
-                    <input value={item.action.label} onChange={(e) => updateItem(item.id, { action: { ...item.action, label: e.target.value } as any })} className="w-full rounded-xl border border-[#E7C9CD] px-3 py-2 bg-white" />
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium text-[#6B6B6B]">按鈕標籤</div>
+                      <span className={`text-[10px] ${item.action.label.length > 20 ? 'text-red-500 font-medium' : 'text-[#AAAAAA]'}`}>{item.action.label.length}/20</span>
+                    </div>
+                    <input value={item.action.label} maxLength={20} onChange={(e) => updateItem(item.id, { action: { ...item.action, label: e.target.value } as any })} className={`w-full rounded-xl border px-3 py-2 bg-white ${item.action.label.length > 20 ? 'border-red-400 focus:ring-red-300' : 'border-[#E7C9CD]'}`} />
                   </label>
                   <label className="block space-y-2">
-                    <div className="text-xs font-medium text-[#6B6B6B]">{item.action.type === 'message' ? '送出的文字' : '連結網址'}</div>
-                    <input value={item.action.type === 'message' ? item.action.text : item.action.uri} onChange={(e) => updateItem(item.id, { action: item.action.type === 'message' ? { ...item.action, text: e.target.value } as any : { ...item.action, uri: e.target.value } as any })} className="w-full rounded-xl border border-[#E7C9CD] px-3 py-2 bg-white" placeholder={item.action.type === 'message' ? '例如：優惠' : 'https://example.com'} />
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium text-[#6B6B6B]">{item.action.type === 'message' ? '送出的文字' : '連結網址'}</div>
+                      {item.action.type === 'message' && (
+                        <span className={`text-[10px] ${(item.action.text?.length ?? 0) > 300 ? 'text-red-500 font-medium' : 'text-[#AAAAAA]'}`}>{item.action.text?.length ?? 0}/300</span>
+                      )}
+                    </div>
+                    <input value={item.action.type === 'message' ? item.action.text : item.action.uri} maxLength={item.action.type === 'message' ? 300 : undefined} onChange={(e) => updateItem(item.id, { action: item.action.type === 'message' ? { ...item.action, text: e.target.value } as any : { ...item.action, uri: e.target.value } as any })} className={`w-full rounded-xl border px-3 py-2 bg-white ${item.action.type === 'message' && (item.action.text?.length ?? 0) > 300 ? 'border-red-400' : 'border-[#E7C9CD]'}`} placeholder={item.action.type === 'message' ? '例如：優惠' : 'https://example.com'} />
                   </label>
                 </div>
               </div>

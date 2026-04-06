@@ -9,6 +9,8 @@ const LIMITS = {
   URI_MAX: 2000,
   KEY_VALUE_LABEL_MAX: 40,
   KEY_VALUE_VALUE_MAX: 300,
+  QUICK_REPLY_LABEL_MAX: 20,
+  QUICK_REPLY_TEXT_MAX: 300,
 };
 
 function issue(level: "error" | "warn", code: string, message: string, path: string): ValidationIssue {
@@ -160,6 +162,23 @@ export function validateDoc(doc: DocModel): ValidationReport {
   else if (doc.type === "imagemap") {
     if (!doc.imageUrl) errors.push(issue("error", "E_IMAGEMAP_NO_IMAGE", "請設定圖片網址", "imageUrl"));
     if (doc.areas.length === 0) errors.push(issue("error", "E_IMAGEMAP_NO_AREAS", "請至少新增一個熱區", "areas"));
+  }
+
+  // Quick Reply 驗證（適用所有支援 quickReply 的類型）
+  const quickReply = (doc as any).quickReply;
+  if (quickReply?.items?.length) {
+    quickReply.items.forEach((item: any, i: number) => {
+      const label = item.action?.label || "";
+      if (label.length > LIMITS.QUICK_REPLY_LABEL_MAX) {
+        errors.push(issue("error", "E_QR_LABEL_TOO_LONG", `預設回覆按鈕 ${i + 1} 標籤最多 ${LIMITS.QUICK_REPLY_LABEL_MAX} 字元`, `quickReply.items[${i}].action.label`));
+      }
+      if (item.action?.type === "message") {
+        const text = item.action.text || "";
+        if (text.length > LIMITS.QUICK_REPLY_TEXT_MAX) {
+          errors.push(issue("error", "E_QR_TEXT_TOO_LONG", `預設回覆按鈕 ${i + 1} 送出文字最多 ${LIMITS.QUICK_REPLY_TEXT_MAX} 字元（目前 ${text.length} 字）`, `quickReply.items[${i}].action.text`));
+        }
+      }
+    });
   }
 
   const status: ValidationReport["status"] =

@@ -47,7 +47,7 @@ serve(async (req) => {
   return new Response(body, {
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "public, max-age=86400",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
       "Access-Control-Allow-Origin": "*",
     },
   });

@@ -32,22 +32,12 @@ serve(async (req) => {
     return new Response("No image URL", { status: 404 });
   }
 
-  // Proxy the image (same image served for all LINE size variants)
-  const imgRes = await fetch(imageUrl, {
-    headers: { "User-Agent": "LineImagemapProxy/1.0" },
-  });
-
-  if (!imgRes.ok) {
-    return new Response("Image fetch failed", { status: 502 });
-  }
-
-  const contentType = imgRes.headers.get("Content-Type") || "image/jpeg";
-  const body = await imgRes.arrayBuffer();
-
-  return new Response(body, {
+  // Redirect to actual image URL — LINE follows redirects and caches the target URL directly
+  return new Response(null, {
+    status: 302,
     headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Location": imageUrl,
+      "Cache-Control": "public, max-age=300",
       "Access-Control-Allow-Origin": "*",
     },
   });

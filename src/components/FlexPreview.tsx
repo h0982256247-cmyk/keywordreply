@@ -231,13 +231,18 @@ function FlexBox({ box, isRoot }: { box: any; isRoot?: boolean }) {
   const style: React.CSSProperties = {
     display: "flex",
     flexDirection: box.layout === "vertical" ? "column" : "row",
-    gap: getSize(box.spacing) || "8px",
+    gap: getSize(box.spacing),
     alignItems: box.layout === "baseline" ? "baseline" : box.alignItems === "center" ? "center" : box.layout === "horizontal" ? "center" : "stretch",
     justifyContent: box.justifyContent === "center" ? "center" : box.justifyContent === "flex-end" ? "flex-end" : undefined,
+    flex: box.flex !== undefined ? box.flex : undefined,
+    width: box.width || undefined,
+    height: box.height || undefined,
+    minHeight: box.minHeight || undefined,
     backgroundColor: box.backgroundColor,
     borderRadius: box.cornerRadius ? getCornerRadius(box.cornerRadius) : undefined,
     padding: box.paddingAll,
     cursor: box.action ? "pointer" : undefined,
+    boxSizing: "border-box",
   };
 
   // Handle absolute positioning for overlay boxes

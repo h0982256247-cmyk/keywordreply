@@ -158,7 +158,7 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
 
   const footerButtons = section.footer.filter((b) => b.enabled).slice(0, 4);
 
-  function makeButtonBox(b: FooterButton, flex?: number) {
+  function makeButtonBox(b: FooterButton, paired = false) {
     const box: any = {
       type: "box",
       layout: "vertical",
@@ -168,6 +168,8 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
         color: isHexColor(b.textColor) ? b.textColor : "#FFFFFF",
         align: "center",
         weight: "bold",
+        wrap: false,
+        maxLines: 1,
       }],
       backgroundColor: isHexColor(b.bgColor) ? b.bgColor : "#0A84FF",
       cornerRadius: "md",
@@ -176,7 +178,10 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
       paddingAll: "10px",
       action: actionToFlex(b.action, undefined, docId, token, liffId),
     };
-    if (flex !== undefined) box.flex = flex;
+    if (paired) {
+      box.flex = 1;
+      box.height = "44px";
+    }
     return box;
   }
 
@@ -190,7 +195,7 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
         type: "box",
         layout: "horizontal",
         spacing: "sm",
-        contents: [makeButtonBox(b, 1), makeButtonBox(footerButtons[i + 1], 1)],
+        contents: [makeButtonBox(b, true), makeButtonBox(footerButtons[i + 1], true)],
       });
       i += 2;
     } else {

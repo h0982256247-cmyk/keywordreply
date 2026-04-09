@@ -194,8 +194,11 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
       footerContents.push({
         type: "box",
         layout: "horizontal",
-        spacing: "sm",
-        contents: [makeButtonBox(b, true), makeButtonBox(footerButtons[i + 1], true)],
+        contents: [
+          makeButtonBox(b, true),
+          { type: "box", layout: "vertical", contents: [], flex: 0, width: "6px" },
+          makeButtonBox(footerButtons[i + 1], true),
+        ],
       });
       i += 2;
     } else {

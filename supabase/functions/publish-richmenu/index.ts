@@ -206,14 +206,16 @@ serve(async (req) => {
         throw Object.assign(new Error(`Menu "${menuName}" has no image`), { code: "IMAGE_MISSING" });
       }
 
-      // Fetch image (detect actual dimensions)
+      // Fetch image via internal Storage download（不走 CDN，不計 Cached Egress）
       let imageBuffer: ArrayBuffer;
       let imageContentType: string;
       try {
-        const imgRes = await fetch(menu.imageUrl);
-        if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
-        imageContentType = imgRes.headers.get("content-type") || "image/jpeg";
-        imageBuffer = await imgRes.arrayBuffer();
+        const storagePath = menu.imageUrl.split("?")[0].split("/storage/v1/object/public/flex-assets/")[1];
+        if (!storagePath) throw new Error("Cannot resolve storage path from imageUrl");
+        const { data: blob, error: dlErr } = await adminClient.storage.from("flex-assets").download(storagePath);
+        if (dlErr || !blob) throw new Error(dlErr?.message || "Download returned empty");
+        imageContentType = blob.type || "image/jpeg";
+        imageBuffer = await blob.arrayBuffer();
       } catch (e: any) {
         throw Object.assign(new Error(`Image fetch failed for "${menuName}": ${e.message}`), { code: "IMAGE_INVALID" });
       }

@@ -14,6 +14,14 @@ function uid() { return crypto.randomUUID(); }
 const CANVAS_W = 2500;
 const CANVAS_H = 1686;
 
+// 將 Storage 公開 URL 轉為縮圖 URL（Supabase Image Transform）
+// 減少 Cached Egress：預覽/縮圖不需要下載完整原圖
+function toThumbUrl(url: string | null | undefined, width: number): string | null {
+  if (!url) return null;
+  const cleanUrl = url.split("?")[0];
+  return cleanUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + `?width=${width}&quality=75&resize=contain`;
+}
+
 // ── Validation ─────────────────────────────────────────────────────────────────
 // LINE Rich Menu 規格：
 //   圖片：必須上傳、寬 2500px、高 1686px（全版）或 843px（半版）、大小 ≤ 1MB
@@ -256,7 +264,7 @@ function RichMenuCanvas({
     >
       {/* Background image or placeholder */}
       {menu.imageUrl ? (
-        <img src={menu.imageUrl} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+        <img src={toThumbUrl(menu.imageUrl, 1200) ?? menu.imageUrl ?? undefined} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-[#AAAAAA]">
@@ -471,7 +479,7 @@ function ImageUploader({ menu, onUploaded }: { menu: RmMenu; onUploaded: (url: s
       const { error } = await supabase.storage.from("flex-assets").upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
-      onUploaded(publicUrl + "?t=" + Date.now());
+      onUploaded(publicUrl);
     } catch (e: any) {
       setErr(e.message || "上傳失敗");
     } finally {
@@ -490,7 +498,7 @@ function ImageUploader({ menu, onUploaded }: { menu: RmMenu; onUploaded: (url: s
       >
         {menu.imageUrl ? (
           <div className="relative">
-            <img src={menu.imageUrl} className="w-full h-20 object-cover rounded-lg" />
+            <img src={toThumbUrl(menu.imageUrl, 400) ?? menu.imageUrl ?? undefined} className="w-full h-20 object-cover rounded-lg" />
             <div className="mt-2 text-xs text-[#6B6B6B]">點擊或拖曳更換圖片</div>
           </div>
         ) : (

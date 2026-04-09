@@ -156,33 +156,56 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
     if (c.kind === "spacer") bodyContents.push({ type: "spacer", size: c.size });
   }
 
-  const footerButtons = section.footer.filter((b) => b.enabled).slice(0, 3);
-  const footer = footerButtons.length
-    ? {
+  const footerButtons = section.footer.filter((b) => b.enabled).slice(0, 4);
+
+  function makeButtonBox(b: FooterButton, paired = false) {
+    const box: any = {
       type: "box",
       layout: "vertical",
-      spacing: "sm",
-      contents: footerButtons.map((b: FooterButton) => {
-        // 統一使用 box 結構，可同時自訂文字色與背景色
-        return {
-          type: "box",
-          layout: "vertical",
-          contents: [{
-            type: "text",
-            text: b.label,
-            color: isHexColor(b.textColor) ? b.textColor : "#FFFFFF",
-            align: "center",
-            weight: "bold",
-          }],
-          backgroundColor: isHexColor(b.bgColor) ? b.bgColor : "#0A84FF",
-          cornerRadius: "md",
-          justifyContent: "center",
-          alignItems: "center",
-          paddingAll: "10px",
-          action: actionToFlex(b.action, undefined, docId, token, liffId),
-        };
-      }),
+      contents: [{
+        type: "text",
+        text: b.label,
+        color: isHexColor(b.textColor) ? b.textColor : "#FFFFFF",
+        align: "center",
+        weight: "bold",
+        wrap: false,
+        maxLines: 1,
+      }],
+      backgroundColor: isHexColor(b.bgColor) ? b.bgColor : "#0A84FF",
+      cornerRadius: "md",
+      justifyContent: "center",
+      alignItems: "center",
+      paddingAll: "10px",
+      action: actionToFlex(b.action, undefined, docId, token, liffId),
+    };
+    if (paired) {
+      box.flex = 1;
+      box.height = "44px";
     }
+    return box;
+  }
+
+  // Group buttons: consecutive "half" buttons are paired into horizontal rows
+  const footerContents: any[] = [];
+  let i = 0;
+  while (i < footerButtons.length) {
+    const b = footerButtons[i];
+    if (b.width === "half" && i + 1 < footerButtons.length && footerButtons[i + 1].width === "half") {
+      footerContents.push({
+        type: "box",
+        layout: "horizontal",
+        spacing: "sm",
+        contents: [makeButtonBox(b, true), makeButtonBox(footerButtons[i + 1], true)],
+      });
+      i += 2;
+    } else {
+      footerContents.push(makeButtonBox(b));
+      i += 1;
+    }
+  }
+
+  const footer = footerContents.length
+    ? { type: "box", layout: "vertical", spacing: "sm", contents: footerContents }
     : undefined;
 
   const bubble: any = {

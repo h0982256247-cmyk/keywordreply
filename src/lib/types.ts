@@ -43,7 +43,7 @@ export type ListBlock = ComponentBase & { kind: "list"; items: { id: string; tex
 export type Divider = ComponentBase & { kind: "divider" };
 export type Spacer = ComponentBase & { kind: "spacer"; size: "sm" | "md" | "lg" };
 
-export type FooterButton = ComponentBase & { kind: "footer_button"; label: string; action: Action; style: "primary" | "secondary"; bgColor: string; textColor: string; autoTextColor: boolean };
+export type FooterButton = ComponentBase & { kind: "footer_button"; label: string; action: Action; style: "primary" | "secondary"; bgColor: string; textColor: string; autoTextColor: boolean; width?: "full" | "half" };
 
 export type Section = {
   hero: (HeroImage | HeroVideo)[];

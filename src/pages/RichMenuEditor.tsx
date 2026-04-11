@@ -14,12 +14,10 @@ function uid() { return crypto.randomUUID(); }
 const CANVAS_W = 2500;
 const CANVAS_H = 1686;
 
-// 將 Storage 公開 URL 轉為縮圖 URL（Supabase Image Transform）
-// 減少 Cached Egress：預覽/縮圖不需要下載完整原圖
-function toThumbUrl(url: string | null | undefined, width: number): string | null {
+// 直接使用原始 Storage 公開 URL，不使用 Image Transform（需要 Pro 方案）
+function toThumbUrl(url: string | null | undefined, _width: number): string | null {
   if (!url) return null;
-  const cleanUrl = url.split("?")[0];
-  return cleanUrl.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + `?width=${width}&quality=75&resize=contain`;
+  return url.split("?")[0];
 }
 
 // ── Validation ─────────────────────────────────────────────────────────────────

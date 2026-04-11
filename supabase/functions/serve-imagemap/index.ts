@@ -32,11 +32,19 @@ serve(async (req) => {
     return new Response("No image URL", { status: 404 });
   }
 
-  // Redirect to actual image URL — LINE follows redirects and caches the target URL directly
-  return new Response(null, {
-    status: 302,
+  // Proxy the image directly so LINE can always read it
+  const imageResponse = await fetch(imageUrl);
+  if (!imageResponse.ok) {
+    return new Response("Image fetch failed", { status: 502 });
+  }
+
+  const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+  const body = await imageResponse.arrayBuffer();
+
+  return new Response(body, {
+    status: 200,
     headers: {
-      "Location": imageUrl,
+      "Content-Type": contentType,
       "Cache-Control": "public, max-age=300",
       "Access-Control-Allow-Origin": "*",
     },

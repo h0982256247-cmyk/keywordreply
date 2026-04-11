@@ -17,7 +17,7 @@ const CANVAS_H = 1686;
 // 直接使用原始 Storage 公開 URL，不使用 Image Transform（需要 Pro 方案）
 function toThumbUrl(url: string | null | undefined, _width: number): string | null {
   if (!url) return null;
-  return url.split("?")[0];
+  return url;
 }
 
 // ── Validation ─────────────────────────────────────────────────────────────────

@@ -477,7 +477,7 @@ function ImageUploader({ menu, onUploaded }: { menu: RmMenu; onUploaded: (url: s
       const { error } = await supabase.storage.from("flex-assets").upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
-      onUploaded(publicUrl);
+      onUploaded(`${publicUrl}?t=${Date.now()}`);
     } catch (e: any) {
       setErr(e.message || "上傳失敗");
     } finally {

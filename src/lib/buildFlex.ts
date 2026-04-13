@@ -213,14 +213,16 @@ function sectionToBubble(section: Section, bubbleSize: BubbleSize, docId?: strin
     size: bubbleSize,
   };
 
-  bubble.body = {
-    type: "box",
-    layout: "vertical",
-    spacing: "md",
-    contents: bodyContents,
-    backgroundColor: section.styles?.body?.backgroundColor,
-    paddingAll: "20px",
-  };
+  if (bodyContents.length) {
+    bubble.body = {
+      type: "box",
+      layout: "vertical",
+      spacing: "md",
+      contents: bodyContents,
+      backgroundColor: section.styles?.body?.backgroundColor,
+      paddingAll: "20px",
+    };
+  }
 
   if (hero) bubble.hero = hero;
   if (footer) bubble.footer = footer;

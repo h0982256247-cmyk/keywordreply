@@ -203,13 +203,16 @@ serve(async (req) => {
           await logWebhook(admin, { user_id: channel.user_id, channel_id: destination, event_type: event.type, keyword: text, rule_id: rule.id, success: false, request_body: event, error_message: "No draft configured" });
           continue;
         }
+        // Batch fetch all drafts in one query, then reorder to match draft_ids
+        const { data: docRows } = await admin.from("docs").select("id, content, title").in("id", draftIds).eq("owner_id", channel.user_id);
+        const docMap = new Map((docRows || []).map((d: any) => [d.id, d]));
+
         for (const draftId of draftIds) {
-          const { data: docRow } = await admin.from("docs").select("content, title").eq("id", draftId).eq("owner_id", channel.user_id).maybeSingle();
+          const docRow: any = docMap.get(draftId);
           if (!docRow?.content) continue;
           const quickReply = compileQuickReply(docRow.content?.quickReply);
 
           if (docRow.content.type === "imagemap") {
-            // Build imagemap message using serve-imagemap Edge Function as base URL
             const baseUrl = `${supabaseUrl}/functions/v1/serve-imagemap/${draftId}`;
             const areas = (docRow.content.areas || []).map((area: any) => ({
               type: area.action?.type === "uri" ? "uri" : "message",
@@ -231,14 +234,12 @@ serve(async (req) => {
               actions: areas,
             });
           } else if (docRow.content.type === "text") {
-            // Build text message
             messages.push({
               type: "text",
               text: docRow.content.text || "您好",
               ...(quickReply ? { quickReply } : {}),
             });
           } else {
-            // Default: build flex message (bubble / carousel)
             messages.push({ type: "flex", altText: (docRow.title || "LINE 訊息").slice(0, 400), contents: compileFlex(docRow.content), ...(quickReply ? { quickReply } : {}) });
           }
         }

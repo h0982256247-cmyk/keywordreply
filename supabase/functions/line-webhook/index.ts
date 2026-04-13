@@ -15,6 +15,7 @@ async function hmacSHA256Base64(secret: string, body: string) {
 
 function safeHttpsUrl(url?: string | null) {
   if (!url || typeof url !== "string") return null;
+  if (url.includes("placehold.co")) return null;
   if (url.startsWith("https://")) return url;
   if (url.startsWith("http://")) return url.replace("http://", "https://");
   return null;

@@ -170,26 +170,24 @@ serve(async (req) => {
       const replyToken = event.replyToken;
       if (!text || !replyToken) continue;
 
-      // Fetch all enabled exact rules and match against keywords array or keyword field
-      const exactRules = await admin
+      // Fetch all enabled rules in one query and match in memory
+      const { data: allRules } = await admin
         .from("keyword_rules")
         .select("*")
         .eq("user_id", channel.user_id)
         .eq("is_enabled", true)
-        .eq("match_type", "exact")
         .order("priority", { ascending: true });
 
-      let rule = (exactRules.data || []).find((r: any) => {
+      let rule = (allRules || []).find((r: any) => {
         const kws: string[] = r.keywords && r.keywords.length > 0 ? r.keywords : r.keyword ? [r.keyword] : [];
-        return kws.includes(text);
+        return r.match_type === "exact" && kws.includes(text);
       }) ?? null;
 
       if (!rule) {
-        const contains = await admin.from("keyword_rules").select("*").eq("user_id", channel.user_id).eq("is_enabled", true).eq("match_type", "contains").order("priority", { ascending: true });
-        rule = (contains.data || []).find((r: any) => {
+        rule = (allRules || []).find((r: any) => {
           const kws: string[] = r.keywords && r.keywords.length > 0 ? r.keywords : r.keyword ? [r.keyword] : [];
-          return kws.some((k: string) => text.includes(k));
-        });
+          return r.match_type === "contains" && kws.some((k: string) => text.includes(k));
+        }) ?? null;
       }
 
       if (!rule) continue;
@@ -259,7 +257,7 @@ serve(async (req) => {
       });
 
       const responseText = await lineResponse.text();
-      await logWebhook(admin, {
+      logWebhook(admin, {
         user_id: channel.user_id,
         channel_id: destination,
         event_type: event.type,

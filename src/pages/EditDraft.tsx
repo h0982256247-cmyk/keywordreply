@@ -1826,6 +1826,14 @@ export default function EditDraft() {
       <div className="sticky top-0 z-30 bg-white border-b border-[#E7C9CD] px-4 py-2 flex items-center gap-3">
         {/* Left: title + folder + save status */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
+          <button
+            onClick={() => nav("/drafts")}
+            className="p-1.5 rounded-lg text-[#AAAAAA] hover:bg-[#F5F5F5] hover:text-[#6B6B6B] transition-colors flex-shrink-0"
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
           <input
             autoFocus
             type="text"

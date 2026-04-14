@@ -441,7 +441,7 @@ export default function EditImagemap() {
   const drawingRect = getDrawingRect();
 
   return (
-    <div className="flex flex-col h-screen bg-[#FAF8F8]">
+    <div className="flex flex-col h-full bg-[#FAF8F8]">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-[#F0E3E5] shrink-0">
         <button

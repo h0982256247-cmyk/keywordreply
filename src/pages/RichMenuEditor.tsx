@@ -687,7 +687,7 @@ export default function RichMenuEditor() {
   );
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col bg-[#F7F7F7]">
+    <div className="h-full overflow-hidden flex flex-col bg-[#F7F7F7]">
       {/* Toast */}
       {toast && (
         <div className={`fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-sm font-medium transition-all ${toast.type === "error" ? "bg-red-600 text-white" : "bg-[#1A1A1A] text-white"}`}>

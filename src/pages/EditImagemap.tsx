@@ -456,7 +456,7 @@ export default function EditImagemap() {
           type="text"
           value={doc.title}
           onChange={e => updateDoc({ ...doc, title: e.target.value })}
-          className="flex-1 text-sm font-semibold text-[#2B2B2B] bg-transparent border-none outline-none min-w-0"
+          className="text-sm font-semibold text-[#2B2B2B] bg-transparent border-none outline-none min-w-0"
           placeholder="草稿名稱"
         />
         {/* Folder selector */}
@@ -493,6 +493,7 @@ export default function EditImagemap() {
             </div>
           )}
         </div>
+        <div className="flex-1" />
         {saveMsg && <span className="text-xs text-[#6B6B6B]">{saveMsg}</span>}
         <button
           onClick={handleSave}

@@ -58,7 +58,8 @@ export default function AppShell() {
   const location = useLocation();
   const [checkingChannel, setCheckingChannel] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const isEditRoute = /^\/drafts\/[^/]+\/edit$/.test(location.pathname) || /^\/rich-menus\/[^/]+\/edit$/.test(location.pathname);
+  const isEditRoute = false; // all edit pages now show the AppShell banner
+  const isFullWidthRoute = /^\/drafts\/[^/]+\/(edit|imagemap)$/.test(location.pathname) || /^\/rich-menus\/[^/]+\/edit$/.test(location.pathname);
   const pageMeta = usePageMeta(location.pathname);
 
   useEffect(() => {
@@ -255,7 +256,7 @@ export default function AppShell() {
           </header>
         )}
 
-        <main className={isEditRoute ? "" : "p-4 md:p-8"}>
+        <main className={(isEditRoute || isFullWidthRoute) ? "" : "p-4 md:p-8"}>
           <Outlet />
         </main>
       </div>

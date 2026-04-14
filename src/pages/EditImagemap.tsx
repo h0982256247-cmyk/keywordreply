@@ -517,24 +517,24 @@ export default function EditImagemap() {
         </div>
       )}
 
+      {/* Alt text - flush under header */}
+      <div className="bg-white border-b border-[#F0E3E5] px-5 py-3 shrink-0">
+        <p className="text-xs font-semibold text-[#555] uppercase tracking-wide mb-2">訊息設定</p>
+        <div>
+          <label className="text-xs text-[#6B6B6B] mb-1 block">LINE 通知顯示</label>
+          <input
+            type="text"
+            placeholder="熱區圖片"
+            value={doc.altText}
+            onChange={e => updateDoc({ ...doc, altText: e.target.value })}
+            className="w-full text-sm border border-[#E7C9CD] rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
+          />
+        </div>
+      </div>
+
       <div className="flex flex-1 overflow-hidden">
         {/* Left: canvas editor */}
         <div className="flex-1 flex flex-col gap-4 p-5 overflow-y-auto">
-
-          {/* Alt text */}
-          <div className="bg-white rounded-2xl border border-[#F0E3E5] p-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold text-[#555] uppercase tracking-wide">訊息設定</p>
-            <div>
-              <label className="text-xs text-[#6B6B6B] mb-1 block">LINE 通知顯示</label>
-              <input
-                type="text"
-                placeholder="熱區圖片"
-                value={doc.altText}
-                onChange={e => updateDoc({ ...doc, altText: e.target.value })}
-                className="w-full text-sm border border-[#E7C9CD] rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
-              />
-            </div>
-          </div>
 
           {/* Image canvas */}
           <div className="bg-white rounded-2xl border border-[#F0E3E5] p-4">

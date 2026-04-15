@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
+import { supabase } from "@/lib/supabase";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Tag = {
@@ -35,21 +36,9 @@ export default function Tags() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
-  // TODO: Replace with real Supabase RPC call
-  // const load = async () => {
-  //   const { data } = await supabase.rpc("list_tags_with_count");
-  //   setTags(data || []);
-  //   setLoading(false);
-  // };
   const load = async () => {
-    // Mock data for UI development
-    setTags([
-      { id: "1", name: "訂房意向", color: "#E57373", user_count: 128, created_at: "2026-04-10" },
-      { id: "2", name: "新客戶", color: "#FFB74D", user_count: 56, created_at: "2026-04-11" },
-      { id: "3", name: "VIP", color: "#81C784", user_count: 12, created_at: "2026-04-12" },
-      { id: "4", name: "已購買", color: "#64B5F6", user_count: 89, created_at: "2026-04-13" },
-      { id: "5", name: "活動參與", color: "#BA68C8", user_count: 34, created_at: "2026-04-14" },
-    ]);
+    const { data } = await supabase.rpc("list_tags_with_count");
+    setTags(data || []);
     setLoading(false);
   };
 
@@ -58,13 +47,8 @@ export default function Tags() {
   const handleSave = async () => {
     if (!form.name.trim()) { setMsg("請輸入標籤名稱"); return; }
     setSaving(true);
-    // TODO: Replace with real Supabase RPC
-    // await supabase.rpc("upsert_tag", { tag_id: form.id, tag_name: form.name, tag_color: form.color });
-    if (form.id) {
-      setTags(prev => prev.map(t => t.id === form.id ? { ...t, name: form.name, color: form.color } : t));
-    } else {
-      setTags(prev => [...prev, { id: crypto.randomUUID(), name: form.name, color: form.color, user_count: 0, created_at: new Date().toISOString() }]);
-    }
+    await supabase.rpc("upsert_tag", { tag_id: form.id || null, tag_name: form.name.trim(), tag_color: form.color });
+    await load();
     setSaving(false);
     setModalOpen(false);
     setForm(emptyForm);
@@ -73,8 +57,7 @@ export default function Tags() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    // TODO: Replace with real Supabase RPC
-    // await supabase.rpc("delete_tag", { tag_id: deleteId });
+    await supabase.rpc("delete_tag", { tag_id: deleteId });
     setTags(prev => prev.filter(t => t.id !== deleteId));
     setDeleteId(null);
   };

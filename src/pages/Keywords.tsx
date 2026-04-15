@@ -3,6 +3,7 @@ import GlassSelect from "@/components/GlassSelect";
 import ConfirmModal from '@/components/ConfirmModal';
 import { listDocs } from '@/lib/db';
 import { deleteKeywordRule, listKeywordRules, reorderKeywordRules, upsertKeywordRule, type KeywordRule } from '@/lib/keywords';
+import { supabase } from '@/lib/supabase';
 
 const MAX_DRAFTS = 3;
 const MAX_KEYWORD_LEN = 30;
@@ -32,14 +33,7 @@ const emptyForm: FormState = {
   is_enabled: true,
 };
 
-// Mock tags — TODO: replace with Supabase RPC
-const MOCK_TAGS = [
-  { id: "1", name: "訂房意向", color: "#E57373" },
-  { id: "2", name: "新客戶", color: "#FFB74D" },
-  { id: "3", name: "VIP", color: "#81C784" },
-  { id: "4", name: "已購買", color: "#64B5F6" },
-  { id: "5", name: "活動參與", color: "#BA68C8" },
-];
+type TagOption = { id: string; name: string; color: string };
 
 export default function Keywords() {
   const [drafts, setDrafts] = useState<any[]>([]);
@@ -53,9 +47,11 @@ export default function Keywords() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [allTags, setAllTags] = useState<TagOption[]>([]);
 
   const load = async () => {
-    const [docRows, ruleRows] = await Promise.all([listDocs(), listKeywordRules()]);
+    const [docRows, ruleRows, tagResult] = await Promise.all([listDocs(), listKeywordRules(), supabase.rpc("list_tags_with_count")]);
+    setAllTags((tagResult.data || []).map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
     setDrafts(docRows.filter((r: any) => r.content?.type !== 'folder'));
     setRows(ruleRows);
   };
@@ -458,7 +454,7 @@ export default function Keywords() {
                 <label className="block text-xs font-semibold text-[#555555] mb-2">觸發時自動貼標</label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {form.tag_ids.map(tagId => {
-                    const tag = MOCK_TAGS.find(t => t.id === tagId);
+                    const tag = allTags.find(t => t.id === tagId);
                     if (!tag) return null;
                     return (
                       <span key={tagId} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FAF8F8] border border-[#E7C9CD]">
@@ -472,7 +468,7 @@ export default function Keywords() {
                   })}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {MOCK_TAGS.filter(t => !form.tag_ids.includes(t.id)).map(tag => (
+                  {allTags.filter(t => !form.tag_ids.includes(t.id)).map(tag => (
                     <button
                       key={tag.id}
                       type="button"

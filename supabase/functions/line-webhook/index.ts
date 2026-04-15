@@ -252,6 +252,20 @@ serve(async (req) => {
 
       if (!messages.length) continue;
 
+      // Auto-tag: write to line_user_tags if rule has tag_ids
+      if (rule.tag_ids?.length && event.source?.userId) {
+        const tagRows = rule.tag_ids.map((tagId: string) => ({
+          user_id: channel.user_id,
+          line_uid: event.source.userId,
+          tag_id: tagId,
+          source: "keyword",
+          source_id: rule.id,
+        }));
+        admin.from("line_user_tags").upsert(tagRows, { onConflict: "user_id,line_uid,tag_id" }).then(({ error }) => {
+          if (error) console.error("[line-webhook] auto-tag failed", error.message);
+        });
+      }
+
       const lineResponse = await fetch("https://api.line.me/v2/bot/message/reply", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${channel.access_token_encrypted}` },

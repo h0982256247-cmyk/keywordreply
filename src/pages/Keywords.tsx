@@ -3,6 +3,7 @@ import GlassSelect from "@/components/GlassSelect";
 import ConfirmModal from '@/components/ConfirmModal';
 import { listDocs } from '@/lib/db';
 import { deleteKeywordRule, listKeywordRules, reorderKeywordRules, upsertKeywordRule, type KeywordRule } from '@/lib/keywords';
+import { supabase } from '@/lib/supabase';
 
 const MAX_DRAFTS = 3;
 const MAX_KEYWORD_LEN = 30;
@@ -16,6 +17,7 @@ type FormState = {
   reply_mode: 'text' | 'draft';
   reply_text: string;
   draft_ids: string[];
+  tag_ids: string[];
   is_enabled: boolean;
 };
 
@@ -27,8 +29,11 @@ const emptyForm: FormState = {
   reply_mode: 'draft',
   reply_text: '',
   draft_ids: [],
+  tag_ids: [],
   is_enabled: true,
 };
+
+type TagOption = { id: string; name: string; color: string };
 
 export default function Keywords() {
   const [drafts, setDrafts] = useState<any[]>([]);
@@ -42,9 +47,11 @@ export default function Keywords() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [allTags, setAllTags] = useState<TagOption[]>([]);
 
   const load = async () => {
-    const [docRows, ruleRows] = await Promise.all([listDocs(), listKeywordRules()]);
+    const [docRows, ruleRows, tagResult] = await Promise.all([listDocs(), listKeywordRules(), supabase.rpc("list_tags_with_count")]);
+    setAllTags((tagResult.data || []).map((t: any) => ({ id: t.id, name: t.name, color: t.color })));
     setDrafts(docRows.filter((r: any) => r.content?.type !== 'folder'));
     setRows(ruleRows);
   };
@@ -78,6 +85,7 @@ export default function Keywords() {
       reply_mode: row.reply_mode,
       reply_text: row.reply_text || '',
       draft_ids: existingIds,
+      tag_ids: (row as any).tag_ids || [],
       is_enabled: row.is_enabled,
     });
     setAddingDraftId('');
@@ -438,6 +446,42 @@ export default function Keywords() {
 
                 {form.draft_ids.length === 0 && (
                   <p className="text-xs text-[#AAAAAA]">請選擇草稿後點選「新增」</p>
+                )}
+              </div>
+
+              {/* Auto-tag section */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-[#555555] mb-2">觸發時自動貼標</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {form.tag_ids.map(tagId => {
+                    const tag = allTags.find(t => t.id === tagId);
+                    if (!tag) return null;
+                    return (
+                      <span key={tagId} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FAF8F8] border border-[#E7C9CD]">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: tag.color }} />
+                        {tag.name}
+                        <button type="button" onClick={() => setForm({ ...form, tag_ids: form.tag_ids.filter(id => id !== tagId) })} className="text-[#AAAAAA] hover:text-red-500 ml-0.5">
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {allTags.filter(t => !form.tag_ids.includes(t.id)).map(tag => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => setForm({ ...form, tag_ids: [...form.tag_ids, tag.id] })}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-[#6B6B6B] border border-dashed border-[#D0D0D0] hover:border-[#A35D5D] hover:bg-[#FBEBEE] transition-colors"
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                      + {tag.name}
+                    </button>
+                  ))}
+                </div>
+                {form.tag_ids.length === 0 && (
+                  <p className="text-xs text-[#AAAAAA] mt-1.5">選擇標籤後，觸發此關鍵字的用戶會自動被貼上標籤</p>
                 )}
               </div>
 

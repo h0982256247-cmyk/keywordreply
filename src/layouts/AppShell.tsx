@@ -30,6 +30,11 @@ const IconSettings = () => (
     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
   </svg>
 );
+const IconTag = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+  </svg>
+);
 const IconLogout = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
@@ -42,6 +47,7 @@ const items = [
   { to: '/rich-menus', label: '圖文選單',  desc: '設計多層互動圖文選單', icon: <IconPanel /> },
   { to: '/campaigns', label: '推播設定',   desc: '排程與群發推播訊息',   icon: <IconSend /> },
   { to: '/keywords',  label: '自動回應訊息', desc: '設定關鍵字觸發規則', icon: <IconBot /> },
+  { to: '/tags',      label: '標籤管理',    desc: '自動貼標與分眾管理', icon: <IconTag /> },
 ];
 
 // ── Page meta (for header) ─────────────────────────────────────────────────────
@@ -50,6 +56,7 @@ function usePageMeta(pathname: string) {
   if (pathname.startsWith('/rich-menus'))  return { label: '圖文選單',     desc: '設計多層互動圖文選單，支援熱區切換與動作設定', icon: <IconPanel /> };
   if (pathname.startsWith('/campaigns'))   return { label: '推播設定',     desc: '排程與群發推播訊息，精準觸及你的用戶',       icon: <IconSend /> };
   if (pathname.startsWith('/keywords'))    return { label: '自動回應訊息', desc: '設定關鍵字觸發規則，讓機器人自動回應',       icon: <IconBot /> };
+  if (pathname.startsWith('/tags'))        return { label: '標籤管理',     desc: '建立標籤、自動貼標，精準分眾你的用戶',       icon: <IconTag /> };
   return { label: 'LINE 設定', desc: '連結 LINE Channel，設定 Webhook 與 Token', icon: <IconSettings /> };
 }
 

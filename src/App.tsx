@@ -10,6 +10,7 @@ import Share from "@/pages/Share";
 import AppShell from "@/layouts/AppShell";
 import Campaigns from "@/pages/Campaigns";
 import Keywords from "@/pages/Keywords";
+import Tags from "@/pages/Tags";
 import Settings from "@/pages/Settings";
 import RichMenus from "@/pages/RichMenus";
 import RichMenuEditor from "@/pages/RichMenuEditor";
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="rich-menus/:id/edit" element={<RichMenuEditor />} />
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="keywords" element={<Keywords />} />
+        <Route path="tags" element={<Tags />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="/share" element={<Share />} />

@@ -13,6 +13,7 @@ export type KeywordRule = {
   reply_text: string | null;
   draft_id: string | null;
   draft_ids?: string[] | null;
+  tag_ids?: string[] | null;
   is_enabled: boolean;
   created_at: string;
   updated_at: string;

@@ -16,6 +16,7 @@ type FormState = {
   reply_mode: 'text' | 'draft';
   reply_text: string;
   draft_ids: string[];
+  tag_ids: string[];
   is_enabled: boolean;
 };
 
@@ -27,8 +28,18 @@ const emptyForm: FormState = {
   reply_mode: 'draft',
   reply_text: '',
   draft_ids: [],
+  tag_ids: [],
   is_enabled: true,
 };
+
+// Mock tags — TODO: replace with Supabase RPC
+const MOCK_TAGS = [
+  { id: "1", name: "訂房意向", color: "#E57373" },
+  { id: "2", name: "新客戶", color: "#FFB74D" },
+  { id: "3", name: "VIP", color: "#81C784" },
+  { id: "4", name: "已購買", color: "#64B5F6" },
+  { id: "5", name: "活動參與", color: "#BA68C8" },
+];
 
 export default function Keywords() {
   const [drafts, setDrafts] = useState<any[]>([]);
@@ -78,6 +89,7 @@ export default function Keywords() {
       reply_mode: row.reply_mode,
       reply_text: row.reply_text || '',
       draft_ids: existingIds,
+      tag_ids: (row as any).tag_ids || [],
       is_enabled: row.is_enabled,
     });
     setAddingDraftId('');
@@ -438,6 +450,42 @@ export default function Keywords() {
 
                 {form.draft_ids.length === 0 && (
                   <p className="text-xs text-[#AAAAAA]">請選擇草稿後點選「新增」</p>
+                )}
+              </div>
+
+              {/* Auto-tag section */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-[#555555] mb-2">觸發時自動貼標</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {form.tag_ids.map(tagId => {
+                    const tag = MOCK_TAGS.find(t => t.id === tagId);
+                    if (!tag) return null;
+                    return (
+                      <span key={tagId} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#FAF8F8] border border-[#E7C9CD]">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: tag.color }} />
+                        {tag.name}
+                        <button type="button" onClick={() => setForm({ ...form, tag_ids: form.tag_ids.filter(id => id !== tagId) })} className="text-[#AAAAAA] hover:text-red-500 ml-0.5">
+                          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {MOCK_TAGS.filter(t => !form.tag_ids.includes(t.id)).map(tag => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => setForm({ ...form, tag_ids: [...form.tag_ids, tag.id] })}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs text-[#6B6B6B] border border-dashed border-[#D0D0D0] hover:border-[#A35D5D] hover:bg-[#FBEBEE] transition-colors"
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                      + {tag.name}
+                    </button>
+                  ))}
+                </div>
+                {form.tag_ids.length === 0 && (
+                  <p className="text-xs text-[#AAAAAA] mt-1.5">選擇標籤後，觸發此關鍵字的用戶會自動被貼上標籤</p>
                 )}
               </div>
 

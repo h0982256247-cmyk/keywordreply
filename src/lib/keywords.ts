@@ -62,6 +62,7 @@ export async function upsertKeywordRule(payload: Partial<KeywordRule> & { keywor
     reply_text: payload.reply_mode === 'text' ? (payload.reply_text || '') : null,
     draft_id: primaryDraftId,
     draft_ids: payload.reply_mode === 'draft' ? draftIds : null,
+    tag_ids: (payload as any).tag_ids || [],
     is_enabled: payload.is_enabled ?? true,
   };
 

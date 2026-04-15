@@ -150,11 +150,10 @@ export default function Tags() {
                 <span className="text-xs text-[#CCCCCC]">{new Date(tag.created_at).toLocaleDateString("zh-TW")}</span>
               </div>
 
-              {/* Source breakdown (placeholder) */}
+              {/* Source breakdown */}
               <div className="mt-3 pt-3 border-t border-[#F0E3E5]">
                 <div className="flex gap-2 text-xs text-[#AAAAAA]">
                   <span className="px-2 py-0.5 bg-[#FBEBEE] text-[#A35D5D] rounded-full">關鍵字</span>
-                  <span className="px-2 py-0.5 bg-[#F0F7FF] text-[#4A90D9] rounded-full">圖文選單</span>
                 </div>
               </div>
             </div>

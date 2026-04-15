@@ -368,13 +368,7 @@ function AreaSettings({
 
       <div>
         <label className="block text-xs font-medium text-[#6B6B6B] mb-1">動作類型</label>
-        <select
-          value={area.action.type}
-          onChange={e => update({ type: e.target.value as any })}
-          className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
-        >
-          {ACTION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-        </select>
+        <GlassSelect value={area.action.type} onChange={(val) => update({ type: val as any })} options={ACTION_TYPES.map(t => ({ value: t.value, label: t.label }))} />
       </div>
 
       <div>
@@ -414,14 +408,7 @@ function AreaSettings({
       {area.action.type === "richmenuswitch" && (
         <div>
           <label className="block text-xs font-medium text-[#6B6B6B] mb-1">切換到選單</label>
-          <select
-            value={area.action.richMenuAliasId || ""}
-            onChange={e => update({ richMenuAliasId: e.target.value })}
-            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#A35D5D]"
-          >
-            <option value="">— 選擇選單 —</option>
-            {allMenus.map(m => <option key={m.aliasId} value={m.aliasId}>{m.name}</option>)}
-          </select>
+          <GlassSelect value={area.action.richMenuAliasId || ""} onChange={(val) => update({ richMenuAliasId: val })} options={[{value:"",label:"— 選擇選單 —"},...allMenus.map(m => ({ value: m.aliasId, label: m.name }))]} />
         </div>
       )}
 

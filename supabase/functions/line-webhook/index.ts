@@ -229,7 +229,8 @@ serve(async (req) => {
           const quickReply = compileQuickReply(docRow.content?.quickReply);
 
           if (docRow.content.type === "imagemap") {
-            const baseUrl = `${supabaseUrl}/functions/v1/serve-imagemap/${draftId}`;
+            const imageVersion = docRow.content.imageVersion ?? 0;
+            const baseUrl = `${supabaseUrl}/functions/v1/serve-imagemap/${draftId}/${imageVersion}`;
             const areas = (docRow.content.areas || []).map((area: any) => ({
               type: area.action?.type === "uri" ? "uri" : "message",
               area: {

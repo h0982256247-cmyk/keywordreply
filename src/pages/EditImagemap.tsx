@@ -227,7 +227,7 @@ export default function EditImagemap() {
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from("flex-assets").getPublicUrl(path);
       setImgLoaded(false);
-      const updated = { ...doc!, imageUrl: publicUrl };
+      const updated = { ...doc!, imageUrl: publicUrl, imageVersion: ((doc!.imageVersion as number) || 0) + 1 };
       updateDoc(updated);
     } catch (e: any) {
       setSaveMsg("❌ 上傳失敗：" + e.message);

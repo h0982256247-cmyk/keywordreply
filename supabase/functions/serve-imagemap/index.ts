@@ -5,8 +5,10 @@ serve(async (req) => {
   // Path format: /functions/v1/serve-imagemap/{docId}/{width}
   const url = new URL(req.url);
   const parts = url.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
-  // parts = ["functions", "v1", "serve-imagemap", "{docId}", "{width}"]
-  const docId = parts[parts.length - 2];
+  // New format: ["functions", "v1", "serve-imagemap", "{docId}", "{version}", "{width}"]
+  // Old format: ["functions", "v1", "serve-imagemap", "{docId}", "{width}"]
+  const isNewFormat = /^\d+$/.test(parts[parts.length - 2]);
+  const docId = isNewFormat ? parts[parts.length - 3] : parts[parts.length - 2];
   const widthStr = parts[parts.length - 1];
 
   if (!docId || !widthStr) {

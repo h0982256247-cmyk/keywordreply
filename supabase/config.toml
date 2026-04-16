@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.execute-scheduled-campaigns]
 verify_jwt = false
+
+[functions.line-webhook]
+verify_jwt = false
+
+[functions.serve-imagemap]
+verify_jwt = false

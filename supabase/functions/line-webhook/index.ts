@@ -86,17 +86,32 @@ function sectionToBubble(section: any, bubbleSize: string) {
   if (bodyContents.length > 0) {
     bubble.body = { type: "box", layout: "vertical", spacing: "md", contents: bodyContents, backgroundColor: section.styles?.body?.backgroundColor, paddingAll: "20px" };
   }
-  const buttons = (section.footer || []).filter((x: any) => x.enabled).slice(0, 3);
+  const buttons = (section.footer || []).filter((x: any) => x.enabled).slice(0, 4);
   if (buttons.length) {
-    bubble.footer = {
-      type: "box", layout: "vertical", spacing: "sm",
-      contents: buttons.map((b: any) => ({
-        type: "box", layout: "vertical", justifyContent: "center", alignItems: "center", cornerRadius: "md", paddingAll: "10px",
+    function makeBtn(b: any, paired = false) {
+      const box: any = {
+        type: "box", layout: "vertical", justifyContent: "center", alignItems: "center",
+        cornerRadius: "md", paddingAll: "10px",
         backgroundColor: b.bgColor || "#0A84FF",
         action: actionToFlex(b.action),
-        contents: [{ type: "text", text: b.label || "按鈕", color: b.textColor || "#FFFFFF", align: "center", weight: "bold" }],
-      })),
-    };
+        contents: [{ type: "text", text: b.label || "按鈕", color: b.textColor || "#FFFFFF", align: "center", weight: "bold", wrap: false, maxLines: 1 }],
+      };
+      if (paired) { box.flex = 1; box.height = "44px"; }
+      return box;
+    }
+    const footerContents: any[] = [];
+    let i = 0;
+    while (i < buttons.length) {
+      const b = buttons[i];
+      if (b.width === "half" && i + 1 < buttons.length && buttons[i + 1].width === "half") {
+        footerContents.push({ type: "box", layout: "horizontal", spacing: "sm", contents: [makeBtn(b, true), makeBtn(buttons[i + 1], true)] });
+        i += 2;
+      } else {
+        footerContents.push(makeBtn(b));
+        i += 1;
+      }
+    }
+    bubble.footer = { type: "box", layout: "vertical", spacing: "sm", contents: footerContents };
   }
   return bubble;
 }
